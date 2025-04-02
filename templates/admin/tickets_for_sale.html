@@ -23,8 +23,14 @@
             <tbody>
                 {% for ticket in tickets %}
                 <tr>
-                    <td>{{ ticket.event.title }}</td>
-                    <td>{{ ticket.ticket_type }}</td>
+                    <td>{{ ticket.event_name }}</td>
+                    <td>
+                        {% if ticket.ticket_type == 'electronic' %}
+                            Электронный
+                        {% else %}
+                            Физический
+                        {% endif %}
+                    </td>
                     <td>
                         {% if ticket.section %}
                             Секция {{ ticket.section }}, 
@@ -34,12 +40,19 @@
                             -
                         {% endif %}
                     </td>
-                    <td>{{ ticket.selling_price }}</td>
+                    <td>{{ ticket.selling_price|round|int }} ₽</td>
                     <td>{{ ticket.contact_info }}</td>
                     <td>{{ ticket.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
                     <td>
-                        <button class="btn btn-sm btn-success">Одобрить</button>
-                        <button class="btn btn-sm btn-danger">Отклонить</button>
+                        <form method="post" action="{{ url_for('admin.toggle_ticket_sold', ticket_id=ticket.id) }}" class="d-inline">
+                            <button type="submit" class="btn btn-sm {% if ticket.is_sold %}btn-warning{% else %}btn-success{% endif %}">
+                                {% if ticket.is_sold %}
+                                    Снять с продажи
+                                {% else %}
+                                    Отметить как проданный
+                                {% endif %}
+                            </button>
+                        </form>
                     </td>
                 </tr>
                 {% else %}

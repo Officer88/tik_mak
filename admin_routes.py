@@ -581,11 +581,20 @@ def contacts():
 @login_required
 @admin_required
 def tickets_for_sale():
-    tickets = db.session.query(TicketForSale, Event)\
-        .join(Event, TicketForSale.event_id == Event.id)\
-        .filter(TicketForSale.is_sold == False)\
-        .order_by(TicketForSale.created_at.desc()).all()
+    tickets = TicketForSale.query.order_by(TicketForSale.created_at.desc()).all()
     return render_template('admin/tickets_for_sale.html', tickets=tickets)
+
+@admin_bp.route('/tickets-for-sale/toggle/<int:ticket_id>', methods=['POST'])
+@login_required
+@admin_required
+def toggle_ticket_sold(ticket_id):
+    ticket = TicketForSale.query.get_or_404(ticket_id)
+    ticket.is_sold = not ticket.is_sold
+    db.session.commit()
+    
+    status = 'продан' if ticket.is_sold else 'доступен для продажи'
+    flash(f'Статус билета изменен на "{status}"', 'success')
+    return redirect(url_for('admin.tickets_for_sale'))
 
 # Notifications management
 @admin_bp.route('/notifications')

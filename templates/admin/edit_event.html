@@ -45,7 +45,10 @@
         <div class="row">
             <div class="col-md-6 mb-3">
                 <label for="date" class="form-label">Дата и время</label>
-                <input type="datetime-local" class="form-control" id="date" name="date" value="{{ event.date.strftime('%Y-%m-%dT%H:%M') if event else '' }}" required>
+                <div class="input-group">
+                    {{ form.date(class="form-control", placeholder="ДД.ММ.ГГГГ ЧЧ:ММ") }}
+                    <span class="input-group-text"><i class="far fa-calendar-alt"></i></span>
+                </div>
                 {% if form.date.errors %}
                 <div class="invalid-feedback d-block">
                     {% for error in form.date.errors %}
@@ -53,11 +56,15 @@
                     {% endfor %}
                 </div>
                 {% endif %}
+                <div class="form-text">Формат: 01.01.2025 19:30</div>
             </div>
             
             <div class="col-md-6 mb-3">
                 <label for="end_date" class="form-label">Дата и время окончания</label>
-                {{ form.end_date(class="form-control", type="datetime-local") }}
+                <div class="input-group">
+                    {{ form.end_date(class="form-control", placeholder="ДД.ММ.ГГГГ ЧЧ:ММ") }}
+                    <span class="input-group-text"><i class="far fa-calendar-alt"></i></span>
+                </div>
                 {% if form.end_date.errors %}
                 <div class="invalid-feedback d-block">
                     {% for error in form.end_date.errors %}
@@ -65,7 +72,7 @@
                     {% endfor %}
                 </div>
                 {% endif %}
-                <div class="form-text">Необязательно. Для многодневных мероприятий.</div>
+                <div class="form-text">Необязательно. Для многодневных мероприятий. Формат: 01.01.2025 19:30</div>
             </div>
         </div>
         
@@ -160,6 +167,28 @@
             </div>
         </div>
         
+        <h4 class="mt-4 mb-3">Способы доставки</h4>
+        
+        <div class="mb-4">
+            <label class="form-label">Выберите доступные способы доставки</label>
+            <div class="delivery-methods-container">
+                {% for option in form.delivery_methods %}
+                <div class="form-check mb-2">
+                    {{ option(class="form-check-input") }}
+                    <label class="form-check-label" for="{{ option.id }}">{{ option.label.text }}</label>
+                </div>
+                {% endfor %}
+            </div>
+            {% if form.delivery_methods.errors %}
+            <div class="invalid-feedback d-block">
+                {% for error in form.delivery_methods.errors %}
+                {{ error }}
+                {% endfor %}
+            </div>
+            {% endif %}
+            <div class="form-text">Выберите один или несколько способов доставки билетов.</div>
+        </div>
+
         <h4 class="mt-4 mb-3">SEO настройки</h4>
         
         <div class="mb-3">
