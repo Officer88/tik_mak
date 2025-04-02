@@ -578,23 +578,22 @@ def notifications():
 
 @admin_bp.route('/notification-settings', methods=['GET', 'POST'])
 @login_required
-@admin_required
 def notification_settings():
-    settings = NotificationSetting.query.filter_by(admin_id=current_user.id).first()
+    settings = NotificationSetting.query.filter_by(user_id=current_user.id).first()
     form = NotificationSettingForm()
     
     if form.validate_on_submit():
         if not settings:
-            settings = NotificationSetting(admin_id=current_user.id)
+            settings = NotificationSetting(user_id=current_user.id)
             db.session.add(settings)
         
         settings.email_enabled = form.email_enabled.data
         db.session.commit()
         
         flash('Настройки уведомлений сохранены', 'success')
-        return redirect(url_for('admin.notification_settings'))
+        return redirect(url_for('main.profile'))
         
     elif request.method == 'GET' and settings:
         form.email_enabled.data = settings.email_enabled
     
-    return render_template('admin/notification_settings.html', form=form)
+    return render_template('profile/notification_settings.html', form=form)

@@ -457,15 +457,6 @@ def sell_ticket():
         # Если есть event_id, используем его, иначе создаем заявку без привязки к конкретному событию
         submitted_event_id = form.event_id.data if form.event_id.data else None
         
-        # Найти событие по названию, если event_id не указан
-        if not submitted_event_id:
-            event = Event.query.filter(Event.title.ilike(f"%{form.event_name.data}%")).first()
-            if event:
-                submitted_event_id = event.id
-            else:
-                flash('Мероприятие не найдено', 'error')
-                return redirect(url_for('main.sell_ticket'))
-                
         ticket = TicketForSale(
             user_id=user_id if user_id else None,
             event_id=submitted_event_id,
