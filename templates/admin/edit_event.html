@@ -172,12 +172,17 @@
         <div class="mb-4">
             <label class="form-label">Выберите доступные способы доставки</label>
             <div class="delivery-methods-container">
+                <div class="row">
                 {% for option in form.delivery_methods %}
-                <div class="form-check mb-2">
-                    {{ option(class="form-check-input") }}
-                    <label class="form-check-label" for="{{ option.id }}">{{ option.label.text }}</label>
-                </div>
+                    <div class="col-md-6 mb-2">
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="delivery_{{ loop.index }}" name="delivery_methods" value="{{ option.data }}" 
+                            {% if event and option.data in event.delivery_methods.split(',') %}checked{% endif %}>
+                            <label class="form-check-label" for="delivery_{{ loop.index }}">{{ option.label.text }}</label>
+                        </div>
+                    </div>
                 {% endfor %}
+                </div>
             </div>
             {% if form.delivery_methods.errors %}
             <div class="invalid-feedback d-block">

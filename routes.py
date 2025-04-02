@@ -17,9 +17,6 @@ def reviews():
     form = ReviewForm() if current_user.is_authenticated else None
     return render_template('reviews.html', reviews=reviews, form=form)
 
-# Create blueprint
-main_bp = Blueprint('main', __name__)
-
 # Generate or get session ID for anonymous users
 def get_cart_session_id():
     if 'cart_session_id' not in session:

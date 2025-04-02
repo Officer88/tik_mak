@@ -92,6 +92,10 @@ def add_event():
                 flash(f'Ошибка обработки изображения: {str(e)}', 'error')
                 image_url = form.image_url.data
         
+        # Соберем список методов доставки
+        delivery_methods = request.form.getlist('delivery_methods')
+        delivery_methods_str = ','.join(delivery_methods) if delivery_methods else 'email'
+        
         event = Event(
             title=form.title.data,
             description=form.description.data,
@@ -108,7 +112,8 @@ def add_event():
             is_featured=form.is_featured.data,
             is_active=form.is_active.data,
             seo_title=form.seo_title.data,
-            seo_description=form.seo_description.data
+            seo_description=form.seo_description.data,
+            delivery_methods=delivery_methods_str
         )
         
         db.session.add(event)
@@ -148,6 +153,10 @@ def edit_event(event_id):
         form.seo_description.data = event.seo_description
     
     if form.validate_on_submit():
+        # Соберем список методов доставки
+        delivery_methods = request.form.getlist('delivery_methods')
+        delivery_methods_str = ','.join(delivery_methods) if delivery_methods else 'email'
+        
         # Update event data
         event.title = form.title.data
         event.description = form.description.data
@@ -161,6 +170,7 @@ def edit_event(event_id):
         event.is_active = form.is_active.data
         event.seo_title = form.seo_title.data
         event.seo_description = form.seo_description.data
+        event.delivery_methods = delivery_methods_str
         
         db.session.commit()
         
