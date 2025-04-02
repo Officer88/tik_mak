@@ -70,9 +70,9 @@ class ReviewForm(FlaskForm):
 # Admin Event Form
 class EventForm(FlaskForm):
     title = StringField('Название', validators=[DataRequired(), Length(max=128)])
-    description = TextAreaField('Описание', validators=[DataRequired()])
+    description = TextAreaField('Описание', validators=[Optional()])
     image_url = StringField('URL изображения', validators=[DataRequired(), Length(max=256)])
-    date = DateTimeField('Дата и время', format='%Y-%m-%d %H:%M', validators=[DataRequired()])
+    date = DateTimeField('Дата и время', format='%d/%m/%Y %H:%M', validators=[DataRequired()])
     end_date = DateTimeField('Дата и время окончания', format='%Y-%m-%d %H:%M', validators=[Optional()])
     category_id = SelectField('Категория', coerce=int, validators=[DataRequired()])
     venue_type = RadioField('Тип площадки', choices=[

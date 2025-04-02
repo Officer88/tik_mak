@@ -45,7 +45,7 @@
         <div class="row">
             <div class="col-md-6 mb-3">
                 <label for="date" class="form-label">Дата и время</label>
-                {{ form.date(class="form-control", type="datetime-local") }}
+                {{ form.date(class="form-control", type="datetime-local", step="60") }}
                 {% if form.date.errors %}
                 <div class="invalid-feedback d-block">
                     {% for error in form.date.errors %}
