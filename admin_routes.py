@@ -560,3 +560,41 @@ def contacts():
         return redirect(url_for('admin.contacts'))
     
     return render_template('admin/contacts.html', form=form)
+# Tickets for sale management
+@admin_bp.route('/tickets-for-sale')
+@login_required
+@admin_required
+def tickets_for_sale():
+    tickets = TicketForSale.query.filter_by(is_sold=False).order_by(TicketForSale.created_at.desc()).all()
+    return render_template('admin/tickets_for_sale.html', tickets=tickets)
+
+# Notifications management
+@admin_bp.route('/notifications')
+@login_required
+@admin_required
+def notifications():
+    notifications = Notification.query.order_by(Notification.created_at.desc()).all()
+    return render_template('admin/notifications.html', notifications=notifications)
+
+@admin_bp.route('/notification-settings', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def notification_settings():
+    settings = NotificationSetting.query.filter_by(admin_id=current_user.id).first()
+    form = NotificationSettingForm()
+    
+    if form.validate_on_submit():
+        if not settings:
+            settings = NotificationSetting(admin_id=current_user.id)
+            db.session.add(settings)
+        
+        settings.email_enabled = form.email_enabled.data
+        db.session.commit()
+        
+        flash('Настройки уведомлений сохранены', 'success')
+        return redirect(url_for('admin.notification_settings'))
+        
+    elif request.method == 'GET' and settings:
+        form.email_enabled.data = settings.email_enabled
+    
+    return render_template('admin/notification_settings.html', form=form)

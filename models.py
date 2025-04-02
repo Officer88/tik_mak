@@ -223,3 +223,22 @@ class Contact(db.Model):
     
     def __repr__(self):
         return f'<Contact {self.email}>'
+class NotificationSetting(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    type = db.Column(db.String(64), nullable=False)  # ticket_offered, ticket_sold, etc
+    admin_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    email_enabled = db.Column(db.Boolean, default=True)
+    
+    def __repr__(self):
+        return f'<NotificationSetting {self.type} for Admin {self.admin_id}>'
+
+class Notification(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    type = db.Column(db.String(64), nullable=False)
+    message = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    is_read = db.Column(db.Boolean, default=False)
+    related_id = db.Column(db.Integer, nullable=True)  # ID связанной сущности
+    
+    def __repr__(self):
+        return f'<Notification {self.type}: {self.message[:30]}...>'

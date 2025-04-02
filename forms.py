@@ -159,3 +159,9 @@ class SellTicketForm(FlaskForm):
     selling_price = FloatField('Желаемая цена продажи', validators=[DataRequired(), NumberRange(min=0)])
     contact_info = StringField('Контактные данные', validators=[DataRequired(), Length(max=256)])
     submit = SubmitField('Отправить билет на рассмотрение')
+class NotificationSettingForm(FlaskForm):
+    ticket_offered = BooleanField('Предложен билет')
+    ticket_sold = BooleanField('Продан билет')
+    new_review = BooleanField('Новый отзыв')
+    email_enabled = BooleanField('Отправлять на email')
+    submit = SubmitField('Сохранить')

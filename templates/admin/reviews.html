@@ -22,25 +22,27 @@
             </li>
         </ul>
     </div>
-    
+
     <div class="tab-content">
         <div class="tab-pane fade show active" id="all">
             {% include 'admin/includes/reviews_table.html' with context %}
         </div>
         <div class="tab-pane fade" id="pending">
             {% with filtered_reviews = reviews|selectattr('is_approved', 'equalto', false)|list %}
-                {% if filtered_reviews %}
-                    {% include 'admin/includes/reviews_table.html' with reviews=filtered_reviews, context=True %}
-                {% else %}
+                {% with reviews=filtered_reviews %}
+                {% include 'admin/includes/reviews_table.html' %}
+            {% endwith %}
+                {% if not filtered_reviews %}
                     <div class="alert alert-info">Нет отзывов ожидающих проверки.</div>
                 {% endif %}
             {% endwith %}
         </div>
         <div class="tab-pane fade" id="approved">
             {% with filtered_reviews = reviews|selectattr('is_approved', 'equalto', true)|list %}
-                {% if filtered_reviews %}
-                    {% include 'admin/includes/reviews_table.html' with reviews=filtered_reviews, context=True %}
-                {% else %}
+                {% with reviews=filtered_reviews %}
+                {% include 'admin/includes/reviews_table.html' %}
+            {% endwith %}
+                {% if not filtered_reviews %}
                     <div class="alert alert-info">Нет одобренных отзывов.</div>
                 {% endif %}
             {% endwith %}
