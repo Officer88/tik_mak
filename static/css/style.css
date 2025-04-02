@@ -565,10 +565,14 @@ body {
 }
 
 .admin-sidebar .nav-link {
-    color: var(--white);
+    color: var(--white) !important;
     padding: 0.75rem 1.25rem;
     margin-bottom: 0.5rem;
     border-radius: 0;
+    display: flex;
+    align-items: center;
+    opacity: 1;
+    visibility: visible;
 }
 
 .admin-sidebar .nav-link:hover,
