@@ -25,6 +25,10 @@ def login():
         
         login_user(user, remember=form.remember_me.data)
         
+        # Redirect admins to admin dashboard
+        if user.is_admin:
+            return redirect(url_for('admin.dashboard'))
+            
         # Redirect to requested page or home
         next_page = request.args.get('next')
         if not next_page or not next_page.startswith('/'):
