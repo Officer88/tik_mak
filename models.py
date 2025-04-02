@@ -158,7 +158,6 @@ class Review(db.Model):
     event_id = db.Column(db.Integer, db.ForeignKey('event.id'), nullable=False)
     rating = db.Column(db.Integer, nullable=False)  # 1-5 stars
     content = db.Column(db.Text, nullable=False)
-    photo_url = db.Column(db.String(256), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     is_approved = db.Column(db.Boolean, default=False)
     
@@ -226,8 +225,7 @@ class Contact(db.Model):
         return f'<Contact {self.email}>'
 class NotificationSetting(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    type = db.Column(db.String(64), nullable=False)  # ticket_offered, ticket_sold, etc
-    admin_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     email_enabled = db.Column(db.Boolean, default=True)
     
     def __repr__(self):
