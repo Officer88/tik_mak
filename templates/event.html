@@ -228,7 +228,7 @@
                     </div>
                     <div>
                         <strong>Место проведения</strong><br>
-                        {{ venue.name }}<br>
+                        <a href="{{ url_for('main.venue_detail', venue_id=venue.id) }}" class="venue-link">{{ venue.name }}</a><br>
                         {{ venue.address }}, {{ venue.city }}
                     </div>
                 </div>

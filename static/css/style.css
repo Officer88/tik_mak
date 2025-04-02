@@ -223,6 +223,17 @@ body {
     margin-bottom: 0.75rem;
 }
 
+.venue-link {
+    color: var(--dark-gray);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.venue-link:hover {
+    color: var(--red);
+    text-decoration: underline;
+}
+
 .event-price {
     font-weight: 700;
     color: var(--red);

@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ venue.name }} - Площадка | MAGIK TIKET{% endblock %}
+
+{% block meta_description %}
+<meta name="description" content="Информация о площадке {{ venue.name }}. Адрес: {{ venue.address }}. Предстоящие мероприятия, схема зала, условия для посетителей.">
+{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <!-- Шапка площадки -->
+    <div class="row mb-4">
+        <div class="col-md-3 text-center">
+            {% if venue.logo_url %}
+            <img src="{{ venue.logo_url }}" alt="{{ venue.name }}" class="img-fluid mb-3" style="max-height: 180px;">
+            {% endif %}
+        </div>
+        <div class="col-md-9">
+            <h1 class="display-5">{{ venue.name }}</h1>
+            <p class="lead"><i class="fas fa-map-marker-alt text-danger"></i> {{ venue.address }}, {{ venue.city }}</p>
+            
+            {% if venue.description %}
+            <div class="mt-3">
+                <p>{{ venue.description }}</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Схема площадки (если есть) -->
+    {% if venue.scheme_url %}
+    <div class="row my-4">
+        <div class="col-12">
+            <h2 class="mb-3">Схема площадки</h2>
+            
+            <div class="text-center position-relative venue-scheme">
+                <img src="{{ venue.scheme_url }}" alt="Схема {{ venue.name }}" class="img-fluid scheme-img">
+                
+                <!-- Модальное окно для увеличения изображения -->
+                <div class="modal fade" id="schemeModal" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-xl">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Схема площадки {{ venue.name }}</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body text-center">
+                                <img src="{{ venue.scheme_url }}" alt="Схема {{ venue.name }}" class="img-fluid">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Кнопка для увеличения схемы -->
+                <button class="btn btn-light position-absolute bottom-0 end-0 m-3" data-bs-toggle="modal" data-bs-target="#schemeModal">
+                    <i class="fas fa-search-plus"></i> Увеличить
+                </button>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Предстоящие мероприятия на этой площадке -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <h2 class="mb-4">События площадки</h2>
+            
+            {% if events %}
+            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+                {% for event in events %}
+                <div class="col">
+                    {% include 'includes/event_card.html' %}
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="alert alert-info">
+                На данный момент нет предстоящих мероприятий на этой площадке.
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.venue-scheme {
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    overflow: hidden;
+    box-shadow: 0 0 15px rgba(0,0,0,0.1);
+}
+.scheme-img {
+    max-height: 500px;
+    object-fit: contain;
+}
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // При нажатии на изображение схемы, открывать модальное окно
+        document.querySelector('.scheme-img')?.addEventListener('click', function() {
+            const modal = new bootstrap.Modal(document.getElementById('schemeModal'));
+            modal.show();
+        });
+    });
+</script>
+{% endblock %}

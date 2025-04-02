@@ -229,6 +229,20 @@ def remove_from_favorites(event_id):
     flash('Мероприятие удалено из избранного', 'success')
     return redirect(url_for('main.event_detail', event_id=event_id))
 
+# View venue details route
+@main_bp.route('/venue/<int:venue_id>')
+def venue_detail(venue_id):
+    venue = Venue.query.get_or_404(venue_id)
+    
+    # Получаем предстоящие мероприятия на этой площадке
+    events = Event.query.filter(
+        Event.venue_id == venue_id,
+        Event.date >= datetime.now(),
+        Event.is_active == True
+    ).order_by(Event.date).all()
+    
+    return render_template('venue.html', venue=venue, events=events)
+
 # View favorites route
 @main_bp.route('/favorites')
 def favorites():

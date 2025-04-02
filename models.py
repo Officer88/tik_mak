@@ -49,7 +49,10 @@ class Venue(db.Model):
     name = db.Column(db.String(128), nullable=False)
     address = db.Column(db.String(256), nullable=False)
     city = db.Column(db.String(64), nullable=False)
-    venue_map = db.Column(db.Text, nullable=True)  # Store the hall map as text/svg
+    venue_map = db.Column(db.Text, nullable=True)  # Карта зала как текст/SVG
+    logo_url = db.Column(db.String(256), nullable=True)  # URL логотипа площадки
+    scheme_url = db.Column(db.String(256), nullable=True)  # URL схемы площадки
+    description = db.Column(db.Text, nullable=True)  # Описание площадки
     
     # Relationships
     events = db.relationship('Event', backref='venue', lazy='dynamic')

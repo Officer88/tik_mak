@@ -8,7 +8,8 @@
     <div class="event-card-body">
         <h5 class="event-title">{{ event.title }}</h5>
         <div class="event-venue">
-            <i class="fas fa-map-marker-alt me-1"></i> {{ event.venue.name }}
+            <i class="fas fa-map-marker-alt me-1"></i>
+            <a href="{{ url_for('main.venue_detail', venue_id=event.venue.id) }}" class="venue-link">{{ event.venue.name }}</a>
         </div>
         <div class="event-time">
             <i class="far fa-clock me-1"></i> {{ event.date.strftime('%H:%M') }}

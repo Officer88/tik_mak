@@ -95,6 +95,9 @@ class VenueForm(FlaskForm):
     name = StringField('Название', validators=[DataRequired(), Length(max=128)])
     address = StringField('Адрес', validators=[DataRequired(), Length(max=256)])
     city = StringField('Город', validators=[DataRequired(), Length(max=64)])
+    description = TextAreaField('Описание площадки', validators=[Optional()])
+    logo_url = StringField('URL логотипа', validators=[Optional(), Length(max=256)])
+    scheme_url = StringField('URL схемы площадки', validators=[Optional(), Length(max=256)])
     venue_map = TextAreaField('Схема зала (SVG)', validators=[Optional()])
     submit = SubmitField('Сохранить')
 

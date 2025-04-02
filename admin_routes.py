@@ -259,6 +259,9 @@ def add_venue():
             name=form.name.data,
             address=form.address.data,
             city=form.city.data,
+            description=form.description.data,
+            logo_url=form.logo_url.data,
+            scheme_url=form.scheme_url.data,
             venue_map=form.venue_map.data
         )
         
@@ -282,6 +285,9 @@ def edit_venue(venue_id):
         form.name.data = venue.name
         form.address.data = venue.address
         form.city.data = venue.city
+        form.description.data = venue.description
+        form.logo_url.data = venue.logo_url
+        form.scheme_url.data = venue.scheme_url
         form.venue_map.data = venue.venue_map
     
     if form.validate_on_submit():
@@ -289,6 +295,9 @@ def edit_venue(venue_id):
         venue.name = form.name.data
         venue.address = form.address.data
         venue.city = form.city.data
+        venue.description = form.description.data
+        venue.logo_url = form.logo_url.data
+        venue.scheme_url = form.scheme_url.data
         venue.venue_map = form.venue_map.data
         
         db.session.commit()
