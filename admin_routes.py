@@ -3,7 +3,7 @@ from flask_login import current_user, login_required
 from datetime import datetime
 
 from app import db
-from models import User, Event, Category, Venue, Ticket, Review, Slide, Order, OrderItem, Contact
+from models import User, Event, Category, Venue, Ticket, Review, Slide, Order, OrderItem, Contact, Notification, TicketForSale, NotificationSetting
 from forms import EventForm, CategoryForm, VenueForm, TicketForm, SlideForm, ContactForm
 
 # Create blueprint
