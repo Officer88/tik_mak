@@ -442,29 +442,43 @@ def submit_review(event_id):
 def sell_ticket():
     form = SellTicketForm()
     
-    if form.validate_on_submit():
-        # Определяем user_id для билета
-        user_id = None
-        if current_user.is_authenticated:
-            user_id = current_user.id
-        
-        ticket = TicketForSale(
-            user_id=user_id if user_id else None,
-            event_name=form.event_name.data,
-            venue_name=form.venue_name.data,
-            ticket_type=form.ticket_type.data,
-            section=form.section.data,
-            row=form.row.data,
-            seat=form.seat.data,
-            original_price=form.original_price.data,
-            selling_price=form.selling_price.data,
-            contact_info=form.contact_info.data
-        )
-        db.session.add(ticket)
-        db.session.commit()
-        
-        flash('Ваш билет отправлен на рассмотрение!', 'success')
-        return redirect(url_for('main.index'))
+    if request.method == 'POST':
+        # Проверяем согласие с правилами
+        if not request.form.get('terms_agreement'):
+            flash('Необходимо согласиться с правилами сервиса', 'danger')
+            return render_template('sell_ticket.html', form=form)
+            
+        if form.validate_on_submit():
+            # Определяем user_id для билета
+            user_id = None
+            if current_user.is_authenticated:
+                user_id = current_user.id
+            
+            try:
+                ticket = TicketForSale(
+                    user_id=user_id,
+                    event_name=form.event_name.data,
+                    venue_name=form.venue_name.data,
+                    ticket_type=form.ticket_type.data,
+                    section=form.section.data,
+                    row=form.row.data,
+                    seat=form.seat.data,
+                    original_price=form.original_price.data,
+                    selling_price=form.selling_price.data,
+                    contact_info=form.contact_info.data
+                )
+                db.session.add(ticket)
+                db.session.commit()
+                
+                flash('Ваш билет отправлен на рассмотрение!', 'success')
+                return redirect(url_for('main.index'))
+            except Exception as e:
+                db.session.rollback()
+                import logging
+                logging.error(f"Ошибка при сохранении билета: {str(e)}")
+                flash('Произошла ошибка при отправке билета. Пожалуйста, попробуйте еще раз.', 'danger')
+        else:
+            flash('Пожалуйста, проверьте правильность заполнения формы', 'danger')
     
     return render_template('sell_ticket.html', form=form)
 

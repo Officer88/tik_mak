@@ -79,48 +79,56 @@ def add_event():
     # Populate venue select field
     form.venue_id.choices = [(v.id, v.name) for v in Venue.query.order_by(Venue.name).all()]
     
-    if form.validate_on_submit():
-        from image_utils import process_image
-        
-        # Process image if URL provided
-        image_url = form.image_url.data
-        if image_url:
-            try:
-                processed_image_path = process_image(image_url)
-                image_url = processed_image_path
-            except Exception as e:
-                flash(f'Ошибка обработки изображения: {str(e)}', 'error')
-                image_url = form.image_url.data
-        
-        # Соберем список методов доставки
-        delivery_methods = request.form.getlist('delivery_methods')
-        delivery_methods_str = ','.join(delivery_methods) if delivery_methods else 'email'
-        
-        event = Event(
-            title=form.title.data,
-            description=form.description.data,
-            image_url=image_url,
-            date=form.date.data,
-            end_date=form.end_date.data,
-            category_id=form.category_id.data,
-            base_price=form.base_price.data,
-            venue_id=form.venue_id.data if form.venue_type.data == 'existing' else None,
-            custom_venue_name=form.custom_venue_name.data if form.venue_type.data == 'custom' else None,
-            custom_venue_address=form.custom_venue_address.data if form.venue_type.data == 'custom' else None,
-            max_price=form.max_price.data,
-            is_popular=form.is_popular.data,
-            is_featured=form.is_featured.data,
-            is_active=form.is_active.data,
-            seo_title=form.seo_title.data,
-            seo_description=form.seo_description.data,
-            delivery_methods=delivery_methods_str
-        )
-        
-        db.session.add(event)
-        db.session.commit()
-        
-        flash('Мероприятие успешно добавлено', 'success')
-        return redirect(url_for('admin.events'))
+    if request.method == 'POST' and form.validate_on_submit():
+        try:
+            from image_utils import process_image
+            
+            # Process image if URL provided
+            image_url = form.image_url.data
+            if image_url:
+                try:
+                    processed_image_path = process_image(image_url)
+                    image_url = processed_image_path
+                except Exception as e:
+                    flash(f'Ошибка обработки изображения: {str(e)}', 'warning')
+                    image_url = form.image_url.data
+            
+            # Соберем список методов доставки
+            delivery_methods = request.form.getlist('delivery_methods')
+            delivery_methods_str = ','.join(delivery_methods) if delivery_methods else 'email'
+            
+            event = Event(
+                title=form.title.data,
+                description=form.description.data,
+                image_url=image_url,
+                date=form.date.data,
+                end_date=form.end_date.data,
+                category_id=form.category_id.data,
+                base_price=form.base_price.data,
+                venue_id=form.venue_id.data if form.venue_type.data == 'existing' else None,
+                custom_venue_name=form.custom_venue_name.data if form.venue_type.data == 'custom' else None,
+                custom_venue_address=form.custom_venue_address.data if form.venue_type.data == 'custom' else None,
+                max_price=form.max_price.data,
+                is_popular=form.is_popular.data,
+                is_featured=form.is_featured.data,
+                is_active=form.is_active.data,
+                seo_title=form.seo_title.data,
+                seo_description=form.seo_description.data,
+                delivery_methods=delivery_methods_str
+            )
+            
+            db.session.add(event)
+            db.session.commit()
+            
+            flash('Мероприятие успешно добавлено', 'success')
+            return redirect(url_for('admin.events'))
+        except Exception as e:
+            db.session.rollback()
+            import logging
+            logging.error(f"Ошибка при создании мероприятия: {str(e)}")
+            flash('Произошла ошибка при создании мероприятия. Пожалуйста, проверьте введенные данные.', 'danger')
+    elif request.method == 'POST':
+        flash('Пожалуйста, проверьте правильность заполнения формы', 'danger')
     
     return render_template('admin/edit_event.html', form=form, title='Добавить мероприятие')
 
@@ -152,30 +160,38 @@ def edit_event(event_id):
         form.seo_title.data = event.seo_title
         form.seo_description.data = event.seo_description
     
-    if form.validate_on_submit():
-        # Соберем список методов доставки
-        delivery_methods = request.form.getlist('delivery_methods')
-        delivery_methods_str = ','.join(delivery_methods) if delivery_methods else 'email'
-        
-        # Update event data
-        event.title = form.title.data
-        event.description = form.description.data
-        event.image_url = form.image_url.data
-        event.date = form.date.data
-        event.end_date = form.end_date.data
-        event.category_id = form.category_id.data
-        event.venue_id = form.venue_id.data
-        event.base_price = form.base_price.data
-        event.max_price = form.max_price.data
-        event.is_active = form.is_active.data
-        event.seo_title = form.seo_title.data
-        event.seo_description = form.seo_description.data
-        event.delivery_methods = delivery_methods_str
-        
-        db.session.commit()
-        
-        flash('Мероприятие успешно обновлено', 'success')
-        return redirect(url_for('admin.events'))
+    if request.method == 'POST' and form.validate_on_submit():
+        try:
+            # Соберем список методов доставки
+            delivery_methods = request.form.getlist('delivery_methods')
+            delivery_methods_str = ','.join(delivery_methods) if delivery_methods else 'email'
+            
+            # Update event data
+            event.title = form.title.data
+            event.description = form.description.data
+            event.image_url = form.image_url.data
+            event.date = form.date.data
+            event.end_date = form.end_date.data
+            event.category_id = form.category_id.data
+            event.venue_id = form.venue_id.data
+            event.base_price = form.base_price.data
+            event.max_price = form.max_price.data
+            event.is_active = form.is_active.data
+            event.seo_title = form.seo_title.data
+            event.seo_description = form.seo_description.data
+            event.delivery_methods = delivery_methods_str
+            
+            db.session.commit()
+            
+            flash('Мероприятие успешно обновлено', 'success')
+            return redirect(url_for('admin.events'))
+        except Exception as e:
+            db.session.rollback()
+            import logging
+            logging.error(f"Ошибка при обновлении мероприятия: {str(e)}")
+            flash('Произошла ошибка при обновлении мероприятия. Пожалуйста, проверьте введенные данные.', 'danger')
+    elif request.method == 'POST':
+        flash('Пожалуйста, проверьте правильность заполнения формы', 'danger')
     
     return render_template('admin/edit_event.html', form=form, event=event, title='Редактировать мероприятие')
 
@@ -619,6 +635,8 @@ def notifications():
 @admin_required
 def notification_settings():
     settings = NotificationSetting.query.filter_by(user_id=current_user.id).first()
+    # Импортируем форму здесь, чтобы избежать циклических импортов
+    from forms import NotificationSettingForm
     form = NotificationSettingForm()
     
     if form.validate_on_submit():
