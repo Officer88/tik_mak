@@ -1,0 +1,419 @@
+/* BiletService Main CSS */
+
+/* Global Styles */
+:root {
+    --primary-color: #FFCC33;       /* Yellow for navigation */
+    --button-color: #FF3434;        /* Red for buttons */
+    --header-footer-color: #151443; /* Dark blue for header/footer */
+    --heart-color: #dc3545;         /* Red for favorites */
+    --success-color: #198754;       /* Green for success messages */
+    --white: #ffffff;
+    --light-gray: #f8f9fa;
+    --dark-gray: #343a40;
+}
+
+body {
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    color: #333;
+    background-color: var(--white);
+}
+
+/* Header & Navigation */
+.header-gradient {
+    background: linear-gradient(to bottom, var(--header-footer-color) 0%, rgba(21, 20, 67, 0.8) 80%, rgba(21, 20, 67, 0) 100%);
+    padding: 1rem 0;
+}
+
+.header-logo {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: var(--white);
+    text-decoration: none;
+}
+
+.navbar {
+    background-color: var(--primary-color);
+}
+
+.navbar .nav-link {
+    color: var(--dark-gray);
+    font-weight: 500;
+}
+
+.navbar .nav-link:hover,
+.navbar .nav-link:focus {
+    color: var(--header-footer-color);
+}
+
+/* Main Menu Items */
+.main-menu-item {
+    font-size: 1.1rem;
+    font-weight: 500;
+    padding: 0.8rem 1.5rem;
+    text-transform: uppercase;
+}
+
+/* Buttons */
+.btn-primary {
+    background-color: var(--button-color);
+    border-color: var(--button-color);
+    color: var(--white);
+    font-weight: 500;
+}
+
+.btn-primary:hover, 
+.btn-primary:focus {
+    background-color: #e52e2e;
+    border-color: #e52e2e;
+}
+
+.btn-outline-primary {
+    border-color: var(--button-color);
+    color: var(--button-color);
+}
+
+.btn-outline-primary:hover, 
+.btn-outline-primary:focus {
+    background-color: var(--button-color);
+    color: var(--white);
+}
+
+/* Card Styles */
+.event-card {
+    position: relative;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s;
+    height: 100%;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.event-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+}
+
+.event-card .event-image {
+    height: 200px;
+    background-size: cover;
+    background-position: center;
+    position: relative;
+}
+
+.event-card .event-date {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(255, 255, 255, 0.85);
+    border-radius: 4px;
+    padding: 0.3rem 0.6rem;
+    font-weight: bold;
+    font-size: 0.9rem;
+    text-align: center;
+    line-height: 1.2;
+}
+
+.event-card .event-date .day-month {
+    display: block;
+}
+
+.event-card .event-date .weekday {
+    display: block;
+    color: var(--dark-gray);
+}
+
+.event-card .event-title {
+    font-size: 1.2rem;
+    font-weight: 500;
+    margin: 0.8rem 0;
+}
+
+.event-card .event-info {
+    padding: 1rem;
+}
+
+.event-card .event-venue,
+.event-card .event-price {
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 0.5rem;
+}
+
+.event-card .card-actions {
+    padding: 0.5rem 1rem 1rem;
+    display: flex;
+    justify-content: space-between;
+}
+
+/* Home Page Specific */
+.slider-container {
+    position: relative;
+    overflow: hidden;
+    height: 500px;
+}
+
+.slider-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: var(--white);
+}
+
+.slider-content {
+    padding: 2rem;
+    max-width: 700px;
+}
+
+.slider-content h2 {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.slider-content p {
+    font-size: 1.2rem;
+    margin-bottom: 2rem;
+}
+
+.category-box {
+    text-align: center;
+    padding: 1.5rem;
+    border-radius: 8px;
+    background-color: var(--light-gray);
+    margin-bottom: 1rem;
+    transition: transform 0.3s, background-color 0.3s;
+}
+
+.category-box:hover {
+    transform: translateY(-5px);
+    background-color: var(--primary-color);
+}
+
+.category-box i {
+    font-size: 2.5rem;
+    color: var(--header-footer-color);
+    margin-bottom: 1rem;
+}
+
+.category-box h4 {
+    font-size: 1.1rem;
+    font-weight: 500;
+}
+
+.section-title {
+    position: relative;
+    margin-bottom: 2rem;
+    padding-bottom: 0.5rem;
+    font-weight: 600;
+}
+
+.section-title::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 50px;
+    height: 3px;
+    background-color: var(--primary-color);
+}
+
+/* Event Detail Page */
+.event-detail-image {
+    width: 100%;
+    height: 400px;
+    background-size: cover;
+    background-position: center;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+}
+
+.event-detail-info {
+    background-color: var(--light-gray);
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+}
+
+.event-detail-description {
+    margin-bottom: 2rem;
+    line-height: 1.7;
+}
+
+.venue-map {
+    height: 300px;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 2rem;
+}
+
+/* Favorites Button */
+.favorite-btn {
+    color: #aaa;
+    border: none;
+    background: none;
+    font-size: 1.4rem;
+    cursor: pointer;
+    transition: color 0.3s;
+}
+
+.favorite-btn:hover,
+.favorite-btn.active {
+    color: var(--heart-color);
+}
+
+.favorite-btn.active {
+    animation: heartBeat 0.3s;
+}
+
+@keyframes heartBeat {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+/* Shopping Cart */
+.cart-item {
+    border-bottom: 1px solid #ddd;
+    padding: 1rem 0;
+}
+
+.cart-total {
+    font-size: 1.2rem;
+    font-weight: 500;
+    padding: 1rem 0;
+    text-align: right;
+}
+
+/* Footer */
+.footer {
+    background-color: var(--header-footer-color);
+    color: var(--white);
+    padding: 3rem 0 1.5rem;
+}
+
+.footer h5 {
+    color: var(--primary-color);
+    margin-bottom: 1.2rem;
+    font-weight: 600;
+}
+
+.footer-links {
+    list-style: none;
+    padding-left: 0;
+}
+
+.footer-links li {
+    margin-bottom: 0.5rem;
+}
+
+.footer-links a {
+    color: var(--white);
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+.footer-links a:hover {
+    color: var(--primary-color);
+}
+
+.footer-bottom {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    text-align: center;
+}
+
+/* Admin Panel */
+.admin-sidebar {
+    background-color: var(--header-footer-color);
+    color: var(--white);
+    min-height: calc(100vh - 56px);
+    padding-top: 1rem;
+}
+
+.admin-sidebar .nav-link {
+    color: var(--white);
+    padding: 0.5rem 1rem;
+    margin-bottom: 0.5rem;
+    border-radius: 0.25rem;
+}
+
+.admin-sidebar .nav-link:hover,
+.admin-sidebar .nav-link:focus,
+.admin-sidebar .nav-link.active {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+.admin-sidebar .nav-link i {
+    margin-right: 0.5rem;
+}
+
+.admin-content {
+    padding: 1.5rem;
+}
+
+.stat-card {
+    background-color: var(--white);
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.stat-card .stat-icon {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    color: var(--header-footer-color);
+}
+
+.stat-card .stat-value {
+    font-size: 2rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.stat-card .stat-title {
+    font-size: 1rem;
+    color: #666;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 767.98px) {
+    .slider-container {
+        height: 350px;
+    }
+    
+    .slider-content h2 {
+        font-size: 2rem;
+    }
+    
+    .slider-content p {
+        font-size: 1rem;
+    }
+    
+    .event-detail-image {
+        height: 250px;
+    }
+    
+    .admin-sidebar {
+        min-height: auto;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .card-actions {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .event-card .event-image {
+        height: 150px;
+    }
+}

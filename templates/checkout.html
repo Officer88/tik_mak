@@ -1,0 +1,182 @@
+{% extends 'base.html' %}
+
+{% block title %}Оформление заказа{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h1 class="mb-4">Оформление заказа</h1>
+    
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Данные получателя</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="{{ url_for('checkout') }}" novalidate>
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.full_name.id }}" class="form-label">ФИО</label>
+                            {{ form.full_name(class="form-control" + (" is-invalid" if form.full_name.errors else ""), placeholder="Введите ваше полное имя") }}
+                            {% for error in form.full_name.errors %}
+                                <div class="invalid-feedback">
+                                    {{ error }}
+                                </div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.email.id }}" class="form-label">Email</label>
+                            {{ form.email(class="form-control" + (" is-invalid" if form.email.errors else ""), placeholder="Введите ваш email") }}
+                            {% for error in form.email.errors %}
+                                <div class="invalid-feedback">
+                                    {{ error }}
+                                </div>
+                            {% endfor %}
+                            <div class="form-text">На этот адрес будет отправлен электронный билет</div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.phone.id }}" class="form-label">Телефон</label>
+                            {{ form.phone(class="form-control" + (" is-invalid" if form.phone.errors else ""), placeholder="+7 (___) ___-__-__") }}
+                            {% for error in form.phone.errors %}
+                                <div class="invalid-feedback">
+                                    {{ error }}
+                                </div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label for="{{ form.delivery_method.id }}" class="form-label">Способ доставки</label>
+                            {{ form.delivery_method(class="form-select" + (" is-invalid" if form.delivery_method.errors else "")) }}
+                            {% for error in form.delivery_method.errors %}
+                                <div class="invalid-feedback">
+                                    {{ error }}
+                                </div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="mb-3" id="addressContainer">
+                            <label for="{{ form.address.id }}" class="form-label">Адрес доставки</label>
+                            {{ form.address(class="form-control" + (" is-invalid" if form.address.errors else ""), placeholder="Введите адрес для курьерской доставки") }}
+                            {% for error in form.address.errors %}
+                                <div class="invalid-feedback">
+                                    {{ error }}
+                                </div>
+                            {% endfor %}
+                            <div class="form-text">Только для курьерской доставки</div>
+                        </div>
+                        
+                        <div class="alert alert-info">
+                            <div class="d-flex">
+                                <div class="me-3">
+                                    <i class="fas fa-info-circle fa-2x"></i>
+                                </div>
+                                <div>
+                                    <strong>Информация о билетах</strong>
+                                    <p class="mb-0">После подтверждения заказа вы получите билеты согласно выбранному способу доставки. Электронные билеты необходимо распечатать или сохранить на мобильном устройстве.</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            {{ form.submit(class="btn btn-primary btn-lg") }}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Ваш заказ</h5>
+                </div>
+                <div class="card-body">
+                    {% for item in cart %}
+                        <div class="mb-3 {% if not loop.last %}pb-3 border-bottom{% endif %}">
+                            <div class="d-flex justify-content-between mb-1">
+                                <div><strong>{{ item.event_title }}</strong></div>
+                                <div class="text-end ms-2">{{ item.price|format_price }}</div>
+                            </div>
+                            <div class="d-flex justify-content-between text-muted small">
+                                <div>
+                                    {% if item.section or item.row or item.seat %}
+                                        {% if item.section %}Секция: {{ item.section }}{% endif %}
+                                        {% if item.row %}Ряд: {{ item.row }}{% endif %}
+                                        {% if item.seat %}Место: {{ item.seat }}{% endif %}
+                                    {% else %}
+                                        Входной билет
+                                    {% endif %}
+                                </div>
+                                <div>Кол-во: {{ item.quantity }}</div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                    
+                    <hr>
+                    
+                    <div class="d-flex justify-content-between mb-2">
+                        <div>Всего</div>
+                        <div>{{ total|format_price }}</div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between mb-2">
+                        <div>Сервисный сбор</div>
+                        <div>0₽</div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between fw-bold">
+                        <div>К оплате</div>
+                        <div>{{ total|format_price }}</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Payment Methods -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Способы оплаты</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled">
+                        <li class="mb-2">
+                            <i class="far fa-credit-card me-2"></i> Банковская карта
+                        </li>
+                        <li class="mb-2">
+                            <i class="fab fa-cc-visa me-2"></i> Visa/MasterCard
+                        </li>
+                        <li class="mb-2">
+                            <i class="fab fa-apple-pay me-2"></i> Apple Pay
+                        </li>
+                        <li>
+                            <i class="fab fa-google-pay me-2"></i> Google Pay
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const deliveryMethodSelect = document.getElementById('{{ form.delivery_method.id }}');
+        const addressContainer = document.getElementById('addressContainer');
+        
+        function toggleAddressField() {
+            if (deliveryMethodSelect.value === 'courier') {
+                addressContainer.style.display = 'block';
+            } else {
+                addressContainer.style.display = 'none';
+            }
+        }
+        
+        toggleAddressField();
+        deliveryMethodSelect.addEventListener('change', toggleAddressField);
+    });
+</script>
+{% endblock %}
+{% endblock %}

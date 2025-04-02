@@ -1,0 +1,204 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ event.title }}{% endblock %}
+
+{% block meta_description %}{{ event.meta_description or event.title + ' - купить билеты на ' + event.date.strftime('%d.%m.%Y') + ' ' + event.venue.name }}{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Event Image -->
+            <div class="event-detail-image" style="background-image: url('{{ event.image_url }}');">
+                <div class="event-date" style="position: absolute; top: 20px; right: 20px; background: rgba(255, 255, 255, 0.85); border-radius: 4px; padding: 10px; font-weight: bold; text-align: center;">
+                    <span style="display: block; font-size: 1.5rem;">{{ event.date|format_date }}</span>
+                    <span style="display: block; color: #666;">{{ event.date.strftime('%H:%M') }}</span>
+                </div>
+            </div>
+            
+            <!-- Event Description -->
+            <div class="event-detail-description">
+                <h1 class="mb-4">{{ event.title }}</h1>
+                <div class="mb-4">
+                    {{ event.description|safe }}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <!-- Event Info Card -->
+            <div class="event-detail-info mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4 class="mb-0">Информация</h4>
+                    <button class="favorite-btn" data-event-id="{{ event.id }}"
+                            data-require-login="{{ 'true' if not current_user.is_authenticated else 'false' }}">
+                        <i class="{% if is_favorite %}fas{% else %}far{% endif %} fa-heart fa-lg"></i>
+                    </button>
+                </div>
+                
+                <div class="mb-3">
+                    <div class="d-flex mb-2">
+                        <div style="width: 24px; text-align: center;">
+                            <i class="fas fa-calendar-alt text-muted"></i>
+                        </div>
+                        <div class="ms-3">
+                            <strong>Дата и время</strong>
+                            <div>{{ event.date.strftime('%d.%m.%Y, %H:%M') }}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex mb-2">
+                        <div style="width: 24px; text-align: center;">
+                            <i class="fas fa-map-marker-alt text-muted"></i>
+                        </div>
+                        <div class="ms-3">
+                            <strong>Место проведения</strong>
+                            <div>{{ event.venue.name }}</div>
+                            <div class="text-muted">{{ event.venue.address }}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex mb-2">
+                        <div style="width: 24px; text-align: center;">
+                            <i class="fas fa-tag text-muted"></i>
+                        </div>
+                        <div class="ms-3">
+                            <strong>Категория</strong>
+                            <div>{{ event.category.name }}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex">
+                        <div style="width: 24px; text-align: center;">
+                            <i class="fas fa-ticket-alt text-muted"></i>
+                        </div>
+                        <div class="ms-3">
+                            <strong>Цена билетов</strong>
+                            <div>{{ event.price_range }}</div>
+                        </div>
+                    </div>
+                </div>
+                
+                {% if event.venue.seating_map %}
+                <div class="text-center mb-3">
+                    <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#seatingMapModal">
+                        <i class="fas fa-map me-1"></i> Схема зала
+                    </button>
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Available Tickets -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Билеты</h5>
+                </div>
+                <div class="card-body">
+                    {% if tickets %}
+                        {% for ticket in tickets %}
+                            <div class="mb-3 pb-3 {% if not loop.last %}border-bottom{% endif %}">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <div>
+                                        {% if ticket.section or ticket.row or ticket.seat %}
+                                            <div>
+                                                {% if ticket.section %}Секция: {{ ticket.section }}{% endif %}
+                                                {% if ticket.row %}Ряд: {{ ticket.row }}{% endif %}
+                                                {% if ticket.seat %}Место: {{ ticket.seat }}{% endif %}
+                                            </div>
+                                        {% else %}
+                                            <div>Входной билет</div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="fw-bold">{{ ticket.price|format_price }}</div>
+                                </div>
+                                <form action="{{ url_for('cart_add', ticket_id=ticket.id) }}" method="POST">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div class="quantity-control d-flex align-items-center">
+                                            <button type="button" class="btn btn-sm btn-outline-secondary quantity-decrease">-</button>
+                                            <input type="number" name="quantity" value="1" min="1" max="10" class="form-control form-control-sm mx-2" style="width: 60px;">
+                                            <button type="button" class="btn btn-sm btn-outline-secondary quantity-increase">+</button>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fas fa-shopping-cart me-1"></i> В корзину
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="alert alert-warning">
+                            К сожалению, на данный момент билеты не доступны.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Delivery Methods -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Способы доставки</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex">
+                            <div class="me-3"><i class="fas fa-envelope text-primary"></i></div>
+                            <div>
+                                <strong>Моментально на email</strong>
+                                <div class="text-muted small">Электронный билет будет отправлен на ваш email сразу после оплаты</div>
+                            </div>
+                        </li>
+                        <li class="list-group-item d-flex">
+                            <div class="me-3"><i class="fas fa-truck text-primary"></i></div>
+                            <div>
+                                <strong>Курьером</strong>
+                                <div class="text-muted small">Доставка по адресу в течение 1-2 дней</div>
+                            </div>
+                        </li>
+                        <li class="list-group-item d-flex">
+                            <div class="me-3"><i class="fas fa-calendar-check text-primary"></i></div>
+                            <div>
+                                <strong>В день мероприятия</strong>
+                                <div class="text-muted small">Получите билет на входе в день мероприятия</div>
+                            </div>
+                        </li>
+                        <li class="list-group-item d-flex">
+                            <div class="me-3"><i class="fas fa-clock text-primary"></i></div>
+                            <div>
+                                <strong>В течение 24 часов на email</strong>
+                                <div class="text-muted small">Электронный билет будет отправлен на ваш email в течение 24 часов</div>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Venue Map Section -->
+    {% if event.venue.seating_map %}
+    <div class="mt-5">
+        <h3 class="mb-4">Место проведения</h3>
+        <div id="venueMap" class="venue-map">
+            {{ event.venue.seating_map|safe }}
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Seating Map Modal -->
+{% if event.venue.seating_map %}
+<div class="modal fade" id="seatingMapModal" tabindex="-1" aria-labelledby="seatingMapModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="seatingMapModalLabel">Схема зала: {{ event.venue.name }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                {{ event.venue.seating_map|safe }}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
