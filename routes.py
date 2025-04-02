@@ -53,9 +53,18 @@ def index():
     # Get upcoming events
     upcoming_events = Event.query.filter(
         Event.date >= datetime.now(),
-        Event.date <= datetime.now() + timedelta(days=7),
-        Event.is_active == True
+        Event.is_active == True,
+        Event.is_featured == True
     ).order_by(Event.date).limit(4).all()
+    
+    # Если недостаточно featured событий, добавим ближайшие
+    if len(upcoming_events) < 4:
+        additional_events = Event.query.filter(
+            Event.date >= datetime.now(),
+            Event.is_active == True,
+            ~Event.id.in_([e.id for e in upcoming_events])
+        ).order_by(Event.date).limit(4 - len(upcoming_events)).all()
+        upcoming_events.extend(additional_events)
     
     # Get active slides
     slides = Slide.query.filter_by(is_active=True).order_by(Slide.order).all()

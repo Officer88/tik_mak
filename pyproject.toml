@@ -19,4 +19,5 @@ dependencies = [
     "beautifulsoup4>=4.13.3",
     "flask-migrate>=4.1.0",
     "pillow>=11.1.0",
+    "twilio>=9.5.1",
 ]

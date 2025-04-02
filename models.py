@@ -193,7 +193,7 @@ class TicketForSale(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)  # Разрешаем NULL для неавторизованных пользователей
     event_id = db.Column(db.Integer, db.ForeignKey('event.id', ondelete='SET NULL'), nullable=True)
     event_name = db.Column(db.String(128), nullable=False)
-    venue_name = db.Column(db.String(128), nullable=False)
+    venue_name = db.Column(db.String(128), nullable=True)  # Делаем поле необязательным
     ticket_type = db.Column(db.String(32), nullable=False)  # electronic or physical
     section = db.Column(db.String(64), nullable=True)
     row = db.Column(db.String(16), nullable=True)
