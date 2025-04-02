@@ -1,3 +1,4 @@
+
 import os
 import logging
 from datetime import datetime
@@ -6,7 +7,7 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import DeclarativeBase
 from flask_login import LoginManager
-
+from flask_migrate import Migrate
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -15,15 +16,7 @@ logging.basicConfig(level=logging.DEBUG)
 class Base(DeclarativeBase):
     pass
 
-
-# Initialize extensions
-db = SQLAlchemy(model_class=Base)
-login_manager = LoginManager()
-
-from flask_migrate import Migrate
-migrate = Migrate(app, db)
-
-# Create the app
+# Create the app first
 app = Flask(__name__)
 app.secret_key = os.environ.get("SESSION_SECRET", "dev-secret-key")
 
@@ -34,6 +27,11 @@ app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
     "pool_pre_ping": True,
 }
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
+# Initialize extensions
+db = SQLAlchemy(model_class=Base)
+login_manager = LoginManager()
+migrate = Migrate(app, db)
 
 # Initialize extensions with app
 db.init_app(app)
