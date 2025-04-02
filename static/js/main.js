@@ -63,13 +63,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     const toastId = `toast-${Date.now()}`;
                     const toastHtml = `
                         <div id="${toastId}" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
-                            <div class="toast-header bg-${action === 'add' ? 'success' : 'warning'}">
-                                <i class="fas fa-${action === 'add' ? 'heart' : 'times'} me-2" style="color: white;"></i>
+                            <div class="toast-header" style="background-color: #FFCC33; color: white;">
+                                <i class="fas fa-heart me-2" style="color: white;"></i>
                                 <strong class="me-auto" style="color: white;">Избранное</strong>
                                 <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
                             </div>
                             <div class="toast-body">
-                                Мероприятие ${action === 'add' ? 'добавлено в' : 'удалено из'} избранное
+                                ${action === 'add' ? 'Добавлено в избранное' : 'Удалено из избранного'}
                             </div>
                         </div>
                     `;

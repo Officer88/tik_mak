@@ -5,7 +5,7 @@
     --red: #FF3434;
     --dark-blue: #151443;
     --white: #ffffff;
-    --favorite-red: #dc3545;
+    --favorite-red: #FF3434;
     --success-green: #198754;
     --light-gray: #f8f9fa;
     --medium-gray: #e9ecef;
@@ -188,6 +188,7 @@ body {
 
 #mainCarousel {
     margin-bottom: 2rem;
+    margin-top: 1rem;
 }
 
 /* Category Section */
@@ -344,9 +345,9 @@ body {
 }
 
 .favorite-btn {
-    color: #adb5bd;
-    background: none;
-    border: 1px solid #ced4da;
+    color: white;
+    background-color: var(--favorite-red);
+    border: 1px solid var(--favorite-red);
     border-radius: 5px;
     font-size: 1.2rem;
     transition: all 0.2s ease;
@@ -356,10 +357,14 @@ body {
     justify-content: center;
 }
 
-.favorite-btn:hover,
 .favorite-btn.active {
-    color: var(--favorite-red);
+    color: var(--yellow);
+    background-color: var(--favorite-red);
     border-color: var(--favorite-red);
+}
+
+.favorite-btn:hover {
+    opacity: 0.9;
 }
 
 .venue-scheme-link {
