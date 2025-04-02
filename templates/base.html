@@ -90,9 +90,9 @@
                         </form>
                     </div>
                     
-                    <!-- Иконки справа -->
-                    <div class="col-12 col-lg-2">
-                        <div class="d-flex header-icons justify-content-center justify-content-lg-end">
+                    <!-- Иконки справа (только для десктопа) -->
+                    <div class="d-none d-lg-block col-lg-2">
+                        <div class="d-flex header-icons justify-content-lg-end">
                             <a class="nav-link px-2" href="{{ url_for('main.favorites') }}" title="Избранное">
                                 <i class="fas fa-heart"></i>
                             </a>
@@ -159,6 +159,41 @@
                             <i class="fas fa-tag me-2"></i>Продать билет
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('main.favorites') }}">
+                            <i class="fas fa-heart me-2"></i>Избранное
+                        </a>
+                    </li>
+                    {% if current_user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('auth.profile') }}">
+                            <i class="fas fa-user me-2"></i>Мой профиль
+                        </a>
+                    </li>
+                    {% if current_user.is_admin %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('admin.dashboard') }}">
+                            <i class="fas fa-cog me-2"></i>Панель администратора
+                        </a>
+                    </li>
+                    {% endif %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('auth.logout') }}">
+                            <i class="fas fa-sign-out-alt me-2"></i>Выйти
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('auth.login') }}">
+                            <i class="fas fa-sign-in-alt me-2"></i>Войти
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('auth.register') }}">
+                            <i class="fas fa-user-plus me-2"></i>Регистрация
+                        </a>
+                    </li>
+                    {% endif %}
                 </ul>
             </div>
         </div>
