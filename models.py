@@ -187,9 +187,7 @@ class Slide(db.Model):
 class TicketForSale(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)  # Разрешаем NULL для неавторизованных пользователей
-    event_id = db.Column(db.Integer, db.ForeignKey('event.id', ondelete='SET NULL'), nullable=True)
-    event_name = db.Column(db.String(128), nullable=False)
-    venue_name = db.Column(db.String(128), nullable=False)
+    event_id = db.Column(db.Integer, db.ForeignKey('event.id'), nullable=False)
     ticket_type = db.Column(db.String(32), nullable=False)  # electronic or physical
     section = db.Column(db.String(64), nullable=True)
     row = db.Column(db.String(16), nullable=True)
@@ -199,6 +197,9 @@ class TicketForSale(db.Model):
     contact_info = db.Column(db.String(256), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     is_sold = db.Column(db.Boolean, default=False)
+    
+    # Relationships
+    event = db.relationship('Event', backref='tickets_for_sale')
     
     def __repr__(self):
         return f'<TicketForSale {self.id} for Event {self.event_id}>'
