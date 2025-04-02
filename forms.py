@@ -73,7 +73,7 @@ class EventForm(FlaskForm):
     description = TextAreaField('Описание', validators=[Optional()])
     image_url = StringField('URL изображения', validators=[DataRequired(), Length(max=256)])
     date = DateTimeField('Дата и время', format='%d/%m/%Y %H:%M', validators=[DataRequired()])
-    end_date = DateTimeField('Дата и время окончания', format='%Y-%m-%d %H:%M', validators=[Optional()])
+    end_date = DateTimeField('Дата и время окончания', format='%d/%m/%Y %H:%M', validators=[Optional()])
     category_id = SelectField('Категория', coerce=int, validators=[DataRequired()])
     venue_type = RadioField('Тип площадки', choices=[
         ('existing', 'Выбрать из существующих'),
