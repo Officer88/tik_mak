@@ -7,12 +7,62 @@ document.addEventListener('DOMContentLoaded', function() {
         return new bootstrap.Tooltip(tooltipTriggerEl);
     });
 
-    // Add favorite button functionality
+    // Add favorite button functionality with AJAX
     const favoriteButtons = document.querySelectorAll('.favorite-btn');
     
     favoriteButtons.forEach(button => {
-        // We don't need to attach click handler anymore since buttons now directly submit the form
-        // The type="submit" attribute on the button will take care of form submission
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            const eventId = this.getAttribute('data-event-id');
+            const isFavorite = this.classList.contains('active');
+            const action = isFavorite ? 'remove' : 'add';
+            
+            // Send AJAX request
+            fetch(`/favorites/${action}/${eventId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Toggle active class
+                    this.classList.toggle('active');
+                    
+                    // Show toast notification
+                    const toastContainer = document.getElementById('toast-container');
+                    if (!toastContainer) {
+                        // Create toast container if it doesn't exist
+                        const container = document.createElement('div');
+                        container.id = 'toast-container';
+                        container.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+                        document.body.appendChild(container);
+                    }
+                    
+                    const toastId = `toast-${Date.now()}`;
+                    const toastHtml = `
+                        <div id="${toastId}" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+                            <div class="toast-header bg-${action === 'add' ? 'success' : 'warning'}">
+                                <i class="fas fa-${action === 'add' ? 'heart' : 'times'} me-2" style="color: white;"></i>
+                                <strong class="me-auto" style="color: white;">Избранное</strong>
+                                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                            </div>
+                            <div class="toast-body">
+                                Мероприятие ${action === 'add' ? 'добавлено в' : 'удалено из'} избранное
+                            </div>
+                        </div>
+                    `;
+                    
+                    document.getElementById('toast-container').innerHTML += toastHtml;
+                    const toast = new bootstrap.Toast(document.getElementById(toastId));
+                    toast.show();
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        });
     });
 
     // Delivery method toggle in checkout form

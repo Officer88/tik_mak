@@ -188,19 +188,21 @@ def event_detail(event_id):
 @main_bp.route('/favorites/add/<int:event_id>', methods=['POST'])
 def add_to_favorites(event_id):
     event = Event.query.get_or_404(event_id)
+    success = False
     
     # Check if user is authenticated
     if current_user.is_authenticated:
         # Check if already in favorites
         existing = Favorite.query.filter_by(user_id=current_user.id, event_id=event.id).first()
         if existing:
-            flash('Это мероприятие уже в избранном', 'info')
-            return redirect(url_for('main.event_detail', event_id=event.id))
-        
-        # Add to favorites in database
-        favorite = Favorite(user_id=current_user.id, event_id=event.id)
-        db.session.add(favorite)
-        db.session.commit()
+            # Already in favorites, don't do anything
+            success = True
+        else:
+            # Add to favorites in database
+            favorite = Favorite(user_id=current_user.id, event_id=event.id)
+            db.session.add(favorite)
+            db.session.commit()
+            success = True
     else:
         # Use session for non-authenticated users
         if 'favorites' not in session:
@@ -211,24 +213,34 @@ def add_to_favorites(event_id):
         
         # Check if already in favorites
         if event_id in favorites:
-            flash('Это мероприятие уже в избранном', 'info')
-            return redirect(url_for('main.event_detail', event_id=event.id))
-            
-        # Add to session favorites
-        favorites.append(event_id)
-        session['favorites'] = favorites
+            # Already in favorites, don't do anything
+            success = True
+        else:    
+            # Add to session favorites
+            favorites.append(event_id)
+            session['favorites'] = favorites
+            success = True
     
+    # Check if this is an AJAX request
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return jsonify({'success': success})
+    
+    # Regular form submission fallback
     flash('Мероприятие добавлено в избранное', 'success')
     return redirect(url_for('main.event_detail', event_id=event.id))
 
 # Remove from favorites route
 @main_bp.route('/favorites/remove/<int:event_id>', methods=['POST'])
 def remove_from_favorites(event_id):
+    success = False
+    
     if current_user.is_authenticated:
         # Remove from database
-        favorite = Favorite.query.filter_by(user_id=current_user.id, event_id=event_id).first_or_404()
-        db.session.delete(favorite)
-        db.session.commit()
+        favorite = Favorite.query.filter_by(user_id=current_user.id, event_id=event_id).first()
+        if favorite:
+            db.session.delete(favorite)
+            db.session.commit()
+            success = True
     else:
         # Remove from session
         if 'favorites' in session:
@@ -236,7 +248,13 @@ def remove_from_favorites(event_id):
             if event_id in favorites:
                 favorites.remove(event_id)
                 session['favorites'] = favorites
+                success = True
     
+    # Check if this is an AJAX request
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return jsonify({'success': success})
+    
+    # Regular form submission fallback
     flash('Мероприятие удалено из избранного', 'success')
     return redirect(url_for('main.event_detail', event_id=event_id))
 
