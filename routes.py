@@ -453,7 +453,8 @@ def sell_ticket():
         
         ticket = TicketForSale(
             user_id=user_id if user_id else None,
-            event_id=None,
+            event_name=form.event_name.data,
+            venue_name=form.venue_name.data,
             ticket_type=form.ticket_type.data,
             section=form.section.data,
             row=form.row.data,
