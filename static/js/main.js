@@ -1,6 +1,8 @@
 // Main JavaScript file for MAGIK TIKET
 
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM fully loaded - initializing scripts');
+    
     // Initialize tooltips
     var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
     var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
@@ -9,14 +11,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Add favorite button functionality with AJAX
     const favoriteButtons = document.querySelectorAll('.favorite-btn');
+    console.log('Found favorite buttons:', favoriteButtons.length);
     
     favoriteButtons.forEach(button => {
         button.addEventListener('click', function(e) {
             e.preventDefault();
+            console.log('Favorite button clicked');
             
             const eventId = this.getAttribute('data-event-id');
             const isFavorite = this.classList.contains('active');
             const action = isFavorite ? 'remove' : 'add';
+            
+            console.log(`Processing ${action} favorite for event ${eventId}`);
             
             // Send AJAX request
             fetch(`/favorites/${action}/${eventId}`, {
@@ -24,23 +30,37 @@ document.addEventListener('DOMContentLoaded', function() {
                 headers: {
                     'Content-Type': 'application/json',
                     'X-Requested-With': 'XMLHttpRequest'
-                }
+                },
+                credentials: 'same-origin'
             })
-            .then(response => response.json())
+            .then(response => {
+                console.log('Response status:', response.status);
+                return response.json();
+            })
             .then(data => {
+                console.log('Response data:', data);
                 if (data.success) {
-                    // Toggle active class
+                    // Toggle active class and update visual appearance
                     this.classList.toggle('active');
+                    this.classList.toggle('btn-danger');
+                    this.classList.toggle('btn-outline-danger');
+                    
+                    // Update icon
+                    const icon = this.querySelector('i');
+                    if (icon) {
+                        icon.classList.toggle('fas');
+                        icon.classList.toggle('far');
+                    }
+                    
+                    // Update text
+                    const textSpan = this.querySelector('.favorite-text');
+                    if (textSpan) {
+                        textSpan.textContent = action === 'add' ? 'Удалить из избранного' : 'Добавить в избранное';
+                    }
                     
                     // Show toast notification
                     const toastContainer = document.getElementById('toast-container');
-                    if (!toastContainer) {
-                        // Create toast container if it doesn't exist
-                        const container = document.createElement('div');
-                        container.id = 'toast-container';
-                        container.className = 'toast-container position-fixed bottom-0 end-0 p-3';
-                        document.body.appendChild(container);
-                    }
+                    console.log('Toast container:', toastContainer);
                     
                     const toastId = `toast-${Date.now()}`;
                     const toastHtml = `
@@ -56,7 +76,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         </div>
                     `;
                     
-                    document.getElementById('toast-container').innerHTML += toastHtml;
+                    toastContainer.innerHTML += toastHtml;
                     const toast = new bootstrap.Toast(document.getElementById(toastId));
                     toast.show();
                 }

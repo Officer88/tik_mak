@@ -264,29 +264,11 @@
                 
                 <!-- Favorite button -->
                 <div class="mt-3">
-                    {% if current_user.is_authenticated %}
-                    <form action="{% if is_favorite %}{{ url_for('main.remove_from_favorites', event_id=event.id) }}{% else %}{{ url_for('main.add_to_favorites', event_id=event.id) }}{% endif %}" method="post">
-                        <button type="submit" class="btn {% if is_favorite %}btn-danger{% else %}btn-outline-danger{% endif %} w-100">
-                            <i class="{% if is_favorite %}fas{% else %}far{% endif %} fa-heart me-2"></i>
-                            {% if is_favorite %}
-                            Удалить из избранного
-                            {% else %}
-                            Добавить в избранное
-                            {% endif %}
-                        </button>
-                    </form>
-                    {% else %}
-                    <form action="{% if is_favorite %}{{ url_for('main.remove_from_favorites', event_id=event.id) }}{% else %}{{ url_for('main.add_to_favorites', event_id=event.id) }}{% endif %}" method="post">
-                        <button type="submit" class="btn {% if is_favorite %}btn-danger{% else %}btn-outline-danger{% endif %} w-100">
-                            <i class="{% if is_favorite %}fas{% else %}far{% endif %} fa-heart me-2"></i>
-                            {% if is_favorite %}
-                            Удалить из избранного
-                            {% else %}
-                            Добавить в избранное
-                            {% endif %}
-                        </button>
-                    </form>
-                    {% endif %}
+                    <button type="button" class="favorite-btn btn {% if is_favorite %}btn-danger active{% else %}btn-outline-danger{% endif %} w-100" 
+                           data-event-id="{{ event.id }}">
+                        <i class="{% if is_favorite %}fas{% else %}far{% endif %} fa-heart me-2"></i>
+                        <span class="favorite-text">{% if is_favorite %}Удалить из избранного{% else %}Добавить в избранное{% endif %}</span>
+                    </button>
                 </div>
                 
                 <!-- Sell your ticket button -->
