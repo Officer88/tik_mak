@@ -22,6 +22,16 @@ def migrate_venues():
             if 'logo_url' in columns:
                 has_logo_url = True
                 print("Столбец logo_url уже существует")
+
+            # Add custom venue columns if they don't exist
+            if 'custom_venue_name' not in columns:
+                print("Adding column custom_venue_name...")
+                conn.execute(text("ALTER TABLE event ADD COLUMN custom_venue_name VARCHAR(128)"))
+                
+            if 'custom_venue_address' not in columns:
+                print("Adding column custom_venue_address...")
+                conn.execute(text("ALTER TABLE event ADD COLUMN custom_venue_address VARCHAR(256)"))
+
             
             if 'scheme_url' in columns:
                 has_scheme_url = True
