@@ -228,8 +228,11 @@ class NotificationSetting(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     email_enabled = db.Column(db.Boolean, default=True)
     
+    # Связь с пользователем
+    user = db.relationship('User', backref=db.backref('notification_settings', lazy=True))
+    
     def __repr__(self):
-        return f'<NotificationSetting {self.type} for Admin {self.admin_id}>'
+        return f'<NotificationSetting for User {self.user_id}>'
 
 class Notification(db.Model):
     id = db.Column(db.Integer, primary_key=True)
