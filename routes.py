@@ -443,19 +443,7 @@ def submit_review(event_id):
 # Sell ticket route
 @main_bp.route('/sell-ticket', methods=['GET', 'POST'])
 def sell_ticket():
-    # Получаем event_id из параметров запроса, если он передан
-    event_id = request.args.get('event_id', type=int)
-    
     form = SellTicketForm()
-    
-    # Если передан event_id, получаем данные о мероприятии
-    event_name = ""
-    if request.method == 'GET' and event_id:
-        event = Event.query.get(event_id)
-        if event:
-            event_name = f"{event.title} ({event.date.strftime('%d.%m.%Y %H:%M')})"
-            form.event_name.data = event_name
-            form.event_id.data = event_id
     
     if form.validate_on_submit():
         # Определяем user_id для билета

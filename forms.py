@@ -143,8 +143,8 @@ class ContactForm(FlaskForm):
     submit = SubmitField('Сохранить')
 
 class SellTicketForm(FlaskForm):
-    event_name = StringField('Название мероприятия', validators=[DataRequired(), Length(max=128)])
-    event_id = HiddenField()
+    event_name = StringField('Название мероприятия и дата', validators=[DataRequired(), Length(max=128)])
+    venue_name = StringField('Место проведения', validators=[DataRequired(), Length(max=128)])
     ticket_type = RadioField(
         'Тип билета',
         choices=[
