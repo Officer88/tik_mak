@@ -4,7 +4,7 @@
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar" aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
             <i class="fas fa-bars" style="color: var(--dark-blue);"></i>
         </button>
-        
+
         <div class="collapse navbar-collapse" id="mainNavbar">
             <ul class="navbar-nav me-auto">
                 <li class="nav-item">
@@ -42,8 +42,10 @@
                         </li>
                     </ul>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('main.reviews') }}">Отзывы</a>
+                </li>
             </ul>
         </div>
     </div>
 </nav>
-

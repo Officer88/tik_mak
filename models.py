@@ -158,6 +158,7 @@ class Review(db.Model):
     event_id = db.Column(db.Integer, db.ForeignKey('event.id'), nullable=False)
     rating = db.Column(db.Integer, nullable=False)  # 1-5 stars
     content = db.Column(db.Text, nullable=False)
+    photo_url = db.Column(db.String(256), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     is_approved = db.Column(db.Boolean, default=False)
     

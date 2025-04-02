@@ -63,7 +63,8 @@ class CheckoutForm(FlaskForm):
 # Review Form
 class ReviewForm(FlaskForm):
     rating = RadioField('Оценка', choices=[(1, '1'), (2, '2'), (3, '3'), (4, '4'), (5, '5')], coerce=int, validators=[DataRequired()])
-    content = TextAreaField('Отзыв', validators=[DataRequired(), Length(min=10, max=1000)])
+    content = TextAreaField('Отзыв', validators=[DataRequired(), Length(min=50, max=1000)])
+    photo_url = StringField('URL фотографии (необязательно)', validators=[Optional(), Length(max=256)])
     submit = SubmitField('Отправить отзыв')
 
 # Admin Event Form
@@ -160,8 +161,5 @@ class SellTicketForm(FlaskForm):
     contact_info = StringField('Контактные данные', validators=[DataRequired(), Length(max=256)])
     submit = SubmitField('Отправить билет на рассмотрение')
 class NotificationSettingForm(FlaskForm):
-    ticket_offered = BooleanField('Предложен билет')
-    ticket_sold = BooleanField('Продан билет')
-    new_review = BooleanField('Новый отзыв')
-    email_enabled = BooleanField('Отправлять на email')
+    email_enabled = BooleanField('Отправлять уведомления на email')
     submit = SubmitField('Сохранить')
