@@ -199,7 +199,7 @@ class TicketForSale(db.Model):
     is_sold = db.Column(db.Boolean, default=False)
     
     # Relationships
-    event = db.relationship('Event', backref='tickets_for_sale')
+    event = db.relationship('Event')
     
     def __repr__(self):
         return f'<TicketForSale {self.id} for Event {self.event_id}>'
