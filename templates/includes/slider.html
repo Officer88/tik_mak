@@ -9,15 +9,10 @@
     </div>
     <div class="carousel-inner">
         {% for slide in slides %}
-            <div class="carousel-item {% if loop.first %}active{% endif %}" 
-                 style="background-image: url('{{ slide.image_url }}');">
-                <div class="carousel-caption">
-                    <h2>{{ slide.title }}</h2>
-                    <p>{{ slide.subtitle }}</p>
-                    {% if slide.button_text and slide.button_url %}
-                        <a href="{{ slide.button_url }}" class="btn btn-primary">{{ slide.button_text }}</a>
-                    {% endif %}
-                </div>
+            <div class="carousel-item {% if loop.first %}active{% endif %}">
+                <a href="{{ slide.button_url or '#' }}">
+                    <img src="{{ slide.image_url }}" class="d-block w-100" alt="{{ slide.title }}">
+                </a>
             </div>
         {% endfor %}
     </div>

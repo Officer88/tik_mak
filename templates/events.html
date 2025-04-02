@@ -6,11 +6,6 @@
 <div class="container py-5">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1>Мероприятия</h1>
-        <div>
-            <button id="filter-toggle" class="btn btn-outline-primary">
-                <i class="fas fa-filter me-1"></i> Фильтры
-            </button>
-        </div>
     </div>
     
     <!-- Search and filter form -->
@@ -23,6 +18,9 @@
                             <input type="text" name="q" class="form-control" placeholder="Поиск по названию" value="{{ search_query or '' }}">
                             <button class="btn btn-primary" type="submit">
                                 <i class="fas fa-search"></i>
+                            </button>
+                            <button id="filter-toggle" type="button" class="btn btn-outline-primary ms-2">
+                                <i class="fas fa-filter me-1"></i> Фильтры
                             </button>
                         </div>
                     </div>
@@ -153,9 +151,22 @@
 <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ru.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Initialize date picker
         flatpickr(".datepicker", {
             dateFormat: "Y-m-d",
             locale: "ru"
+        });
+        
+        // Filter toggle functionality
+        const filterToggle = document.getElementById('filter-toggle');
+        const filterContainer = document.getElementById('filter-container');
+        
+        filterToggle.addEventListener('click', function() {
+            filterContainer.classList.toggle('d-none');
+            if (!filterContainer.classList.contains('d-none')) {
+                // Scroll to filter container
+                filterContainer.scrollIntoView({ behavior: 'smooth' });
+            }
         });
     });
 </script>

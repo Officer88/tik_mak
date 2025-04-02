@@ -110,27 +110,26 @@ body {
 }
 
 .main-nav .nav-link:hover {
-    background-color: rgba(0, 0, 0, 0.02);
+    background-color: rgba(0, 0, 0, 0);
+    color: #000 !important;
+    font-weight: 700;
 }
 
 /* Hero Slider */
 .carousel-item {
-    height: 400px;
-    background-position: center;
-    background-size: cover;
+    height: auto;
+    max-height: 400px;
+    overflow: hidden;
 }
 
-.carousel-caption {
-    background-color: rgba(0, 0, 0, 0.6);
-    padding: 1.5rem;
-    border-radius: 5px;
-    max-width: 600px;
-    margin: 0 auto;
+.carousel-item img {
+    width: 100%;
+    height: auto;
+    object-fit: cover;
 }
 
-.carousel-caption h2 {
-    color: var(--white);
-    font-weight: 700;
+#mainCarousel {
+    margin-bottom: 2rem;
 }
 
 /* Category Section */
@@ -563,8 +562,8 @@ body {
     right: 20px;
     width: 60px;
     height: 60px;
-    background-color: var(--red);
-    color: var(--white);
+    background-color: var(--yellow);
+    color: var(--dark-blue);
     border-radius: 50%;
     display: flex;
     justify-content: center;
@@ -577,16 +576,16 @@ body {
 
 .floating-cart:hover {
     transform: scale(1.1);
-    background-color: #e62e2e;
-    color: var(--white);
+    background-color: #ffc107;
+    color: var(--dark-blue);
 }
 
 .floating-cart .cart-badge {
     position: absolute;
     top: 0;
     right: 0;
-    background-color: var(--yellow);
-    color: var(--dark-blue);
+    background-color: var(--red);
+    color: var(--white);
     border-radius: 50%;
     width: 22px;
     height: 22px;

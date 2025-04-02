@@ -63,9 +63,14 @@
                 </button>
                 
                 <div class="collapse navbar-collapse" id="navbarNav">
-                    <ul class="navbar-nav">
-                        <!-- Тут могут быть дополнительные пункты меню в верхней навигации, если потребуется -->
-                    </ul>
+                    <form class="d-flex mx-auto" action="{{ url_for('main.events') }}" method="get">
+                        <div class="input-group">
+                            <input class="form-control" type="search" name="q" placeholder="Поиск мероприятий..." aria-label="Search" style="max-width: 250px;">
+                            <button class="btn btn-outline-light" type="submit">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </nav>
@@ -104,29 +109,23 @@
     <footer class="site-footer">
         <div class="container">
             <div class="row">
-                <div class="col-md-4 footer-links">
-                    <h5>Партнерам</h5>
-                    <ul>
-                        <li><a href="#">В разработке</a></li>
-                    </ul>
-                </div>
-                <div class="col-md-4 footer-links">
+                <div class="col-md-5 footer-links">
                     <h5>Помощь</h5>
-                    <ul>
-                        <li><a href="#">Как купить билет</a></li>
-                        <li><a href="#">Возврат билетов</a></li>
-                        <li><a href="#">Доставка</a></li>
-                        <li><a href="#">Часто задаваемые вопросы</a></li>
-                    </ul>
+                    <div class="d-flex flex-wrap gap-3">
+                        <a href="#" class="text-decoration-none">Как купить билет</a>
+                        <a href="#" class="text-decoration-none">Возврат билетов</a>
+                        <a href="#" class="text-decoration-none">Доставка</a>
+                        <a href="#" class="text-decoration-none">FAQ</a>
+                    </div>
                 </div>
-                <div class="col-md-4 footer-links">
+                <div class="col-md-3 footer-links">
                     <h5>Контакты</h5>
-                    <ul>
-                        <li><i class="fas fa-phone me-2"></i> +7 (800) 123-45-67</li>
-                        <li><i class="fas fa-envelope me-2"></i> info@magiktiket.com</li>
-                        <li><i class="fab fa-whatsapp me-2"></i> WhatsApp</li>
-                    </ul>
-                    <div class="social-icons mt-3">
+                    <p class="mb-2"><i class="fas fa-phone me-2"></i> +7 (800) 123-45-67</p>
+                    <p><i class="fas fa-envelope me-2"></i> info@magiktiket.com</p>
+                </div>
+                <div class="col-md-4 footer-links text-md-end">
+                    <h5>Мы в соцсетях</h5>
+                    <div class="social-icons d-flex justify-content-md-end">
                         <a href="#" class="me-3"><i class="fab fa-vk fa-lg"></i></a>
                         <a href="#" class="me-3"><i class="fab fa-telegram fa-lg"></i></a>
                         <a href="#" class="me-3"><i class="fab fa-whatsapp fa-lg"></i></a>
@@ -134,10 +133,10 @@
                     </div>
                 </div>
             </div>
-            <hr class="mt-4 mb-4">
-            <div class="row">
+            <hr class="mt-3 mb-3">
+            <div class="row align-items-center">
                 <div class="col-md-6">
-                    <p class="mb-0">&copy; 2025 MAGIK TIKET. Все права защищены.</p>
+                    <p class="mb-md-0">&copy; 2025 MAGIK TIKET. Все права защищены.</p>
                 </div>
                 <div class="col-md-6 text-md-end">
                     <a href="#" class="text-white me-3">Политика конфиденциальности</a>
