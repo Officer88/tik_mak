@@ -17,6 +17,20 @@
         <div class="event-price mt-2">
             от {{ event.base_price|int }} ₽
         </div>
+        <div class="event-delivery-methods mb-2">
+            <span class="delivery-icon" title="Электронный билет">
+                <i class="fas fa-envelope"></i>
+            </span>
+            <span class="delivery-icon" title="Курьерская доставка">
+                <i class="fas fa-truck"></i>
+            </span>
+            <span class="delivery-icon" title="В день мероприятия">
+                <i class="fas fa-calendar-day"></i>
+            </span>
+            <span class="delivery-icon" title="В течение 24 часов">
+                <i class="fas fa-clock"></i>
+            </span>
+        </div>
         <div class="d-grid gap-2">
             <a href="{{ url_for('main.event_detail', event_id=event.id) }}" class="btn btn-primary">Купить билет</a>
         </div>

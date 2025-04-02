@@ -75,6 +75,42 @@
         </div>
     </section>
 
+    <!-- Venues Section -->
+    <section class="venues-section py-5">
+        <div class="container">
+            <h2 class="mb-4">Популярные площадки</h2>
+            <div class="row">
+                {% for venue in venues %}
+                    <div class="col-6 col-md-4 col-lg-3 mb-4">
+                        <a href="{{ url_for('main.venue_detail', venue_id=venue.id) }}" class="text-decoration-none">
+                            <div class="venue-card">
+                                <div class="venue-logo-container">
+                                    {% if venue.logo_url %}
+                                        <img src="{{ venue.logo_url }}" alt="{{ venue.name }}" class="venue-logo">
+                                    {% else %}
+                                        <div class="venue-logo-placeholder">
+                                            <i class="fas fa-map-marker-alt"></i>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <h5 class="venue-name">{{ venue.name }}</h5>
+                                <div class="venue-location">
+                                    <small>{{ venue.city }}</small>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                {% else %}
+                    <div class="col-12">
+                        <div class="alert alert-info">
+                            Пока нет доступных площадок.
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
     <!-- Sell Your Ticket Banner -->
     <section class="sell-ticket-banner py-5 bg-light">
         <div class="container">

@@ -19,6 +19,10 @@ def get_cart_session_id():
 # Home page route
 @main_bp.route('/')
 def index():
+    # Очистка старых событий (деактивация)
+    from helpers import clean_old_events
+    clean_old_events()
+    
     # Get categories for display
     categories = Category.query.all()
     
@@ -49,12 +53,18 @@ def index():
     # Get active slides
     slides = Slide.query.filter_by(is_active=True).order_by(Slide.order).all()
     
+    # Get popular venues (limited to 8)
+    venues = Venue.query.order_by(
+        db.func.random()
+    ).limit(8).all()
+    
     return render_template(
         'index.html',
         categories=categories,
         popular_events=[e[0] for e in popular_events],
         upcoming_events=upcoming_events,
-        slides=slides
+        slides=slides,
+        venues=venues
     )
 
 # Events catalog route

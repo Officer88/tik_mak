@@ -39,11 +39,13 @@ def get_event_card_date(event):
     return f"{event.date.day:02d}.{event.date.month:02d} {weekdays[event.date.weekday()]}"
 
 def clean_old_events():
-    """Clean up events that are 7 days past their date"""
-    cutoff_date = datetime.now() - timedelta(days=7)
+    """Clean up events that are past their date immediately"""
+    cutoff_date = datetime.now()
     old_events = Event.query.filter(Event.date < cutoff_date).all()
     
     for event in old_events:
-        db.session.delete(event)
+        # Помечаем событие как неактивное вместо удаления
+        event.is_active = False
     
     db.session.commit()
+    return len(old_events)
