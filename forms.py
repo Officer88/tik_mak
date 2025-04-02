@@ -1,6 +1,7 @@
 from flask_wtf import FlaskForm
+from flask_wtf.file import FileField, FileAllowed
 from wtforms import StringField, PasswordField, BooleanField, SubmitField, TextAreaField, SelectField
-from wtforms import IntegerField, FloatField, DateTimeField, FileField, HiddenField, RadioField, SelectMultipleField
+from wtforms import IntegerField, FloatField, DateTimeField, HiddenField, RadioField, SelectMultipleField
 from wtforms.validators import DataRequired, Email, EqualTo, Length, Optional, NumberRange, ValidationError
 from datetime import datetime
 
@@ -32,8 +33,8 @@ class EventSearchForm(FlaskForm):
     query = StringField('Поиск', validators=[Optional()])
     category = SelectField('Категория', coerce=int, validators=[Optional()])
     venue = SelectField('Площадка', coerce=int, validators=[Optional()])
-    date_from = DateTimeField('С даты', format='%Y-%m-%d', validators=[Optional()])
-    date_to = DateTimeField('По дату', format='%Y-%m-%d', validators=[Optional()])
+    date_from = DateTimeField('С даты', format='%d.%m.%Y', validators=[Optional()])
+    date_to = DateTimeField('По дату', format='%d.%m.%Y', validators=[Optional()])
     price_min = FloatField('Мин. цена', validators=[Optional(), NumberRange(min=0)])
     price_max = FloatField('Макс. цена', validators=[Optional(), NumberRange(min=0)])
     submit = SubmitField('Применить фильтры')
@@ -72,8 +73,8 @@ class EventForm(FlaskForm):
     title = StringField('Название', validators=[DataRequired(), Length(max=128)])
     description = TextAreaField('Описание', validators=[Optional()])
     image_url = StringField('URL изображения', validators=[DataRequired(), Length(max=256)])
-    date = DateTimeField('Дата и время', format='%Y-%m-%dT%H:%M', validators=[DataRequired()])
-    end_date = DateTimeField('Дата и время окончания', format='%Y-%m-%dT%H:%M', validators=[Optional()])
+    date = DateTimeField('Дата и время', format='%d.%m.%Y %H:%M', validators=[DataRequired()])
+    end_date = DateTimeField('Дата и время окончания', format='%d.%m.%Y %H:%M', validators=[Optional()])
     category_id = SelectField('Категория', coerce=int, validators=[DataRequired()])
     venue_type = RadioField('Тип площадки', choices=[
         ('existing', 'Выбрать из существующих'),
@@ -96,14 +97,15 @@ class EventForm(FlaskForm):
         ('courier', 'Курьерская доставка'),
         ('event_day', 'В день мероприятия'),
         ('24h', 'В течение 24 часов')
-    ])
+    ], validators=[DataRequired()])
     
     submit = SubmitField('Сохранить')
 
 # Admin Category Form
 class CategoryForm(FlaskForm):
     name = StringField('Название', validators=[DataRequired(), Length(max=64)])
-    icon = StringField('Иконка Font Awesome', validators=[DataRequired(), Length(max=32)])
+    icon = StringField('Иконка Font Awesome', validators=[Optional(), Length(max=32)])
+    icon_image = FileField('Загрузить иконку', validators=[Optional(), FileAllowed(['jpg', 'jpeg', 'png', 'gif', 'svg'], 'Только изображения и SVG!')])
     seo_title = StringField('SEO Заголовок', validators=[Optional(), Length(max=100)])
     seo_description = TextAreaField('SEO Описание', validators=[Optional(), Length(max=200)])
     submit = SubmitField('Сохранить')
@@ -133,7 +135,8 @@ class TicketForm(FlaskForm):
 class SlideForm(FlaskForm):
     title = StringField('Заголовок', validators=[DataRequired(), Length(max=100)])
     subtitle = StringField('Подзаголовок', validators=[Optional(), Length(max=200)])
-    image_url = StringField('URL изображения', validators=[DataRequired(), Length(max=256)])
+    image_url = StringField('URL изображения', validators=[Optional(), Length(max=256)])
+    image = FileField('Загрузить изображение', validators=[Optional(), FileAllowed(['jpg', 'jpeg', 'png', 'gif'], 'Только изображения!')])
     button_text = StringField('Текст кнопки', validators=[Optional(), Length(max=32)])
     button_url = StringField('URL кнопки', validators=[Optional(), Length(max=256)])
     order = IntegerField('Порядок', validators=[Optional(), NumberRange(min=0)])
