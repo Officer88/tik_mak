@@ -39,22 +39,22 @@
                     </div>
                     
                     <!-- Десктопная навигация (слева) -->
-                    <div class="d-none d-lg-flex col-lg-7">
+                    <div class="d-none d-lg-flex col-lg-6">
                         <ul class="nav">
                             <li class="nav-item">
-                                <a class="nav-link" href="{{ url_for('main.events') }}">ВСЕ МЕРОПРИЯТИЯ</a>
+                                <a class="nav-link px-2" href="{{ url_for('main.events') }}">ВСЕ МЕРОПРИЯТИЯ</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="{{ url_for('main.category_events', category_id=2) }}">ВЫСТАВКИ</a>
+                                <a class="nav-link px-2" href="{{ url_for('main.category_events', category_id=2) }}">ВЫСТАВКИ</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="{{ url_for('main.category_events', category_id=1) }}">КОНЦЕРТЫ</a>
+                                <a class="nav-link px-2" href="{{ url_for('main.category_events', category_id=1) }}">КОНЦЕРТЫ</a>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link" href="{{ url_for('main.category_events', category_id=3) }}">МЕЖДУНАРОДНЫЕ СОБЫТИЯ</a>
+                                <a class="nav-link px-2" href="{{ url_for('main.category_events', category_id=3) }}">МЕЖДУНАРОДНЫЕ СОБЫТИЯ</a>
                             </li>
                             <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="#" id="moreCategories" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <a class="nav-link dropdown-toggle px-2" href="#" id="moreCategories" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                     ЕЩЁ
                                 </a>
                                 <ul class="dropdown-menu" aria-labelledby="moreCategories">
@@ -79,7 +79,7 @@
                     </div>
                     
                     <!-- Поиск (центр в мобильной версии, справа в десктопной) -->
-                    <div class="col-10 col-lg-3 mb-0">
+                    <div class="col-10 col-lg-4 mb-0">
                         <form action="{{ url_for('main.events') }}" method="get" class="d-flex">
                             <div class="input-group">
                                 <input class="form-control" type="search" name="query" placeholder="Поиск мероприятий, артистов, площадок..." aria-label="Search" value="{{ request.args.get('query', '') }}">

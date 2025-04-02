@@ -126,7 +126,9 @@ body {
     color: var(--dark-blue) !important;
     font-weight: 600;
     text-transform: uppercase;
-    padding: 0.6rem 1rem;
+    padding: 0.6rem 0.4rem;
+    font-size: 0.9rem;
+    white-space: nowrap;
 }
 
 .d-lg-flex .nav-link:hover {
