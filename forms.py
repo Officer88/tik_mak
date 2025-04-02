@@ -82,6 +82,8 @@ class EventForm(FlaskForm):
     venue_id = SelectField('Площадка', coerce=int, validators=[Optional()])
     custom_venue_name = StringField('Название места', validators=[Optional(), Length(max=128)])
     custom_venue_address = StringField('Адрес', validators=[Optional(), Length(max=256)])
+    is_popular = BooleanField('Популярное мероприятие')
+    is_featured = BooleanField('Показывать на главной странице')
     base_price = FloatField('Базовая цена', validators=[DataRequired(), NumberRange(min=0)])
     max_price = FloatField('Максимальная цена', validators=[Optional(), NumberRange(min=0)])
     is_active = BooleanField('Активно')

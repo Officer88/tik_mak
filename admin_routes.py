@@ -104,6 +104,8 @@ def add_event():
             custom_venue_name=form.custom_venue_name.data if form.venue_type.data == 'custom' else None,
             custom_venue_address=form.custom_venue_address.data if form.venue_type.data == 'custom' else None,
             max_price=form.max_price.data,
+            is_popular=form.is_popular.data,
+            is_featured=form.is_featured.data,
             is_active=form.is_active.data,
             seo_title=form.seo_title.data,
             seo_description=form.seo_description.data

@@ -73,6 +73,8 @@ class Event(db.Model):
     venue_id = db.Column(db.Integer, db.ForeignKey('venue.id'), nullable=True)
     custom_venue_name = db.Column(db.String(128), nullable=True)
     custom_venue_address = db.Column(db.String(256), nullable=True)
+    is_popular = db.Column(db.Boolean, default=False)  # Популярное мероприятие
+    is_featured = db.Column(db.Boolean, default=False)  # Ближайшее/избранное мероприятие
     base_price = db.Column(db.Float, nullable=False)
     max_price = db.Column(db.Float, nullable=True)
     is_active = db.Column(db.Boolean, default=True)
