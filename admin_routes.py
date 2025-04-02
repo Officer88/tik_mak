@@ -565,7 +565,10 @@ def contacts():
 @login_required
 @admin_required
 def tickets_for_sale():
-    tickets = TicketForSale.query.filter_by(is_sold=False).order_by(TicketForSale.created_at.desc()).all()
+    tickets = db.session.query(TicketForSale, Event)\
+        .join(Event, TicketForSale.event_id == Event.id)\
+        .filter(TicketForSale.is_sold == False)\
+        .order_by(TicketForSale.created_at.desc()).all()
     return render_template('admin/tickets_for_sale.html', tickets=tickets)
 
 # Notifications management
