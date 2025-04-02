@@ -6,6 +6,7 @@ import uuid
 from app import db
 from models import Event, Category, Venue, Ticket, Review, Favorite, CartItem, TicketForSale, Slide
 from forms import EventSearchForm, ReviewForm, CheckoutForm, SellTicketForm
+from helpers import get_categories
 
 # Create blueprint
 main_bp = Blueprint('main', __name__)

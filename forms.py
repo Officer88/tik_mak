@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, BooleanField, SubmitField, TextAreaField, SelectField
-from wtforms import IntegerField, FloatField, DateTimeField, FileField, HiddenField, RadioField
+from wtforms import IntegerField, FloatField, DateTimeField, FileField, HiddenField, RadioField, SelectMultipleField
 from wtforms.validators import DataRequired, Email, EqualTo, Length, Optional, NumberRange, ValidationError
 from datetime import datetime
 
@@ -80,6 +80,15 @@ class EventForm(FlaskForm):
     is_active = BooleanField('Активно')
     seo_title = StringField('SEO Заголовок', validators=[Optional(), Length(max=100)])
     seo_description = TextAreaField('SEO Описание', validators=[Optional(), Length(max=200)])
+    
+    # Выбор методов доставки
+    delivery_methods = SelectMultipleField('Способы доставки', choices=[
+        ('email', 'Электронный билет (email)'),
+        ('courier', 'Курьерская доставка'),
+        ('event_day', 'В день мероприятия'),
+        ('24h', 'В течение 24 часов')
+    ])
+    
     submit = SubmitField('Сохранить')
 
 # Admin Category Form

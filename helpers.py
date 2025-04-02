@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
+from flask import current_app
 from app import db
-from models import Event
+from models import Event, Category
 
 def format_date(date):
     """Format date for display in Russian style"""
@@ -37,6 +38,14 @@ def get_event_card_date(event):
     
     weekdays = ['ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ', 'ВС']
     return f"{event.date.day:02d}.{event.date.month:02d} {weekdays[event.date.weekday()]}"
+
+def get_categories():
+    """Получение всех категорий для шаблонов"""
+    try:
+        return Category.query.order_by(Category.name).all()
+    except Exception as e:
+        current_app.logger.error(f"Ошибка при получении категорий: {e}")
+        return []
 
 def clean_old_events():
     """Clean up events that are past their date immediately"""

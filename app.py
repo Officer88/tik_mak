@@ -52,6 +52,15 @@ with app.app_context():
     app.register_blueprint(auth_bp, url_prefix='/auth')
     app.register_blueprint(admin_bp, url_prefix='/admin')
     
+    # Register context processors
+    from helpers import get_categories
+    
+    @app.context_processor
+    def utility_processor():
+        return {
+            'get_categories': get_categories
+        }
+    
     # Setup login manager
     @login_manager.user_loader
     def load_user(user_id):

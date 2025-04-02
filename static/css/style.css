@@ -115,6 +115,28 @@ body {
     font-weight: 700;
 }
 
+/* Желтая полоса */
+.bg-yellow {
+    background-color: var(--yellow);
+    padding: 1rem 0;
+}
+
+.bg-yellow .header-icons .nav-link {
+    color: var(--dark-blue) !important;
+    font-size: 1.3rem;
+    margin: 0 0.5rem;
+}
+
+.bg-yellow .header-icons .nav-link:hover {
+    color: #000 !important;
+}
+
+.btn-dark-blue {
+    background-color: var(--dark-blue);
+    color: white;
+    border-color: var(--dark-blue);
+}
+
 /* Hero Slider */
 .carousel-item {
     height: auto;

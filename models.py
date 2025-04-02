@@ -77,6 +77,7 @@ class Event(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     seo_title = db.Column(db.String(100), nullable=True)
     seo_description = db.Column(db.String(200), nullable=True)
+    delivery_methods = db.Column(db.String(128), default='email,courier')  # Список методов доставки через запятую
     
     # Relationships
     tickets = db.relationship('Ticket', backref='event', lazy='dynamic')
