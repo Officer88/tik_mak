@@ -478,7 +478,16 @@ def sell_ticket():
                 logging.error(f"Ошибка при сохранении билета: {str(e)}")
                 flash('Произошла ошибка при отправке билета. Пожалуйста, попробуйте еще раз.', 'danger')
         else:
-            flash('Пожалуйста, проверьте правильность заполнения формы', 'danger')
+            error_messages = []
+            for field, errors in form.errors.items():
+                field_label = getattr(form, field).label.text
+                error_msg = f"{field_label}: {', '.join(errors)}"
+                error_messages.append(error_msg)
+            
+            if error_messages:
+                flash(f'Ошибки в форме: {"; ".join(error_messages)}', 'danger')
+            else:
+                flash('Пожалуйста, проверьте правильность заполнения формы', 'danger')
     
     return render_template('sell_ticket.html', form=form)
 

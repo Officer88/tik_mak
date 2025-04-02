@@ -128,7 +128,16 @@ def add_event():
             logging.error(f"Ошибка при создании мероприятия: {str(e)}")
             flash('Произошла ошибка при создании мероприятия. Пожалуйста, проверьте введенные данные.', 'danger')
     elif request.method == 'POST':
-        flash('Пожалуйста, проверьте правильность заполнения формы', 'danger')
+        error_messages = []
+        for field, errors in form.errors.items():
+            field_label = getattr(form, field).label.text
+            error_msg = f"{field_label}: {', '.join(errors)}"
+            error_messages.append(error_msg)
+        
+        if error_messages:
+            flash(f'Ошибки в форме: {"; ".join(error_messages)}', 'danger')
+        else:
+            flash('Пожалуйста, проверьте правильность заполнения формы', 'danger')
     
     return render_template('admin/edit_event.html', form=form, title='Добавить мероприятие')
 
@@ -191,7 +200,16 @@ def edit_event(event_id):
             logging.error(f"Ошибка при обновлении мероприятия: {str(e)}")
             flash('Произошла ошибка при обновлении мероприятия. Пожалуйста, проверьте введенные данные.', 'danger')
     elif request.method == 'POST':
-        flash('Пожалуйста, проверьте правильность заполнения формы', 'danger')
+        error_messages = []
+        for field, errors in form.errors.items():
+            field_label = getattr(form, field).label.text
+            error_msg = f"{field_label}: {', '.join(errors)}"
+            error_messages.append(error_msg)
+        
+        if error_messages:
+            flash(f'Ошибки в форме: {"; ".join(error_messages)}', 'danger')
+        else:
+            flash('Пожалуйста, проверьте правильность заполнения формы', 'danger')
     
     return render_template('admin/edit_event.html', form=form, event=event, title='Редактировать мероприятие')
 
@@ -221,19 +239,36 @@ def categories():
 def add_category():
     form = CategoryForm()
     
-    if form.validate_on_submit():
-        category = Category(
-            name=form.name.data,
-            icon=form.icon.data,
-            seo_title=form.seo_title.data,
-            seo_description=form.seo_description.data
-        )
+    if request.method == 'POST' and form.validate_on_submit():
+        try:
+            category = Category(
+                name=form.name.data,
+                icon=form.icon.data,
+                seo_title=form.seo_title.data,
+                seo_description=form.seo_description.data
+            )
+            
+            db.session.add(category)
+            db.session.commit()
+            
+            flash('Категория успешно добавлена', 'success')
+            return redirect(url_for('admin.categories'))
+        except Exception as e:
+            db.session.rollback()
+            import logging
+            logging.error(f"Ошибка при создании категории: {str(e)}")
+            flash('Произошла ошибка при создании категории. Пожалуйста, проверьте введенные данные.', 'danger')
+    elif request.method == 'POST':
+        error_messages = []
+        for field, errors in form.errors.items():
+            field_label = getattr(form, field).label.text
+            error_msg = f"{field_label}: {', '.join(errors)}"
+            error_messages.append(error_msg)
         
-        db.session.add(category)
-        db.session.commit()
-        
-        flash('Категория успешно добавлена', 'success')
-        return redirect(url_for('admin.categories'))
+        if error_messages:
+            flash(f'Ошибки в форме: {"; ".join(error_messages)}', 'danger')
+        else:
+            flash('Пожалуйста, проверьте правильность заполнения формы', 'danger')
     
     return render_template('admin/categories.html', form=form, add_mode=True)
 
