@@ -1,0 +1,40 @@
+<div class="card event-card h-100">
+    <div class="event-img-container">
+        <img src="{{ event.image_url }}" class="event-img" alt="{{ event.title }}">
+        <div class="event-date-badge">
+            {{ event.date.strftime('%d.%m') }} {{ ['ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ', 'ВС'][event.date.weekday()] }}
+        </div>
+    </div>
+    <div class="event-card-body">
+        <h5 class="event-title">{{ event.title }}</h5>
+        <div class="event-venue">
+            <i class="fas fa-map-marker-alt me-1"></i> {{ event.venue.name }}
+        </div>
+        <div class="event-time">
+            <i class="far fa-clock me-1"></i> {{ event.date.strftime('%H:%M') }}
+        </div>
+        <div class="event-price mt-2">
+            от {{ event.base_price|int }} ₽
+        </div>
+        <div class="d-grid gap-2">
+            <a href="{{ url_for('main.event_detail', event_id=event.id) }}" class="btn btn-primary">Купить билет</a>
+        </div>
+    </div>
+    <div class="event-card-footer">
+        <span class="event-category">
+            <i class="fas {{ event.category.icon }} me-1"></i> {{ event.category.name }}
+        </span>
+        {% if current_user.is_authenticated %}
+            <form action="{% if is_favorite|default(false) %}{{ url_for('main.remove_from_favorites', event_id=event.id) }}{% else %}{{ url_for('main.add_to_favorites', event_id=event.id) }}{% endif %}" method="post">
+                <button type="button" class="favorite-btn {% if is_favorite|default(false) %}active{% endif %}" 
+                        data-logged-in="true">
+                    <i class="{% if is_favorite|default(false) %}fas{% else %}far{% endif %} fa-heart"></i>
+                </button>
+            </form>
+        {% else %}
+            <button type="button" class="favorite-btn" data-logged-in="false" data-login-url="{{ url_for('auth.login') }}">
+                <i class="far fa-heart"></i>
+            </button>
+        {% endif %}
+    </div>
+</div>

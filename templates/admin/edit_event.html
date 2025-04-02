@@ -1,0 +1,205 @@
+{% extends 'admin/base.html' %}
+
+{% block title %}{{ title }} - BiletService{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="admin-content-title mb-0">{{ title }}</h1>
+    <a href="{{ url_for('admin.events') }}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left me-2"></i> Назад к списку
+    </a>
+</div>
+
+<div class="admin-card">
+    <form method="post" action="{% if event %}{{ url_for('admin.edit_event', event_id=event.id) }}{% else %}{{ url_for('admin.add_event') }}{% endif %}">
+        {{ form.hidden_tag() }}
+        
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="title" class="form-label">Название</label>
+                {{ form.title(class="form-control") }}
+                {% if form.title.errors %}
+                <div class="invalid-feedback d-block">
+                    {% for error in form.title.errors %}
+                    {{ error }}
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="col-md-6 mb-3">
+                <label for="image_url" class="form-label">URL изображения</label>
+                {{ form.image_url(class="form-control") }}
+                {% if form.image_url.errors %}
+                <div class="invalid-feedback d-block">
+                    {% for error in form.image_url.errors %}
+                    {{ error }}
+                    {% endfor %}
+                </div>
+                {% endif %}
+                <div class="form-text">URL изображения для обложки мероприятия</div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="date" class="form-label">Дата и время</label>
+                {{ form.date(class="form-control", type="datetime-local") }}
+                {% if form.date.errors %}
+                <div class="invalid-feedback d-block">
+                    {% for error in form.date.errors %}
+                    {{ error }}
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="col-md-6 mb-3">
+                <label for="end_date" class="form-label">Дата и время окончания</label>
+                {{ form.end_date(class="form-control", type="datetime-local") }}
+                {% if form.end_date.errors %}
+                <div class="invalid-feedback d-block">
+                    {% for error in form.end_date.errors %}
+                    {{ error }}
+                    {% endfor %}
+                </div>
+                {% endif %}
+                <div class="form-text">Необязательно. Для многодневных мероприятий.</div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="category_id" class="form-label">Категория</label>
+                {{ form.category_id(class="form-select") }}
+                {% if form.category_id.errors %}
+                <div class="invalid-feedback d-block">
+                    {% for error in form.category_id.errors %}
+                    {{ error }}
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="col-md-6 mb-3">
+                <label for="venue_id" class="form-label">Площадка</label>
+                {{ form.venue_id(class="form-select") }}
+                {% if form.venue_id.errors %}
+                <div class="invalid-feedback d-block">
+                    {% for error in form.venue_id.errors %}
+                    {{ error }}
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="base_price" class="form-label">Базовая цена</label>
+                <div class="input-group">
+                    {{ form.base_price(class="form-control") }}
+                    <span class="input-group-text">₽</span>
+                </div>
+                {% if form.base_price.errors %}
+                <div class="invalid-feedback d-block">
+                    {% for error in form.base_price.errors %}
+                    {{ error }}
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="col-md-6 mb-3">
+                <label for="max_price" class="form-label">Максимальная цена</label>
+                <div class="input-group">
+                    {{ form.max_price(class="form-control") }}
+                    <span class="input-group-text">₽</span>
+                </div>
+                {% if form.max_price.errors %}
+                <div class="invalid-feedback d-block">
+                    {% for error in form.max_price.errors %}
+                    {{ error }}
+                    {% endfor %}
+                </div>
+                {% endif %}
+                <div class="form-text">Необязательно. Для указания ценового диапазона.</div>
+            </div>
+        </div>
+        
+        <div class="mb-3">
+            <label for="description" class="form-label">Описание</label>
+            {{ form.description(class="form-control", rows=6) }}
+            {% if form.description.errors %}
+            <div class="invalid-feedback d-block">
+                {% for error in form.description.errors %}
+                {{ error }}
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="mb-3 form-check">
+            {{ form.is_active(class="form-check-input") }}
+            <label class="form-check-label" for="is_active">Активно</label>
+            {% if form.is_active.errors %}
+            <div class="invalid-feedback d-block">
+                {% for error in form.is_active.errors %}
+                {{ error }}
+                {% endfor %}
+            </div>
+            {% endif %}
+            <div class="form-text">Если отключено, мероприятие не будет отображаться на сайте</div>
+        </div>
+        
+        <h4 class="mt-4 mb-3">SEO настройки</h4>
+        
+        <div class="mb-3">
+            <label for="seo_title" class="form-label">SEO Заголовок</label>
+            {{ form.seo_title(class="form-control") }}
+            {% if form.seo_title.errors %}
+            <div class="invalid-feedback d-block">
+                {% for error in form.seo_title.errors %}
+                {{ error }}
+                {% endfor %}
+            </div>
+            {% endif %}
+            <div class="form-text">Необязательно. Если не указано, будет использовано название мероприятия.</div>
+        </div>
+        
+        <div class="mb-4">
+            <label for="seo_description" class="form-label">SEO Описание</label>
+            {{ form.seo_description(class="form-control", rows=3) }}
+            {% if form.seo_description.errors %}
+            <div class="invalid-feedback d-block">
+                {% for error in form.seo_description.errors %}
+                {{ error }}
+                {% endfor %}
+            </div>
+            {% endif %}
+            <div class="form-text">Необязательно. Короткое описание для поисковых систем.</div>
+        </div>
+        
+        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+            <a href="{{ url_for('admin.events') }}" class="btn btn-secondary me-md-2">Отмена</a>
+            {{ form.submit(class="btn btn-primary") }}
+        </div>
+    </form>
+</div>
+
+{% if event %}
+<div class="mt-4">
+    <div class="admin-card">
+        <h4 class="mb-3">Предпросмотр изображения</h4>
+        <div class="text-center mb-3">
+            <img src="{{ event.image_url }}" alt="{{ event.title }}" style="max-height: 300px; max-width: 100%;" class="img-thumbnail">
+        </div>
+        <div class="d-grid">
+            <a href="{{ url_for('admin.tickets', event_id=event.id) }}" class="btn btn-info">
+                <i class="fas fa-ticket-alt me-2"></i> Управление билетами
+            </a>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

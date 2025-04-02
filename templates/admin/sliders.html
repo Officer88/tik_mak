@@ -1,0 +1,246 @@
+{% extends 'admin/base.html' %}
+
+{% block title %}Управление слайдерами - BiletService{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="admin-content-title mb-0">Управление слайдерами</h1>
+    {% if not add_mode and not edit_mode %}
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addSlideModal">
+        <i class="fas fa-plus me-2"></i> Добавить слайд
+    </button>
+    {% endif %}
+</div>
+
+{% if add_mode or edit_mode %}
+<!-- Slide Form -->
+<div class="admin-card mb-4">
+    <h4 class="mb-3">{{ 'Добавить слайд' if add_mode else 'Редактировать слайд' }}</h4>
+    <form method="post" action="{% if edit_mode %}{{ url_for('admin.edit_slide', slide_id=slide.id) }}{% else %}{{ url_for('admin.add_slide') }}{% endif %}">
+        {{ form.hidden_tag() }}
+        
+        <div class="mb-3">
+            <label for="title" class="form-label">Заголовок</label>
+            {{ form.title(class="form-control") }}
+            {% if form.title.errors %}
+            <div class="invalid-feedback d-block">
+                {% for error in form.title.errors %}
+                {{ error }}
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="mb-3">
+            <label for="subtitle" class="form-label">Подзаголовок</label>
+            {{ form.subtitle(class="form-control") }}
+            {% if form.subtitle.errors %}
+            <div class="invalid-feedback d-block">
+                {% for error in form.subtitle.errors %}
+                {{ error }}
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="mb-3">
+            <label for="image_url" class="form-label">URL изображения</label>
+            {{ form.image_url(class="form-control") }}
+            {% if form.image_url.errors %}
+            <div class="invalid-feedback d-block">
+                {% for error in form.image_url.errors %}
+                {{ error }}
+                {% endfor %}
+            </div>
+            {% endif %}
+            <div class="form-text">URL изображения для слайда. Рекомендуемый размер 1600x400px.</div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="button_text" class="form-label">Текст кнопки</label>
+                {{ form.button_text(class="form-control") }}
+                {% if form.button_text.errors %}
+                <div class="invalid-feedback d-block">
+                    {% for error in form.button_text.errors %}
+                    {{ error }}
+                    {% endfor %}
+                </div>
+                {% endif %}
+                <div class="form-text">Необязательно. Оставьте пустым, чтобы не показывать кнопку.</div>
+            </div>
+            
+            <div class="col-md-6 mb-3">
+                <label for="button_url" class="form-label">URL кнопки</label>
+                {{ form.button_url(class="form-control") }}
+                {% if form.button_url.errors %}
+                <div class="invalid-feedback d-block">
+                    {% for error in form.button_url.errors %}
+                    {{ error }}
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="order" class="form-label">Порядок отображения</label>
+                {{ form.order(class="form-control") }}
+                {% if form.order.errors %}
+                <div class="invalid-feedback d-block">
+                    {% for error in form.order.errors %}
+                    {{ error }}
+                    {% endfor %}
+                </div>
+                {% endif %}
+                <div class="form-text">Чем меньше число, тем раньше будет показан слайд.</div>
+            </div>
+            
+            <div class="col-md-6 mb-3">
+                <div class="form-check mt-4">
+                    {{ form.is_active(class="form-check-input") }}
+                    <label class="form-check-label" for="is_active">Активен</label>
+                    {% if form.is_active.errors %}
+                    <div class="invalid-feedback d-block">
+                        {% for error in form.is_active.errors %}
+                        {{ error }}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div>
+            <a href="{{ url_for('admin.sliders') }}" class="btn btn-secondary me-2">Отмена</a>
+            {{ form.submit(class="btn btn-primary") }}
+        </div>
+    </form>
+</div>
+{% endif %}
+
+<!-- Slides List -->
+<div class="admin-card">
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Изображение</th>
+                    <th>Заголовок</th>
+                    <th>Порядок</th>
+                    <th>Статус</th>
+                    <th>Действия</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for slide in slides %}
+                <tr>
+                    <td>{{ slide.id }}</td>
+                    <td>
+                        <img src="{{ slide.image_url }}" alt="{{ slide.title }}" style="height: 60px; object-fit: cover; border-radius: 4px;">
+                    </td>
+                    <td>{{ slide.title }}</td>
+                    <td>{{ slide.order }}</td>
+                    <td>
+                        {% if slide.is_active %}
+                        <span class="badge bg-success">Активен</span>
+                        {% else %}
+                        <span class="badge bg-danger">Неактивен</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="btn-group">
+                            <a href="{{ url_for('admin.edit_slide', slide_id=slide.id) }}" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteSlideModal{{ slide.id }}">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
+                        
+                        <!-- Delete Modal -->
+                        <div class="modal fade" id="deleteSlideModal{{ slide.id }}" tabindex="-1" aria-labelledby="deleteSlideModalLabel{{ slide.id }}" aria-hidden="true">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="deleteSlideModalLabel{{ slide.id }}">Подтверждение удаления</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <p>Вы уверены, что хотите удалить слайд "{{ slide.title }}"?</p>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                                        <form action="{{ url_for('admin.delete_slide', slide_id=slide.id) }}" method="post">
+                                            <button type="submit" class="btn btn-danger">Удалить</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" class="text-center">Слайды не найдены.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Add Slide Modal -->
+<div class="modal fade" id="addSlideModal" tabindex="-1" aria-labelledby="addSlideModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addSlideModalLabel">Добавить слайд</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Для добавления нового слайда нажмите на кнопку ниже:</p>
+                <div class="d-grid">
+                    <a href="{{ url_for('admin.add_slide') }}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i> Создать новый слайд
+                    </a>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Slide Preview Modal -->
+{% if edit_mode and slide %}
+<div class="modal fade" id="previewModal" tabindex="-1" aria-labelledby="previewModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="previewModalLabel">Предпросмотр слайда</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0">
+                <div class="carousel-item active" style="height: 400px; background-image: url('{{ slide.image_url }}'); background-size: cover; background-position: center;">
+                    <div class="carousel-caption">
+                        <h2>{{ slide.title }}</h2>
+                        <p>{{ slide.subtitle }}</p>
+                        {% if slide.button_text and slide.button_url %}
+                        <a href="{{ slide.button_url }}" class="btn btn-primary">{{ slide.button_text }}</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}

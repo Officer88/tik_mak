@@ -1,0 +1,227 @@
+{% extends 'admin/base.html' %}
+
+{% block title %}Панель управления - BiletService{% endblock %}
+
+{% block content %}
+<h1 class="admin-content-title">Панель управления</h1>
+
+<div class="row">
+    <!-- Statistics Cards -->
+    <div class="col-md-3 mb-4">
+        <div class="admin-stat">
+            <div class="admin-stat-number">{{ total_events }}</div>
+            <div class="admin-stat-label">Всего мероприятий</div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-4">
+        <div class="admin-stat">
+            <div class="admin-stat-number">{{ upcoming_events }}</div>
+            <div class="admin-stat-label">Предстоящих мероприятий</div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-4">
+        <div class="admin-stat">
+            <div class="admin-stat-number">{{ total_users }}</div>
+            <div class="admin-stat-label">Пользователей</div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-4">
+        <div class="admin-stat">
+            <div class="admin-stat-number">{{ total_orders }}</div>
+            <div class="admin-stat-label">Заказов</div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Tickets Statistics -->
+    <div class="col-lg-6 mb-4">
+        <div class="admin-card">
+            <h4 class="admin-card-title">Статистика по билетам</h4>
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <div class="text-center">
+                        <div class="fs-4 fw-bold text-success">{{ available_tickets }}</div>
+                        <div class="small text-muted">В наличии</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="text-center">
+                        <div class="fs-4 fw-bold text-danger">{{ sold_tickets }}</div>
+                        <div class="small text-muted">Продано</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="text-center">
+                        <div class="fs-4 fw-bold text-primary">{{ total_tickets }}</div>
+                        <div class="small text-muted">Всего</div>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <canvas id="tickets-chart" height="220"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Orders Statistics -->
+    <div class="col-lg-6 mb-4">
+        <div class="admin-card">
+            <h4 class="admin-card-title">Статистика по заказам</h4>
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <div class="text-center">
+                        <div class="fs-4 fw-bold text-success">{{ completed_orders }}</div>
+                        <div class="small text-muted">Выполнено</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="text-center">
+                        <div class="fs-4 fw-bold text-warning">{{ pending_orders }}</div>
+                        <div class="small text-muted">В обработке</div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="text-center">
+                        <div class="fs-4 fw-bold text-primary">{{ total_orders }}</div>
+                        <div class="small text-muted">Всего</div>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <canvas id="orders-chart" height="220"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Recent Orders -->
+    <div class="col-lg-6 mb-4">
+        <div class="admin-card">
+            <h4 class="admin-card-title">Последние заказы</h4>
+            {% if recent_orders %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Пользователь</th>
+                            <th>Сумма</th>
+                            <th>Статус</th>
+                            <th>Дата</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in recent_orders %}
+                        <tr>
+                            <td>{{ order.id }}</td>
+                            <td>{{ order.user.username }}</td>
+                            <td>{{ order.total_amount|int }} ₽</td>
+                            <td>
+                                <span class="badge {% if order.status == 'completed' %}bg-success{% elif order.status == 'pending' %}bg-warning{% else %}bg-danger{% endif %}">
+                                    {{ {'completed': 'Выполнен', 'pending': 'В обработке', 'cancelled': 'Отменен'}.get(order.status, order.status) }}
+                                </span>
+                            </td>
+                            <td>{{ order.created_at.strftime('%d.%m.%Y') }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="alert alert-info">Нет заказов для отображения.</div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Recent Users -->
+    <div class="col-lg-6 mb-4">
+        <div class="admin-card">
+            <h4 class="admin-card-title">Последние регистрации</h4>
+            {% if recent_users %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Пользователь</th>
+                            <th>Email</th>
+                            <th>Дата регистрации</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in recent_users %}
+                        <tr>
+                            <td>{{ user.id }}</td>
+                            <td>{{ user.username }}</td>
+                            <td>{{ user.email }}</td>
+                            <td>{{ user.registered_on.strftime('%d.%m.%Y') }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="alert alert-info">Нет пользователей для отображения.</div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Tickets Chart
+        var ticketsCtx = document.getElementById('tickets-chart').getContext('2d');
+        var ticketsChart = new Chart(ticketsCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['В наличии', 'Продано'],
+                datasets: [{
+                    data: [{{ available_tickets }}, {{ sold_tickets }}],
+                    backgroundColor: ['#198754', '#dc3545'],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+        
+        // Orders Chart
+        var ordersCtx = document.getElementById('orders-chart').getContext('2d');
+        var ordersChart = new Chart(ordersCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Выполнено', 'В обработке', 'Отменено'],
+                datasets: [{
+                    data: [
+                        {{ completed_orders }}, 
+                        {{ pending_orders }}, 
+                        {{ total_orders - completed_orders - pending_orders }}
+                    ],
+                    backgroundColor: ['#198754', '#ffc107', '#dc3545'],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

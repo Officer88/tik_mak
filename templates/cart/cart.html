@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+
+{% block title %}Корзина - BiletService{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">Корзина</h1>
+    
+    {% if items %}
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Cart items -->
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Ваши билеты</h5>
+                </div>
+                <div class="card-body">
+                    {% for item in items %}
+                    <div class="cart-item">
+                        <div class="row">
+                            <div class="col-md-2">
+                                <img src="{{ item.event.image_url }}" alt="{{ item.event.title }}" class="cart-item-img">
+                            </div>
+                            <div class="col-md-6 cart-item-details">
+                                <h5 class="cart-item-title">{{ item.event.title }}</h5>
+                                <div class="cart-item-meta">
+                                    <i class="far fa-calendar-alt me-1"></i> {{ item.event.date.strftime('%d.%m.%Y') }}
+                                    <i class="far fa-clock ms-2 me-1"></i> {{ item.event.date.strftime('%H:%M') }}
+                                </div>
+                                <div class="cart-item-meta">
+                                    <i class="fas fa-map-marker-alt me-1"></i> {{ item.event.venue.name }}
+                                </div>
+                                {% if item.ticket.section or item.ticket.row or item.ticket.seat %}
+                                <div class="cart-item-meta">
+                                    {% if item.ticket.section %}Секция: {{ item.ticket.section }}{% endif %}
+                                    {% if item.ticket.row %} | Ряд: {{ item.ticket.row }}{% endif %}
+                                    {% if item.ticket.seat %} | Место: {{ item.ticket.seat }}{% endif %}
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-2 text-center d-flex align-items-center justify-content-center">
+                                <div class="cart-item-price">{{ item.ticket.price|int }} ₽</div>
+                            </div>
+                            <div class="col-md-2 text-end d-flex align-items-center justify-content-end">
+                                <form action="{{ url_for('main.remove_from_cart', cart_item_id=item.cart_item_id) }}" method="post">
+                                    <button type="submit" class="btn btn-outline-danger btn-sm">
+                                        <i class="fas fa-trash-alt"></i> Удалить
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <!-- Cart summary -->
+            <div class="cart-summary">
+                <h5 class="mb-4">Сумма заказа</h5>
+                
+                <div class="cart-total">
+                    <span>Итого:</span>
+                    <span>{{ total|int }} ₽</span>
+                </div>
+                
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('main.checkout') }}" class="btn btn-primary btn-lg">
+                        Перейти к оформлению
+                    </a>
+                    <a href="{{ url_for('main.events') }}" class="btn btn-outline-secondary">
+                        Продолжить покупки
+                    </a>
+                </div>
+                
+                <div class="mt-4">
+                    <h6 class="mb-3">Мы принимаем:</h6>
+                    <div>
+                        <i class="fab fa-cc-visa me-2 fa-2x"></i>
+                        <i class="fab fa-cc-mastercard me-2 fa-2x"></i>
+                        <i class="fab fa-cc-jcb me-2 fa-2x"></i>
+                        <i class="fab fa-cc-amex fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        <i class="fas fa-shopping-cart me-2"></i> Ваша корзина пуста.
+    </div>
+    <div class="mt-4">
+        <a href="{{ url_for('main.events') }}" class="btn btn-primary">
+            Перейти к выбору билетов
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

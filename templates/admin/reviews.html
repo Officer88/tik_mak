@@ -1,0 +1,50 @@
+{% extends 'admin/base.html' %}
+
+{% block title %}Модерация отзывов - BiletService{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="admin-content-title mb-0">Модерация отзывов</h1>
+</div>
+
+<!-- Reviews List -->
+<div class="admin-card">
+    <div class="mb-4">
+        <ul class="nav nav-tabs">
+            <li class="nav-item">
+                <a class="nav-link active" id="all-tab" data-bs-toggle="tab" href="#all">Все отзывы</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="pending-tab" data-bs-toggle="tab" href="#pending">Ожидающие проверки</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" id="approved-tab" data-bs-toggle="tab" href="#approved">Одобренные</a>
+            </li>
+        </ul>
+    </div>
+    
+    <div class="tab-content">
+        <div class="tab-pane fade show active" id="all">
+            {% include 'admin/includes/reviews_table.html' with context %}
+        </div>
+        <div class="tab-pane fade" id="pending">
+            {% with filtered_reviews = reviews|selectattr('is_approved', 'equalto', false)|list %}
+                {% if filtered_reviews %}
+                    {% include 'admin/includes/reviews_table.html' with reviews=filtered_reviews, context=True %}
+                {% else %}
+                    <div class="alert alert-info">Нет отзывов ожидающих проверки.</div>
+                {% endif %}
+            {% endwith %}
+        </div>
+        <div class="tab-pane fade" id="approved">
+            {% with filtered_reviews = reviews|selectattr('is_approved', 'equalto', true)|list %}
+                {% if filtered_reviews %}
+                    {% include 'admin/includes/reviews_table.html' with reviews=filtered_reviews, context=True %}
+                {% else %}
+                    <div class="alert alert-info">Нет одобренных отзывов.</div>
+                {% endif %}
+            {% endwith %}
+        </div>
+    </div>
+</div>
+{% endblock %}

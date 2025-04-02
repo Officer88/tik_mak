@@ -1,173 +1,176 @@
 {% extends 'base.html' %}
 
-{% block title %}Продать билет{% endblock %}
+{% block title %}Продать билет - BiletService{% endblock %}
 
 {% block content %}
-<div class="container py-5">
+<div class="container mt-4">
     <div class="row justify-content-center">
-        <div class="col-lg-8">
-            <div class="card shadow-sm">
-                <div class="card-header bg-primary text-white">
-                    <h1 class="h4 mb-0">Продать билет</h1>
+        <div class="col-md-10">
+            <div class="sell-ticket-form">
+                <h2 class="sell-ticket-title">Продать билет</h2>
+                
+                <div class="alert alert-info mb-4">
+                    <i class="fas fa-info-circle me-2"></i> Размещая билет на продажу, вы соглашаетесь с <a href="#" data-bs-toggle="modal" data-bs-target="#termsModal">правилами сервиса</a>. BiletService выступает исключительно в качестве площадки для размещения объявлений и не является участником сделки.
                 </div>
-                <div class="card-body p-4">
-                    <p class="lead mb-4">Разместите ваш билет на продажу. Заполните форму ниже с информацией о билете.</p>
+                
+                <form method="post" action="{{ url_for('main.sell_ticket') }}">
+                    {{ form.hidden_tag() }}
                     
-                    <form method="post" action="" novalidate>
-                        {{ form.hidden_tag() }}
-                        
-                        <h5 class="mb-3">Информация о мероприятии</h5>
-                        
-                        <div class="row mb-3">
-                            <div class="col-md-8">
-                                <label for="{{ form.event_title.id }}" class="form-label">Название мероприятия</label>
-                                {{ form.event_title(class="form-control" + (" is-invalid" if form.event_title.errors else ""), placeholder="Введите название") }}
-                                {% for error in form.event_title.errors %}
-                                    <div class="invalid-feedback">
-                                        {{ error }}
-                                    </div>
-                                {% endfor %}
-                            </div>
-                            <div class="col-md-4">
-                                <label for="{{ form.event_date.id }}" class="form-label">Дата мероприятия</label>
-                                {{ form.event_date(class="form-control datepicker" + (" is-invalid" if form.event_date.errors else ""), placeholder="ГГГГ-ММ-ДД") }}
-                                {% for error in form.event_date.errors %}
-                                    <div class="invalid-feedback">
-                                        {{ error }}
-                                    </div>
-                                {% endfor %}
-                            </div>
-                        </div>
-                        
-                        <div class="row mb-3">
-                            <div class="col-md-8">
-                                <label for="{{ form.venue.id }}" class="form-label">Площадка</label>
-                                {{ form.venue(class="form-control" + (" is-invalid" if form.venue.errors else ""), placeholder="Введите название площадки") }}
-                                {% for error in form.venue.errors %}
-                                    <div class="invalid-feedback">
-                                        {{ error }}
-                                    </div>
-                                {% endfor %}
-                            </div>
-                            <div class="col-md-4">
-                                <label for="{{ form.city.id }}" class="form-label">Город</label>
-                                {{ form.city(class="form-control" + (" is-invalid" if form.city.errors else ""), placeholder="Введите город") }}
-                                {% for error in form.city.errors %}
-                                    <div class="invalid-feedback">
-                                        {{ error }}
-                                    </div>
-                                {% endfor %}
-                            </div>
-                        </div>
-                        
-                        <h5 class="mb-3 mt-4">Информация о билете</h5>
-                        
-                        <div class="row mb-3">
-                            <div class="col-md-4">
-                                <label for="{{ form.section.id }}" class="form-label">Секция</label>
-                                {{ form.section(class="form-control" + (" is-invalid" if form.section.errors else ""), placeholder="Если есть") }}
-                                {% for error in form.section.errors %}
-                                    <div class="invalid-feedback">
-                                        {{ error }}
-                                    </div>
-                                {% endfor %}
-                            </div>
-                            <div class="col-md-4">
-                                <label for="{{ form.row.id }}" class="form-label">Ряд</label>
-                                {{ form.row(class="form-control" + (" is-invalid" if form.row.errors else ""), placeholder="Если есть") }}
-                                {% for error in form.row.errors %}
-                                    <div class="invalid-feedback">
-                                        {{ error }}
-                                    </div>
-                                {% endfor %}
-                            </div>
-                            <div class="col-md-4">
-                                <label for="{{ form.seat.id }}" class="form-label">Место</label>
-                                {{ form.seat(class="form-control" + (" is-invalid" if form.seat.errors else ""), placeholder="Если есть") }}
-                                {% for error in form.seat.errors %}
-                                    <div class="invalid-feedback">
-                                        {{ error }}
-                                    </div>
-                                {% endfor %}
-                            </div>
-                        </div>
-                        
-                        <div class="row mb-3">
-                            <div class="col-md-4">
-                                <label for="{{ form.original_price.id }}" class="form-label">Цена покупки (₽)</label>
-                                {{ form.original_price(class="form-control" + (" is-invalid" if form.original_price.errors else ""), placeholder="Сколько вы заплатили") }}
-                                {% for error in form.original_price.errors %}
-                                    <div class="invalid-feedback">
-                                        {{ error }}
-                                    </div>
-                                {% endfor %}
-                            </div>
-                            <div class="col-md-4">
-                                <label for="{{ form.asking_price.id }}" class="form-label">Желаемая цена продажи (₽)</label>
-                                {{ form.asking_price(class="form-control" + (" is-invalid" if form.asking_price.errors else ""), placeholder="За сколько хотите продать") }}
-                                {% for error in form.asking_price.errors %}
-                                    <div class="invalid-feedback">
-                                        {{ error }}
-                                    </div>
-                                {% endfor %}
-                            </div>
-                            <div class="col-md-4">
-                                <label for="{{ form.ticket_type.id }}" class="form-label">Тип билета</label>
-                                {{ form.ticket_type(class="form-select" + (" is-invalid" if form.ticket_type.errors else "")) }}
-                                {% for error in form.ticket_type.errors %}
-                                    <div class="invalid-feedback">
-                                        {{ error }}
-                                    </div>
-                                {% endfor %}
-                            </div>
-                        </div>
-                        
-                        <div class="mb-4">
-                            <label for="{{ form.contact_info.id }}" class="form-label">Контактная информация</label>
-                            {{ form.contact_info(class="form-control" + (" is-invalid" if form.contact_info.errors else ""), placeholder="Телефон или email для связи с вами") }}
-                            {% for error in form.contact_info.errors %}
-                                <div class="invalid-feedback">
-                                    {{ error }}
-                                </div>
+                    <div class="mb-4">
+                        <label for="event_id" class="form-label">Мероприятие</label>
+                        {{ form.event_id(class="form-select") }}
+                        {% if form.event_id.errors %}
+                        <div class="invalid-feedback d-block">
+                            {% for error in form.event_id.errors %}
+                            {{ error }}
                             {% endfor %}
-                            <div class="form-text">Укажите контактную информацию для связи с потенциальными покупателями</div>
                         </div>
-                        
-                        <div class="alert alert-info mb-4">
-                            <div class="d-flex">
-                                <div class="me-3">
-                                    <i class="fas fa-info-circle fa-2x"></i>
+                        {% endif %}
+                        <div class="form-text">Выберите мероприятие, на которое у вас есть билет</div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="form-label">Тип билета</label>
+                        <div class="d-flex gap-4 mb-2">
+                            {% for subfield in form.ticket_type %}
+                            <div class="form-check">
+                                {{ subfield(class="form-check-input") }}
+                                <label class="form-check-label" for="{{ subfield.id }}">
+                                    {{ subfield.label.text }}
+                                </label>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% if form.ticket_type.errors %}
+                        <div class="invalid-feedback d-block">
+                            {% for error in form.ticket_type.errors %}
+                            {{ error }}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div id="section-row-seat-fields" class="mb-4 d-none">
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="section" class="form-label">Секция</label>
+                                {{ form.section(class="form-control") }}
+                                {% if form.section.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.section.errors %}
+                                    {{ error }}
+                                    {% endfor %}
                                 </div>
-                                <div>
-                                    <strong>Важно!</strong>
-                                    <p class="mb-0">Мы не гарантируем продажу вашего билета. Размещая билет, вы соглашаетесь с тем, что мы предоставляем только площадку для поиска покупателей. Все сделки проводятся между вами и покупателем.</p>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="row" class="form-label">Ряд</label>
+                                {{ form.row(class="form-control") }}
+                                {% if form.row.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.row.errors %}
+                                    {{ error }}
+                                    {% endfor %}
                                 </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="seat" class="form-label">Место</label>
+                                {{ form.seat(class="form-control") }}
+                                {% if form.seat.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.seat.errors %}
+                                    {{ error }}
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
                             </div>
                         </div>
-                        
-                        <div class="d-grid gap-2">
-                            {{ form.submit(class="btn btn-primary btn-lg") }}
+                    </div>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-6 mb-3 mb-md-0">
+                            <label for="original_price" class="form-label">Цена покупки (₽)</label>
+                            {{ form.original_price(class="form-control") }}
+                            {% if form.original_price.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.original_price.errors %}
+                                {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                            <div class="form-text">Укажите сумму, за которую вы купили билет</div>
                         </div>
-                    </form>
-                </div>
+                        <div class="col-md-6">
+                            <label for="selling_price" class="form-label">Желаемая цена продажи (₽)</label>
+                            {{ form.selling_price(class="form-control") }}
+                            {% if form.selling_price.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.selling_price.errors %}
+                                {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                            <div class="form-text">Укажите сумму, за которую вы хотите продать билет</div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="contact_info" class="form-label">Контактная информация</label>
+                        {{ form.contact_info(class="form-control", rows=3) }}
+                        {% if form.contact_info.errors %}
+                        <div class="invalid-feedback d-block">
+                            {% for error in form.contact_info.errors %}
+                            {{ error }}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                        <div class="form-text">Укажите способы связи с вами: номер телефона, email, мессенджеры</div>
+                    </div>
+                    
+                    <div class="mb-4 form-check">
+                        <input class="form-check-input" type="checkbox" id="terms_agreement" required>
+                        <label class="form-check-label" for="terms_agreement">
+                            Я подтверждаю, что имею право на продажу данного билета, и информация указана верно
+                        </label>
+                    </div>
+                    
+                    <div class="d-grid">
+                        {{ form.submit(class="btn btn-primary btn-lg") }}
+                    </div>
+                </form>
             </div>
         </div>
     </div>
 </div>
 
-{% block scripts %}
-<!-- Flatpickr for date picker -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ru.js"></script>
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        flatpickr(".datepicker", {
-            dateFormat: "Y-m-d",
-            locale: "ru",
-            minDate: "today"
-        });
-    });
-</script>
-{% endblock %}
+<!-- Terms Modal -->
+<div class="modal fade" id="termsModal" tabindex="-1" aria-labelledby="termsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="termsModalLabel">Правила размещения билетов на продажу</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <h6>1. Общие положения</h6>
+                <p>1.1. BiletService предоставляет платформу для размещения объявлений о продаже билетов от пользователей, но не является участником сделок между продавцами и покупателями.</p>
+                <p>1.2. Пользователь несет полную ответственность за достоверность предоставляемой информации о билетах.</p>
+                
+                <h6>2. Условия размещения</h6>
+                <p>2.1. К продаже могут быть предложены только оригинальные билеты, приобретенные законным путем.</p>
+                <p>2.2. Запрещается продавать поддельные билеты или билеты с истекшим сроком действия.</p>
+                <p>2.3. Запрещается продавать билеты по ценам, значительно превышающим их номинальную стоимость.</p>
+                
+                <h6>3. Ответственность</h6>
+                <p>3.1. BiletService не несет ответственности за действия пользователей и не гарантирует подлинность билетов.</p>
+                <p>3.2. В случае нарушения правил сервиса, администрация вправе удалить объявление без предварительного уведомления.</p>
+                <p>3.3. При выявлении случаев мошенничества, данные пользователя могут быть переданы правоохранительным органам.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

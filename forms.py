@@ -1,10 +1,10 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, BooleanField, TextAreaField, SelectField
-from wtforms import FloatField, DateTimeField, IntegerField, FileField, HiddenField
-from wtforms.validators import DataRequired, Email, EqualTo, Length, Optional, ValidationError
+from wtforms import StringField, PasswordField, BooleanField, SubmitField, TextAreaField, SelectField
+from wtforms import IntegerField, FloatField, DateTimeField, FileField, HiddenField, RadioField
+from wtforms.validators import DataRequired, Email, EqualTo, Length, Optional, NumberRange, ValidationError
 from datetime import datetime
-from models import User
 
+# Authentication Forms
 class LoginForm(FlaskForm):
     email = StringField('Email', validators=[DataRequired(), Email()])
     password = PasswordField('Пароль', validators=[DataRequired()])
@@ -15,104 +15,125 @@ class RegistrationForm(FlaskForm):
     username = StringField('Имя пользователя', validators=[DataRequired(), Length(min=3, max=64)])
     email = StringField('Email', validators=[DataRequired(), Email()])
     password = PasswordField('Пароль', validators=[DataRequired(), Length(min=6)])
-    password2 = PasswordField('Подтвердите пароль', validators=[DataRequired(), EqualTo('password')])
+    password2 = PasswordField('Повторите пароль', validators=[DataRequired(), EqualTo('password')])
     submit = SubmitField('Зарегистрироваться')
-    
-    def validate_username(self, username):
-        user = User.query.filter_by(username=username.data).first()
-        if user is not None:
-            raise ValidationError('Пожалуйста, используйте другое имя пользователя.')
-    
-    def validate_email(self, email):
-        user = User.query.filter_by(email=email.data).first()
-        if user is not None:
-            raise ValidationError('Пожалуйста, используйте другой email адрес.')
 
-class EventFilterForm(FlaskForm):
-    category = SelectField('Категория', choices=[], validators=[Optional()])
-    venue = SelectField('Площадка', choices=[], validators=[Optional()])
+# User Profile Form
+class ProfileForm(FlaskForm):
+    username = StringField('Имя пользователя', validators=[DataRequired(), Length(min=3, max=64)])
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    current_password = PasswordField('Текущий пароль')
+    new_password = PasswordField('Новый пароль', validators=[Optional(), Length(min=6)])
+    new_password2 = PasswordField('Повторите новый пароль', validators=[EqualTo('new_password')])
+    submit = SubmitField('Сохранить')
+
+# Event Search and Filter Form
+class EventSearchForm(FlaskForm):
+    query = StringField('Поиск', validators=[Optional()])
+    category = SelectField('Категория', coerce=int, validators=[Optional()])
+    venue = SelectField('Площадка', coerce=int, validators=[Optional()])
     date_from = DateTimeField('С даты', format='%Y-%m-%d', validators=[Optional()])
     date_to = DateTimeField('По дату', format='%Y-%m-%d', validators=[Optional()])
-    submit = SubmitField('Фильтровать')
+    price_min = FloatField('Мин. цена', validators=[Optional(), NumberRange(min=0)])
+    price_max = FloatField('Макс. цена', validators=[Optional(), NumberRange(min=0)])
+    submit = SubmitField('Применить фильтры')
 
-class SellTicketForm(FlaskForm):
-    event_title = StringField('Название мероприятия', validators=[DataRequired()])
-    event_date = DateTimeField('Дата мероприятия', format='%Y-%m-%d', validators=[DataRequired()])
-    venue = StringField('Площадка', validators=[DataRequired()])
-    city = StringField('Город', validators=[DataRequired()])
-    section = StringField('Секция', validators=[Optional()])
-    row = StringField('Ряд', validators=[Optional()])
-    seat = StringField('Место', validators=[Optional()])
-    original_price = FloatField('Цена покупки (₽)', validators=[DataRequired()])
-    asking_price = FloatField('Желаемая цена продажи (₽)', validators=[DataRequired()])
-    ticket_type = SelectField('Тип билета', choices=[
-        ('electronic', 'Электронный'),
-        ('physical', 'Физический')
-    ], validators=[DataRequired()])
-    contact_info = StringField('Контактная информация', validators=[DataRequired()])
-    submit = SubmitField('Разместить билет')
-
-    def validate_event_date(self, event_date):
-        if event_date.data < datetime.now():
-            raise ValidationError('Дата мероприятия не может быть в прошлом.')
-
+# Checkout Form
 class CheckoutForm(FlaskForm):
-    full_name = StringField('ФИО', validators=[DataRequired()])
+    full_name = StringField('ФИО', validators=[DataRequired(), Length(max=128)])
     email = StringField('Email', validators=[DataRequired(), Email()])
-    phone = StringField('Телефон', validators=[DataRequired()])
-    delivery_method = SelectField('Способ доставки', choices=[
-        ('email', 'Моментально на email'),
-        ('courier', 'Курьером'),
-        ('event_day', 'В день мероприятия'),
-        ('24h_email', 'В течение 24 часов на email')
-    ], validators=[DataRequired()])
-    address = StringField('Адрес доставки (для курьера)')
+    phone = StringField('Телефон', validators=[DataRequired(), Length(max=32)])
+    delivery_method = RadioField(
+        'Способ доставки',
+        choices=[
+            ('email', 'Электронная почта (моментально)'),
+            ('courier', 'Курьером'),
+            ('event_day', 'В день мероприятия'),
+            ('24h', 'В течение 24 часов на почту')
+        ],
+        validators=[DataRequired()]
+    )
+    address = StringField('Адрес доставки', validators=[Optional(), Length(max=256)])
     submit = SubmitField('Оформить заказ')
+    
+    def validate_address(form, field):
+        if form.delivery_method.data == 'courier' and not field.data:
+            raise ValidationError('Укажите адрес для курьерской доставки')
 
-# Admin forms
+# Review Form
+class ReviewForm(FlaskForm):
+    rating = RadioField('Оценка', choices=[(1, '1'), (2, '2'), (3, '3'), (4, '4'), (5, '5')], coerce=int, validators=[DataRequired()])
+    content = TextAreaField('Отзыв', validators=[DataRequired(), Length(min=10, max=1000)])
+    submit = SubmitField('Отправить отзыв')
+
+# Admin Event Form
 class EventForm(FlaskForm):
-    title = StringField('Название', validators=[DataRequired()])
+    title = StringField('Название', validators=[DataRequired(), Length(max=128)])
     description = TextAreaField('Описание', validators=[DataRequired()])
-    image_url = StringField('URL изображения', validators=[DataRequired()])
+    image_url = StringField('URL изображения', validators=[DataRequired(), Length(max=256)])
     date = DateTimeField('Дата и время', format='%Y-%m-%d %H:%M', validators=[DataRequired()])
-    venue_id = SelectField('Площадка', coerce=int, validators=[DataRequired()])
+    end_date = DateTimeField('Дата и время окончания', format='%Y-%m-%d %H:%M', validators=[Optional()])
     category_id = SelectField('Категория', coerce=int, validators=[DataRequired()])
-    min_price = FloatField('Минимальная цена', validators=[DataRequired()])
-    max_price = FloatField('Максимальная цена', validators=[DataRequired()])
-    is_popular = BooleanField('Популярное событие')
-    meta_title = StringField('META Title', validators=[Optional()])
-    meta_description = TextAreaField('META Description', validators=[Optional()])
+    venue_id = SelectField('Площадка', coerce=int, validators=[DataRequired()])
+    base_price = FloatField('Базовая цена', validators=[DataRequired(), NumberRange(min=0)])
+    max_price = FloatField('Максимальная цена', validators=[Optional(), NumberRange(min=0)])
+    is_active = BooleanField('Активно')
+    seo_title = StringField('SEO Заголовок', validators=[Optional(), Length(max=100)])
+    seo_description = TextAreaField('SEO Описание', validators=[Optional(), Length(max=200)])
     submit = SubmitField('Сохранить')
 
+# Admin Category Form
 class CategoryForm(FlaskForm):
-    name = StringField('Название', validators=[DataRequired()])
-    icon = StringField('Иконка (Font Awesome)', validators=[DataRequired()])
-    meta_title = StringField('META Title', validators=[Optional()])
-    meta_description = TextAreaField('META Description', validators=[Optional()])
+    name = StringField('Название', validators=[DataRequired(), Length(max=64)])
+    icon = StringField('Иконка Font Awesome', validators=[DataRequired(), Length(max=32)])
+    seo_title = StringField('SEO Заголовок', validators=[Optional(), Length(max=100)])
+    seo_description = TextAreaField('SEO Описание', validators=[Optional(), Length(max=200)])
     submit = SubmitField('Сохранить')
 
+# Admin Venue Form
 class VenueForm(FlaskForm):
-    name = StringField('Название', validators=[DataRequired()])
-    address = StringField('Адрес', validators=[DataRequired()])
-    city = StringField('Город', validators=[DataRequired()])
-    seating_map = TextAreaField('Схема зала', validators=[Optional()])
+    name = StringField('Название', validators=[DataRequired(), Length(max=128)])
+    address = StringField('Адрес', validators=[DataRequired(), Length(max=256)])
+    city = StringField('Город', validators=[DataRequired(), Length(max=64)])
+    venue_map = TextAreaField('Схема зала (SVG)', validators=[Optional()])
     submit = SubmitField('Сохранить')
 
-class SliderForm(FlaskForm):
-    title = StringField('Заголовок', validators=[Optional()])
-    subtitle = StringField('Подзаголовок', validators=[Optional()])
-    image_url = StringField('URL изображения', validators=[DataRequired()])
-    button_text = StringField('Текст кнопки', validators=[Optional()])
-    button_url = StringField('URL кнопки', validators=[Optional()])
-    order = IntegerField('Порядок отображения', default=0)
-    is_active = BooleanField('Активен', default=True)
-    submit = SubmitField('Сохранить')
-
+# Admin Ticket Form
 class TicketForm(FlaskForm):
-    event_id = HiddenField('ID события', validators=[DataRequired()])
-    section = StringField('Секция', validators=[Optional()])
-    row = StringField('Ряд', validators=[Optional()])
-    seat = StringField('Место', validators=[Optional()])
-    price = FloatField('Цена', validators=[DataRequired()])
-    quantity = IntegerField('Количество', default=1)
-    submit = SubmitField('Добавить билеты')
+    event_id = SelectField('Мероприятие', coerce=int, validators=[DataRequired()])
+    section = StringField('Секция', validators=[Optional(), Length(max=64)])
+    row = StringField('Ряд', validators=[Optional(), Length(max=16)])
+    seat = StringField('Место', validators=[Optional(), Length(max=16)])
+    price = FloatField('Цена', validators=[DataRequired(), NumberRange(min=0)])
+    quantity = IntegerField('Количество', validators=[Optional(), NumberRange(min=1)])
+    submit = SubmitField('Сохранить')
+
+# Admin Slider Form
+class SlideForm(FlaskForm):
+    title = StringField('Заголовок', validators=[DataRequired(), Length(max=100)])
+    subtitle = StringField('Подзаголовок', validators=[Optional(), Length(max=200)])
+    image_url = StringField('URL изображения', validators=[DataRequired(), Length(max=256)])
+    button_text = StringField('Текст кнопки', validators=[Optional(), Length(max=32)])
+    button_url = StringField('URL кнопки', validators=[Optional(), Length(max=256)])
+    order = IntegerField('Порядок', validators=[Optional(), NumberRange(min=0)])
+    is_active = BooleanField('Активно')
+    submit = SubmitField('Сохранить')
+
+# Sell Ticket Form
+class SellTicketForm(FlaskForm):
+    event_id = SelectField('Мероприятие', coerce=int, validators=[DataRequired()])
+    ticket_type = RadioField(
+        'Тип билета',
+        choices=[
+            ('electronic', 'Электронный'),
+            ('physical', 'Физический')
+        ],
+        validators=[DataRequired()]
+    )
+    section = StringField('Секция', validators=[Optional(), Length(max=64)])
+    row = StringField('Ряд', validators=[Optional(), Length(max=16)])
+    seat = StringField('Место', validators=[Optional(), Length(max=16)])
+    original_price = FloatField('Цена покупки', validators=[DataRequired(), NumberRange(min=0)])
+    selling_price = FloatField('Желаемая цена продажи', validators=[DataRequired(), NumberRange(min=0)])
+    contact_info = StringField('Контактные данные', validators=[DataRequired(), Length(max=256)])
+    submit = SubmitField('Разместить билет на продажу')

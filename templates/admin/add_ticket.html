@@ -1,0 +1,107 @@
+{% extends 'admin/base.html' %}
+
+{% block title %}Добавление билетов - BiletService{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="admin-content-title mb-0">Добавление билетов</h1>
+    <a href="{{ url_for('admin.tickets') }}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left me-2"></i> Назад к списку
+    </a>
+</div>
+
+<div class="admin-card">
+    <form method="post" action="{{ url_for('admin.add_ticket') }}">
+        {{ form.hidden_tag() }}
+        
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <label for="event_id" class="form-label">Мероприятие</label>
+                {{ form.event_id(class="form-select") }}
+                {% if form.event_id.errors %}
+                <div class="invalid-feedback d-block">
+                    {% for error in form.event_id.errors %}
+                    {{ error }}
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            <div class="col-md-6">
+                <label for="price" class="form-label">Цена билета</label>
+                <div class="input-group">
+                    {{ form.price(class="form-control") }}
+                    <span class="input-group-text">₽</span>
+                </div>
+                {% if form.price.errors %}
+                <div class="invalid-feedback d-block">
+                    {% for error in form.price.errors %}
+                    {{ error }}
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <label for="section" class="form-label">Секция</label>
+                {{ form.section(class="form-control", placeholder="Например: VIP, Партер") }}
+                {% if form.section.errors %}
+                <div class="invalid-feedback d-block">
+                    {% for error in form.section.errors %}
+                    {{ error }}
+                    {% endfor %}
+                </div>
+                {% endif %}
+                <div class="form-text">Необязательное поле</div>
+            </div>
+            <div class="col-md-4">
+                <label for="row" class="form-label">Ряд</label>
+                {{ form.row(class="form-control", placeholder="Например: 1, A") }}
+                {% if form.row.errors %}
+                <div class="invalid-feedback d-block">
+                    {% for error in form.row.errors %}
+                    {{ error }}
+                    {% endfor %}
+                </div>
+                {% endif %}
+                <div class="form-text">Необязательное поле</div>
+            </div>
+            <div class="col-md-4">
+                <label for="seat" class="form-label">Место</label>
+                {{ form.seat(class="form-control", placeholder="Например: 10, B5") }}
+                {% if form.seat.errors %}
+                <div class="invalid-feedback d-block">
+                    {% for error in form.seat.errors %}
+                    {{ error }}
+                    {% endfor %}
+                </div>
+                {% endif %}
+                <div class="form-text">Необязательное поле</div>
+            </div>
+        </div>
+        
+        <div class="mb-4">
+            <label for="quantity" class="form-label">Количество билетов</label>
+            {{ form.quantity(class="form-control", type="number", min="1", value="1") }}
+            {% if form.quantity.errors %}
+            <div class="invalid-feedback d-block">
+                {% for error in form.quantity.errors %}
+                {{ error }}
+                {% endfor %}
+            </div>
+            {% endif %}
+            <div class="form-text">Для создания нескольких билетов с одинаковой ценой и секцией (системе будут автоматически назначены последовательные номера мест)</div>
+        </div>
+        
+        <div class="alert alert-info mb-4">
+            <i class="fas fa-info-circle me-2"></i> При добавлении нескольких билетов с указанием количества, к номеру места будет добавлен порядковый номер (например, при указании места "5" и количества "3" будут созданы места "51", "52", "53").
+        </div>
+        
+        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+            <a href="{{ url_for('admin.tickets') }}" class="btn btn-secondary me-md-2">Отмена</a>
+            {{ form.submit(class="btn btn-primary") }}
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,149 @@
+<div class="table-responsive">
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Пользователь</th>
+                <th>Мероприятие</th>
+                <th>Оценка</th>
+                <th>Отзыв</th>
+                <th>Дата</th>
+                <th>Статус</th>
+                <th>Действия</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for review in reviews %}
+            <tr>
+                <td>{{ review.id }}</td>
+                <td>{{ review.user.username }}</td>
+                <td>
+                    <a href="{{ url_for('main.event_detail', event_id=review.event_id) }}" target="_blank">
+                        {{ review.event.title }}
+                    </a>
+                </td>
+                <td>
+                    <div class="text-warning">
+                        {% for i in range(review.rating) %}
+                        <i class="fas fa-star"></i>
+                        {% endfor %}
+                        {% for i in range(5 - review.rating) %}
+                        <i class="far fa-star"></i>
+                        {% endfor %}
+                    </div>
+                </td>
+                <td>
+                    <button type="button" class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#reviewModal{{ review.id }}">
+                        Читать отзыв
+                    </button>
+                </td>
+                <td>{{ review.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
+                <td>
+                    {% if review.is_approved %}
+                    <span class="badge bg-success">Одобрен</span>
+                    {% else %}
+                    <span class="badge bg-warning">Ожидает проверки</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <div class="btn-group">
+                        {% if not review.is_approved %}
+                        <form action="{{ url_for('admin.approve_review', review_id=review.id) }}" method="post">
+                            <button type="submit" class="btn btn-sm btn-success me-1" title="Одобрить">
+                                <i class="fas fa-check"></i>
+                            </button>
+                        </form>
+                        {% endif %}
+                        <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteReviewModal{{ review.id }}" title="Удалить">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
+                    
+                    <!-- Delete Modal -->
+                    <div class="modal fade" id="deleteReviewModal{{ review.id }}" tabindex="-1" aria-labelledby="deleteReviewModalLabel{{ review.id }}" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title" id="deleteReviewModalLabel{{ review.id }}">Подтверждение удаления</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <p>Вы уверены, что хотите удалить этот отзыв?</p>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                                    <form action="{{ url_for('admin.delete_review', review_id=review.id) }}" method="post">
+                                        <button type="submit" class="btn btn-danger">Удалить</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            
+            <!-- Review Content Modal -->
+            <div class="modal fade" id="reviewModal{{ review.id }}" tabindex="-1" aria-labelledby="reviewModalLabel{{ review.id }}" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="reviewModalLabel{{ review.id }}">Отзыв #{{ review.id }}</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <strong>Пользователь:</strong> {{ review.user.username }}
+                            </div>
+                            <div class="mb-3">
+                                <strong>Мероприятие:</strong> {{ review.event.title }}
+                            </div>
+                            <div class="mb-3">
+                                <strong>Оценка:</strong>
+                                <div class="text-warning">
+                                    {% for i in range(review.rating) %}
+                                    <i class="fas fa-star"></i>
+                                    {% endfor %}
+                                    {% for i in range(5 - review.rating) %}
+                                    <i class="far fa-star"></i>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <strong>Дата:</strong> {{ review.created_at.strftime('%d.%m.%Y %H:%M') }}
+                            </div>
+                            <div class="mb-3">
+                                <strong>Статус:</strong>
+                                {% if review.is_approved %}
+                                <span class="badge bg-success">Одобрен</span>
+                                {% else %}
+                                <span class="badge bg-warning">Ожидает проверки</span>
+                                {% endif %}
+                            </div>
+                            <hr>
+                            <div>
+                                <strong>Текст отзыва:</strong>
+                                <p class="mt-2">{{ review.content }}</p>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            {% if not review.is_approved %}
+                            <form action="{{ url_for('admin.approve_review', review_id=review.id) }}" method="post">
+                                <button type="submit" class="btn btn-success me-2">Одобрить</button>
+                            </form>
+                            {% endif %}
+                            <form action="{{ url_for('admin.delete_review', review_id=review.id) }}" method="post">
+                                <button type="submit" class="btn btn-danger me-2">Удалить</button>
+                            </form>
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <tr>
+                <td colspan="8" class="text-center">Отзывы не найдены.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>

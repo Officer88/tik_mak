@@ -1,0 +1,202 @@
+{% extends 'admin/base.html' %}
+
+{% block title %}Управление площадками - BiletService{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="admin-content-title mb-0">Управление площадками</h1>
+    {% if not add_mode and not edit_mode %}
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addVenueModal">
+        <i class="fas fa-plus me-2"></i> Добавить площадку
+    </button>
+    {% endif %}
+</div>
+
+{% if add_mode or edit_mode %}
+<!-- Venue Form -->
+<div class="admin-card mb-4">
+    <h4 class="mb-3">{{ 'Добавить площадку' if add_mode else 'Редактировать площадку' }}</h4>
+    <form method="post" action="{% if edit_mode %}{{ url_for('admin.edit_venue', venue_id=venue.id) }}{% else %}{{ url_for('admin.add_venue') }}{% endif %}">
+        {{ form.hidden_tag() }}
+        
+        <div class="mb-3">
+            <label for="name" class="form-label">Название</label>
+            {{ form.name(class="form-control") }}
+            {% if form.name.errors %}
+            <div class="invalid-feedback d-block">
+                {% for error in form.name.errors %}
+                {{ error }}
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="city" class="form-label">Город</label>
+                {{ form.city(class="form-control") }}
+                {% if form.city.errors %}
+                <div class="invalid-feedback d-block">
+                    {% for error in form.city.errors %}
+                    {{ error }}
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="col-md-6 mb-3">
+                <label for="address" class="form-label">Адрес</label>
+                {{ form.address(class="form-control") }}
+                {% if form.address.errors %}
+                <div class="invalid-feedback d-block">
+                    {% for error in form.address.errors %}
+                    {{ error }}
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="mb-3">
+            <label for="venue_map" class="form-label">Схема зала (SVG)</label>
+            {{ form.venue_map(class="form-control", rows=10) }}
+            {% if form.venue_map.errors %}
+            <div class="invalid-feedback d-block">
+                {% for error in form.venue_map.errors %}
+                {{ error }}
+                {% endfor %}
+            </div>
+            {% endif %}
+            <div class="form-text">Вставьте SVG-код схемы зала. Необязательно.</div>
+        </div>
+        
+        <div>
+            <a href="{{ url_for('admin.venues') }}" class="btn btn-secondary me-2">Отмена</a>
+            {{ form.submit(class="btn btn-primary") }}
+        </div>
+    </form>
+</div>
+{% endif %}
+
+<!-- Venues List -->
+<div class="admin-card">
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Название</th>
+                    <th>Город</th>
+                    <th>Адрес</th>
+                    <th>Мероприятия</th>
+                    <th>Схема зала</th>
+                    <th>Действия</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for venue in venues %}
+                <tr>
+                    <td>{{ venue.id }}</td>
+                    <td>{{ venue.name }}</td>
+                    <td>{{ venue.city }}</td>
+                    <td>{{ venue.address }}</td>
+                    <td>{{ venue.events.count() }}</td>
+                    <td>
+                        {% if venue.venue_map %}
+                        <button type="button" class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#venueMapModal{{ venue.id }}">
+                            <i class="fas fa-map"></i> Просмотр
+                        </button>
+                        {% else %}
+                        <span class="badge bg-secondary">Отсутствует</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="btn-group">
+                            <a href="{{ url_for('admin.edit_venue', venue_id=venue.id) }}" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteVenueModal{{ venue.id }}">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
+                        
+                        <!-- Delete Modal -->
+                        <div class="modal fade" id="deleteVenueModal{{ venue.id }}" tabindex="-1" aria-labelledby="deleteVenueModalLabel{{ venue.id }}" aria-hidden="true">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="deleteVenueModalLabel{{ venue.id }}">Подтверждение удаления</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <p>Вы уверены, что хотите удалить площадку "{{ venue.name }}"?</p>
+                                        {% if venue.events.count() > 0 %}
+                                        <div class="alert alert-warning">
+                                            <i class="fas fa-exclamation-triangle me-2"></i> Внимание! К этой площадке привязано {{ venue.events.count() }} мероприятий. Удаление невозможно.
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                                        <form action="{{ url_for('admin.delete_venue', venue_id=venue.id) }}" method="post">
+                                            <button type="submit" class="btn btn-danger" {% if venue.events.count() > 0 %}disabled{% endif %}>Удалить</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Venue Map Modal -->
+                        {% if venue.venue_map %}
+                        <div class="modal fade" id="venueMapModal{{ venue.id }}" tabindex="-1" aria-labelledby="venueMapModalLabel{{ venue.id }}" aria-hidden="true">
+                            <div class="modal-dialog modal-lg">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="venueMapModalLabel{{ venue.id }}">Схема зала - {{ venue.name }}</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body text-center">
+                                        {{ venue.venue_map|safe }}
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" class="text-center">Площадки не найдены.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Add Venue Modal -->
+<div class="modal fade" id="addVenueModal" tabindex="-1" aria-labelledby="addVenueModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addVenueModalLabel">Добавить площадку</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Для добавления новой площадки нажмите на кнопку ниже:</p>
+                <div class="d-grid">
+                    <a href="{{ url_for('admin.add_venue') }}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i> Создать новую площадку
+                    </a>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

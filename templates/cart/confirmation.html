@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+
+{% block title %}Заказ оформлен - BiletService{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-body text-center py-5">
+                    <div class="mb-4">
+                        <i class="fas fa-check-circle text-success" style="font-size: 5rem;"></i>
+                    </div>
+                    <h1 class="mb-4">Заказ успешно оформлен!</h1>
+                    <p class="lead mb-4">Спасибо за покупку! Подтверждение заказа отправлено на вашу электронную почту.</p>
+                    <p class="mb-4">Вы также можете просмотреть детали заказа в разделе "История заказов" вашего профиля.</p>
+                    
+                    <div class="alert alert-info mb-4">
+                        <h5 class="alert-heading">Что дальше?</h5>
+                        <p class="mb-0">В зависимости от выбранного способа доставки:</p>
+                        <ul class="mb-0 text-start">
+                            <li><strong>Электронная почта:</strong> Билеты отправлены на указанный email</li>
+                            <li><strong>Курьерская доставка:</strong> Наш курьер свяжется с вами для уточнения времени доставки</li>
+                            <li><strong>В день мероприятия:</strong> Получите билеты на месте проведения, предъявив номер заказа и документ, удостоверяющий личность</li>
+                            <li><strong>В течение 24 часов:</strong> Билеты будут отправлены на указанный email в течение суток</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                        <a href="{{ url_for('auth.profile') }}" class="btn btn-outline-primary me-md-2">
+                            <i class="fas fa-user me-2"></i> Перейти в мой профиль
+                        </a>
+                        <a href="{{ url_for('main.index') }}" class="btn btn-primary">
+                            <i class="fas fa-home me-2"></i> Вернуться на главную
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
