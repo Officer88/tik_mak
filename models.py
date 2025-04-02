@@ -184,6 +184,7 @@ class Slide(db.Model):
 class TicketForSale(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)  # Разрешаем NULL для неавторизованных пользователей
+    event_id = db.Column(db.Integer, db.ForeignKey('event.id'), nullable=True)
     event_name = db.Column(db.String(128), nullable=False)
     venue_name = db.Column(db.String(128), nullable=False)
     ticket_type = db.Column(db.String(32), nullable=False)  # electronic or physical
