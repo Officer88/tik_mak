@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}{{ event.title }} - BiletService{% endblock %}
+{% block title %}{{ event.title }} - MAGIK TIKET{% endblock %}
 
 {% block content %}
 <div class="container mt-4">
@@ -69,7 +69,7 @@
             <div class="tickets-for-sale mb-4">
                 <h4>Билеты от пользователей</h4>
                 <div class="alert alert-info">
-                    <i class="fas fa-info-circle me-2"></i> Эти билеты продаются другими пользователями. BiletService не несет ответственности за такие сделки.
+                    <i class="fas fa-info-circle me-2"></i> Эти билеты продаются другими пользователями. MAGIK TIKET не несет ответственности за такие сделки.
                 </div>
                 
                 <div class="row">
@@ -107,7 +107,7 @@
                                             <div class="alert alert-secondary">
                                                 {{ ticket.contact_info }}
                                             </div>
-                                            <p class="small text-muted">Обратите внимание, что BiletService не участвует в сделках между пользователями. Будьте осторожны при проведении оплаты.</p>
+                                            <p class="small text-muted">Обратите внимание, что MAGIK TIKET не участвует в сделках между пользователями. Будьте осторожны при проведении оплаты.</p>
                                         </div>
                                         <div class="modal-footer">
                                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
@@ -276,9 +276,16 @@
                         </button>
                     </form>
                     {% else %}
-                    <a href="{{ url_for('auth.login', next=url_for('main.event_detail', event_id=event.id)) }}" class="btn btn-outline-danger w-100">
-                        <i class="far fa-heart me-2"></i> Добавить в избранное
-                    </a>
+                    <form action="{% if is_favorite %}{{ url_for('main.remove_from_favorites', event_id=event.id) }}{% else %}{{ url_for('main.add_to_favorites', event_id=event.id) }}{% endif %}" method="post">
+                        <button type="submit" class="btn {% if is_favorite %}btn-danger{% else %}btn-outline-danger{% endif %} w-100">
+                            <i class="{% if is_favorite %}fas{% else %}far{% endif %} fa-heart me-2"></i>
+                            {% if is_favorite %}
+                            Удалить из избранного
+                            {% else %}
+                            Добавить в избранное
+                            {% endif %}
+                        </button>
+                    </form>
                     {% endif %}
                 </div>
             </div>

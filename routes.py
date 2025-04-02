@@ -142,8 +142,13 @@ def event_detail(event_id):
     # Check if user has this event in favorites
     is_favorite = False
     if current_user.is_authenticated:
+        # Check in database for logged-in users
         favorite = Favorite.query.filter_by(user_id=current_user.id, event_id=event.id).first()
         is_favorite = favorite is not None
+    else:
+        # Check in session for anonymous users
+        if 'favorites' in session and session['favorites']:
+            is_favorite = event.id in session['favorites']
     
     # Get approved reviews
     reviews = Review.query.filter_by(event_id=event.id, is_approved=True).order_by(Review.created_at.desc()).all()
@@ -170,42 +175,76 @@ def event_detail(event_id):
 
 # Add to favorites route
 @main_bp.route('/favorites/add/<int:event_id>', methods=['POST'])
-@login_required
 def add_to_favorites(event_id):
     event = Event.query.get_or_404(event_id)
     
-    # Check if already in favorites
-    existing = Favorite.query.filter_by(user_id=current_user.id, event_id=event.id).first()
-    if existing:
-        flash('Это мероприятие уже в избранном', 'info')
-        return redirect(url_for('main.event_detail', event_id=event.id))
-    
-    # Add to favorites
-    favorite = Favorite(user_id=current_user.id, event_id=event.id)
-    db.session.add(favorite)
-    db.session.commit()
+    # Check if user is authenticated
+    if current_user.is_authenticated:
+        # Check if already in favorites
+        existing = Favorite.query.filter_by(user_id=current_user.id, event_id=event.id).first()
+        if existing:
+            flash('Это мероприятие уже в избранном', 'info')
+            return redirect(url_for('main.event_detail', event_id=event.id))
+        
+        # Add to favorites in database
+        favorite = Favorite(user_id=current_user.id, event_id=event.id)
+        db.session.add(favorite)
+        db.session.commit()
+    else:
+        # Use session for non-authenticated users
+        if 'favorites' not in session:
+            session['favorites'] = []
+            
+        # Convert to list in case it's another data type
+        favorites = list(session['favorites'])
+        
+        # Check if already in favorites
+        if event_id in favorites:
+            flash('Это мероприятие уже в избранном', 'info')
+            return redirect(url_for('main.event_detail', event_id=event.id))
+            
+        # Add to session favorites
+        favorites.append(event_id)
+        session['favorites'] = favorites
     
     flash('Мероприятие добавлено в избранное', 'success')
     return redirect(url_for('main.event_detail', event_id=event.id))
 
 # Remove from favorites route
 @main_bp.route('/favorites/remove/<int:event_id>', methods=['POST'])
-@login_required
 def remove_from_favorites(event_id):
-    favorite = Favorite.query.filter_by(user_id=current_user.id, event_id=event_id).first_or_404()
-    
-    db.session.delete(favorite)
-    db.session.commit()
+    if current_user.is_authenticated:
+        # Remove from database
+        favorite = Favorite.query.filter_by(user_id=current_user.id, event_id=event_id).first_or_404()
+        db.session.delete(favorite)
+        db.session.commit()
+    else:
+        # Remove from session
+        if 'favorites' in session:
+            favorites = list(session['favorites'])
+            if event_id in favorites:
+                favorites.remove(event_id)
+                session['favorites'] = favorites
     
     flash('Мероприятие удалено из избранного', 'success')
     return redirect(url_for('main.event_detail', event_id=event_id))
 
 # View favorites route
 @main_bp.route('/favorites')
-@login_required
 def favorites():
-    favorites = Favorite.query.filter_by(user_id=current_user.id).all()
-    events = [fav.event for fav in favorites]
+    events = []
+    
+    if current_user.is_authenticated:
+        # Get favorites from database
+        favorites = Favorite.query.filter_by(user_id=current_user.id).all()
+        events = [fav.event for fav in favorites]
+    else:
+        # Get favorites from session
+        if 'favorites' in session and session['favorites']:
+            # Convert to list and get unique IDs
+            favorite_ids = list(set(session['favorites']))
+            # Get events from database using the IDs in session
+            events = Event.query.filter(Event.id.in_(favorite_ids)).all()
     
     return render_template('favorites.html', events=events)
 

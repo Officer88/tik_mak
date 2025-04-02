@@ -24,17 +24,10 @@
         <span class="event-category">
             <i class="fas {{ event.category.icon }} me-1"></i> {{ event.category.name }}
         </span>
-        {% if current_user.is_authenticated %}
-            <form action="{% if is_favorite|default(false) %}{{ url_for('main.remove_from_favorites', event_id=event.id) }}{% else %}{{ url_for('main.add_to_favorites', event_id=event.id) }}{% endif %}" method="post">
-                <button type="button" class="favorite-btn {% if is_favorite|default(false) %}active{% endif %}" 
-                        data-logged-in="true">
-                    <i class="{% if is_favorite|default(false) %}fas{% else %}far{% endif %} fa-heart"></i>
-                </button>
-            </form>
-        {% else %}
-            <button type="button" class="favorite-btn" data-logged-in="false" data-login-url="{{ url_for('auth.login') }}">
-                <i class="far fa-heart"></i>
+        <form action="{% if is_favorite|default(false) %}{{ url_for('main.remove_from_favorites', event_id=event.id) }}{% else %}{{ url_for('main.add_to_favorites', event_id=event.id) }}{% endif %}" method="post">
+            <button type="submit" class="favorite-btn {% if is_favorite|default(false) %}active{% endif %}">
+                <i class="{% if is_favorite|default(false) %}fas{% else %}far{% endif %} fa-heart"></i>
             </button>
-        {% endif %}
+        </form>
     </div>
 </div>

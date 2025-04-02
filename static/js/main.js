@@ -1,4 +1,4 @@
-// Main JavaScript file for BiletService
+// Main JavaScript file for MAGIK TIKET
 
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize tooltips
@@ -11,18 +11,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const favoriteButtons = document.querySelectorAll('.favorite-btn');
     
     favoriteButtons.forEach(button => {
-        button.addEventListener('click', function(e) {
-            e.preventDefault();
-            
-            // If user is not logged in, redirect to login
-            if (this.dataset.loggedIn === 'false') {
-                window.location.href = this.dataset.loginUrl;
-                return;
-            }
-            
-            const form = this.closest('form');
-            form.submit();
-        });
+        // We don't need to attach click handler anymore since buttons now directly submit the form
+        // The type="submit" attribute on the button will take care of form submission
     });
 
     // Delivery method toggle in checkout form

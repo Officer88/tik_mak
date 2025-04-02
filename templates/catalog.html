@@ -75,15 +75,15 @@
             <h1 class="mb-4">Каталог мероприятий</h1>
             
             <!-- Applied filters summary -->
-            {% if query or category_id > 0 or venue_id > 0 or request.args.get('date_from') or request.args.get('date_to') or request.args.get('price_min') or request.args.get('price_max') %}
+            {% if query or (category_id and category_id > 0) or (venue_id and venue_id > 0) or request.args.get('date_from') or request.args.get('date_to') or request.args.get('price_min') or request.args.get('price_max') %}
             <div class="alert alert-info mb-4">
                 <h5>Применены фильтры:</h5>
                 <ul class="mb-0">
                     {% if query %}<li>Поиск: {{ query }}</li>{% endif %}
-                    {% if category_id > 0 %}
+                    {% if category_id and category_id > 0 %}
                     <li>Категория: {{ categories|selectattr('id', 'eq', category_id)|map(attribute='name')|first }}</li>
                     {% endif %}
-                    {% if venue_id > 0 %}
+                    {% if venue_id and venue_id > 0 %}
                     <li>Площадка: {{ form.venue.choices|selectattr('0', 'eq', venue_id)|map(attribute='1')|first }}</li>
                     {% endif %}
                     {% if request.args.get('date_from') %}<li>Дата с: {{ request.args.get('date_from') }}</li>{% endif %}
