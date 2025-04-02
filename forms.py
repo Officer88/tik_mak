@@ -121,7 +121,8 @@ class SlideForm(FlaskForm):
 
 # Sell Ticket Form
 class SellTicketForm(FlaskForm):
-    event_id = SelectField('Мероприятие', coerce=int, validators=[DataRequired()])
+    event_name = StringField('Название мероприятия', validators=[DataRequired(), Length(max=128)])
+    event_id = HiddenField()
     ticket_type = RadioField(
         'Тип билета',
         choices=[
@@ -136,4 +137,4 @@ class SellTicketForm(FlaskForm):
     original_price = FloatField('Цена покупки', validators=[DataRequired(), NumberRange(min=0)])
     selling_price = FloatField('Желаемая цена продажи', validators=[DataRequired(), NumberRange(min=0)])
     contact_info = StringField('Контактные данные', validators=[DataRequired(), Length(max=256)])
-    submit = SubmitField('Разместить билет на продажу')
+    submit = SubmitField('Отправить билет на рассмотрение')

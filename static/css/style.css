@@ -110,7 +110,7 @@ body {
 }
 
 .main-nav .nav-link:hover {
-    background-color: rgba(0, 0, 0, 0.05);
+    background-color: rgba(0, 0, 0, 0.02);
 }
 
 /* Hero Slider */
@@ -543,4 +543,56 @@ body {
     text-align: center;
     margin-bottom: 2rem;
     color: var(--dark-blue);
+}
+
+/* Header Icons */
+.header-icons .nav-link {
+    color: var(--white);
+    font-size: 1.2rem;
+    transition: all 0.2s ease;
+}
+
+.header-icons .nav-link:hover {
+    color: var(--yellow);
+}
+
+/* Floating Cart Button */
+.floating-cart {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 60px;
+    height: 60px;
+    background-color: var(--red);
+    color: var(--white);
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.5rem;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+    transition: all 0.3s ease;
+}
+
+.floating-cart:hover {
+    transform: scale(1.1);
+    background-color: #e62e2e;
+    color: var(--white);
+}
+
+.floating-cart .cart-badge {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background-color: var(--yellow);
+    color: var(--dark-blue);
+    border-radius: 50%;
+    width: 22px;
+    height: 22px;
+    font-size: 0.75rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
 }

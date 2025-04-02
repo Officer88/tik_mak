@@ -1,7 +1,7 @@
 <nav class="navbar navbar-expand-lg main-nav">
     <div class="container">
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar" aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
+            <i class="fas fa-bars"></i>
         </button>
         <div class="collapse navbar-collapse" id="mainNavbar">
             <ul class="navbar-nav">
@@ -18,16 +18,71 @@
                     <a class="nav-link" href="{{ url_for('main.events') }}">ПЛОЩАДКИ</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('main.sell_ticket') }}">ПРОДАТЬ БИЛЕТ</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#">КОНТАКТЫ</a>
+                    <a class="nav-link" href="{{ url_for('main.sell_ticket') }}">ОТПРАВИТЬ БИЛЕТ НА РАССМОТРЕНИЕ</a>
                 </li>
             </ul>
             <form class="d-flex ms-auto search-form" action="{{ url_for('main.events') }}" method="get">
                 <input class="form-control me-2" type="search" name="query" placeholder="Поиск" aria-label="Search">
-                <button class="btn btn-outline-dark" type="submit"><i class="fas fa-search"></i></button>
+                <button class="btn btn-outline-dark me-2" type="submit"><i class="fas fa-search"></i></button>
+                <button class="btn btn-outline-dark" type="button" data-bs-toggle="modal" data-bs-target="#filterModal">
+                    <i class="fas fa-filter"></i>
+                </button>
             </form>
         </div>
     </div>
 </nav>
+
+<!-- Filter Modal -->
+<div class="modal fade" id="filterModal" tabindex="-1" aria-labelledby="filterModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="filterModalLabel">Фильтры</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form action="{{ url_for('main.events') }}" method="get">
+                    <div class="mb-3">
+                        <label for="category" class="form-label">Категория</label>
+                        <select class="form-select" id="category" name="category">
+                            <option value="">Все категории</option>
+                            {% for category in categories if categories %}
+                            <option value="{{ category.id }}">{{ category.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="venue" class="form-label">Площадка</label>
+                        <select class="form-select" id="venue" name="venue">
+                            <option value="">Все площадки</option>
+                            {% for venue in venues if venues %}
+                            <option value="{{ venue.id }}">{{ venue.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="date_from" class="form-label">С даты</label>
+                        <input type="date" class="form-control" id="date_from" name="date_from">
+                    </div>
+                    <div class="mb-3">
+                        <label for="date_to" class="form-label">По дату</label>
+                        <input type="date" class="form-control" id="date_to" name="date_to">
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="price_min" class="form-label">Минимальная цена</label>
+                            <input type="number" class="form-control" id="price_min" name="price_min" min="0">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="price_max" class="form-label">Максимальная цена</label>
+                            <input type="number" class="form-control" id="price_max" name="price_max" min="0">
+                        </div>
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">Применить фильтры</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

@@ -396,15 +396,14 @@ def sell_ticket():
     
     form = SellTicketForm()
     
-    # Populate event select field
-    form.event_id.choices = [
-        (e.id, f"{e.title} ({e.date.strftime('%d.%m.%Y %H:%M')})")
-        for e in Event.query.filter(Event.date >= datetime.now()).order_by(Event.date).all()
-    ]
-    
-    # Устанавливаем выбранное мероприятие, если оно передано в URL
+    # Если передан event_id, получаем данные о мероприятии
+    event_name = ""
     if request.method == 'GET' and event_id:
-        form.event_id.data = event_id
+        event = Event.query.get(event_id)
+        if event:
+            event_name = f"{event.title} ({event.date.strftime('%d.%m.%Y %H:%M')})"
+            form.event_name.data = event_name
+            form.event_id.data = event_id
     
     if form.validate_on_submit():
         # Определяем user_id для билета
@@ -412,9 +411,12 @@ def sell_ticket():
         if current_user.is_authenticated:
             user_id = current_user.id
         
+        # Если есть event_id, используем его, иначе создаем заявку без привязки к конкретному событию
+        submitted_event_id = form.event_id.data if form.event_id.data else None
+        
         ticket = TicketForSale(
             user_id=user_id if user_id else None,
-            event_id=form.event_id.data,
+            event_id=submitted_event_id,
             ticket_type=form.ticket_type.data,
             section=form.section.data,
             row=form.row.data,
@@ -426,7 +428,7 @@ def sell_ticket():
         db.session.add(ticket)
         db.session.commit()
         
-        flash('Ваш билет размещен на продажу!', 'success')
+        flash('Ваш билет отправлен на рассмотрение!', 'success')
         return redirect(url_for('main.index'))
     
     return render_template('sell_ticket.html', form=form)
