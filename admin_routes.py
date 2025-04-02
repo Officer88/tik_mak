@@ -82,16 +82,39 @@ def add_event():
     if request.method == 'POST' and form.validate_on_submit():
         try:
             from image_utils import process_image
+            import os
+            from werkzeug.utils import secure_filename
+            import uuid
             
-            # Process image if URL provided
+            # Обработка изображения - или из URL, или из загруженного файла
             image_url = form.image_url.data
-            if image_url:
+            image_file = form.image_file.data
+            
+            if image_file and image_file.filename:
+                # Сохраняем загруженный файл
+                filename = secure_filename(f"{uuid.uuid4()}_{image_file.filename}")
+                static_folder = os.path.join(os.getcwd(), 'static')
+                uploads_folder = os.path.join(static_folder, 'uploads')
+                
+                # Создаем папку uploads, если она не существует
+                if not os.path.exists(uploads_folder):
+                    os.makedirs(uploads_folder)
+                
+                image_path = os.path.join(uploads_folder, filename)
+                image_file.save(image_path)
+                
+                # URL для использования в шаблонах
+                image_url = f"/static/uploads/{filename}"
+            elif image_url:
                 try:
                     processed_image_path = process_image(image_url)
                     image_url = processed_image_path
                 except Exception as e:
                     flash(f'Ошибка обработки изображения: {str(e)}', 'warning')
-                    image_url = form.image_url.data
+            
+            # Если нет ни URL, ни файла - используем значение по умолчанию
+            if not image_url:
+                image_url = '/static/images/default-event.jpg'
             
             # Соберем список методов доставки
             delivery_methods = request.form.getlist('delivery_methods')
@@ -171,6 +194,41 @@ def edit_event(event_id):
     
     if request.method == 'POST' and form.validate_on_submit():
         try:
+            from image_utils import process_image
+            import os
+            from werkzeug.utils import secure_filename
+            import uuid
+            
+            # Обработка изображения - или из URL, или из загруженного файла
+            image_url = form.image_url.data
+            image_file = form.image_file.data
+            
+            if image_file and image_file.filename:
+                # Сохраняем загруженный файл
+                filename = secure_filename(f"{uuid.uuid4()}_{image_file.filename}")
+                static_folder = os.path.join(os.getcwd(), 'static')
+                uploads_folder = os.path.join(static_folder, 'uploads')
+                
+                # Создаем папку uploads, если она не существует
+                if not os.path.exists(uploads_folder):
+                    os.makedirs(uploads_folder)
+                
+                image_path = os.path.join(uploads_folder, filename)
+                image_file.save(image_path)
+                
+                # URL для использования в шаблонах
+                image_url = f"/static/uploads/{filename}"
+            elif image_url:
+                try:
+                    processed_image_path = process_image(image_url)
+                    image_url = processed_image_path
+                except Exception as e:
+                    flash(f'Ошибка обработки изображения: {str(e)}', 'warning')
+            
+            # Если указан новый URL, обновляем, иначе оставляем существующий
+            if image_url:
+                event.image_url = image_url
+            
             # Соберем список методов доставки
             delivery_methods = request.form.getlist('delivery_methods')
             delivery_methods_str = ','.join(delivery_methods) if delivery_methods else 'email'
@@ -178,7 +236,6 @@ def edit_event(event_id):
             # Update event data
             event.title = form.title.data
             event.description = form.description.data
-            event.image_url = form.image_url.data
             event.date = form.date.data
             event.end_date = form.end_date.data
             event.category_id = form.category_id.data

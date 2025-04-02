@@ -72,14 +72,15 @@ class ReviewForm(FlaskForm):
 class EventForm(FlaskForm):
     title = StringField('Название', validators=[DataRequired(), Length(max=128)])
     description = TextAreaField('Описание', validators=[Optional()])
-    image_url = StringField('URL изображения', validators=[DataRequired(), Length(max=256)])
+    image_url = StringField('URL изображения', validators=[Optional(), Length(max=256)])
+    image_file = FileField('Загрузить изображение', validators=[Optional(), FileAllowed(['jpg', 'jpeg', 'png', 'gif'], 'Только изображения!')])
     date = DateTimeField('Дата и время', format='%d.%m.%Y %H:%M', validators=[DataRequired()])
     end_date = DateTimeField('Дата и время окончания', format='%d.%m.%Y %H:%M', validators=[Optional()])
     category_id = SelectField('Категория', coerce=int, validators=[DataRequired()])
     venue_type = RadioField('Тип площадки', choices=[
         ('existing', 'Выбрать из существующих'),
         ('custom', 'Указать произвольное место')
-    ], validators=[DataRequired()])
+    ], default='existing')
     venue_id = SelectField('Площадка', coerce=int, validators=[Optional()])
     custom_venue_name = StringField('Название места', validators=[Optional(), Length(max=128)])
     custom_venue_address = StringField('Адрес', validators=[Optional(), Length(max=256)])
@@ -155,7 +156,7 @@ class ContactForm(FlaskForm):
 
 class SellTicketForm(FlaskForm):
     event_name = StringField('Название мероприятия и дата', validators=[DataRequired(), Length(max=128)])
-    venue_name = StringField('Место проведения', validators=[DataRequired(), Length(max=128)])
+    venue_name = StringField('Место проведения', validators=[Optional(), Length(max=128)])
     ticket_type = RadioField(
         'Тип билета',
         choices=[

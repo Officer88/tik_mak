@@ -11,7 +11,7 @@
 </div>
 
 <div class="admin-card">
-    <form method="post" action="{% if event %}{{ url_for('admin.edit_event', event_id=event.id) }}{% else %}{{ url_for('admin.add_event') }}{% endif %}">
+    <form method="post" action="{% if event %}{{ url_for('admin.edit_event', event_id=event.id) }}{% else %}{{ url_for('admin.add_event') }}{% endif %}" enctype="multipart/form-data">
         {{ form.hidden_tag() }}
         
         <div class="row">
@@ -28,17 +28,36 @@
             </div>
             
             <div class="col-md-6 mb-3">
-                <label for="image" class="form-label">Изображение мероприятия</label>
-                <div class="upload-zone" id="upload-zone">
-                    <input type="file" id="image" name="image" class="form-control" accept="image/*" 
-                           onchange="previewImage(this);">
-                    <div class="upload-prompt">
-                        <i class="fas fa-cloud-upload-alt fa-2x mb-2"></i>
-                        <p>Перетащите изображение сюда или кликните для выбора</p>
-                    </div>
-                    <img id="image-preview" class="img-preview d-none">
+                <label for="image_file" class="form-label">Загрузить изображение</label>
+                {{ form.image_file(class="form-control") }}
+                {% if form.image_file.errors %}
+                <div class="invalid-feedback d-block">
+                    {% for error in form.image_file.errors %}
+                    {{ error }}
+                    {% endfor %}
                 </div>
+                {% endif %}
                 <div class="form-text">Загрузите изображение для обложки мероприятия</div>
+                
+                <div class="mt-3">
+                    <label for="image_url" class="form-label">Или укажите URL изображения</label>
+                    {{ form.image_url(class="form-control") }}
+                    {% if form.image_url.errors %}
+                    <div class="invalid-feedback d-block">
+                        {% for error in form.image_url.errors %}
+                        {{ error }}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    <div class="form-text">Необязательно, если загружаете файл выше</div>
+                </div>
+                
+                {% if event and event.image_url %}
+                <div class="mt-3">
+                    <p>Текущее изображение:</p>
+                    <img src="{{ event.image_url }}" alt="{{ event.title }}" class="img-thumbnail" style="max-height: 150px;">
+                </div>
+                {% endif %}
             </div>
         </div>
         

@@ -455,10 +455,12 @@ def sell_ticket():
                 user_id = current_user.id
             
             try:
+                venue_name = form.venue_name.data if form.venue_name.data else None
+                
                 ticket = TicketForSale(
                     user_id=user_id,
                     event_name=form.event_name.data,
-                    venue_name=form.venue_name.data,
+                    venue_name=venue_name,
                     ticket_type=form.ticket_type.data,
                     section=form.section.data,
                     row=form.row.data,
