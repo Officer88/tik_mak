@@ -95,6 +95,11 @@
                             <i class="fas fa-images"></i> Слайдеры
                         </a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'admin.contacts' %}active{% endif %}" href="{{ url_for('admin.contacts') }}">
+                            <i class="fas fa-address-book"></i> Контакты
+                        </a>
+                    </li>
                 </ul>
             </div>
             

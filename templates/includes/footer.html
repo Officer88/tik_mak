@@ -21,16 +21,25 @@
             </div>
             <div class="col-md-4 footer-links">
                 <h5>Контакты</h5>
+                {% set contact = Contact.query.first() %}
                 <ul>
-                    <li><i class="fas fa-phone me-2"></i> +7 (800) 123-45-67</li>
-                    <li><i class="fas fa-envelope me-2"></i> info@biletservice.ru</li>
+                    <li><i class="fas fa-phone me-2"></i> {{ contact.phone }}</li>
+                    <li><i class="fas fa-envelope me-2"></i> {{ contact.email }}</li>
                     <li><i class="fas fa-map-marker-alt me-2"></i> Москва, ул. Примерная, 123</li>
                 </ul>
                 <div class="social-icons mt-3">
-                    <a href="#" class="me-3"><i class="fab fa-vk fa-lg"></i></a>
-                    <a href="#" class="me-3"><i class="fab fa-telegram fa-lg"></i></a>
-                    <a href="#" class="me-3"><i class="fab fa-youtube fa-lg"></i></a>
-                    <a href="#"><i class="fab fa-instagram fa-lg"></i></a>
+                    {% if contact.vk %}
+                    <a href="{{ contact.vk }}" class="me-3" target="_blank"><i class="fab fa-vk fa-lg"></i></a>
+                    {% endif %}
+                    {% if contact.telegram %}
+                    <a href="{{ contact.telegram }}" class="me-3" target="_blank"><i class="fab fa-telegram fa-lg"></i></a>
+                    {% endif %}
+                    {% if contact.whatsapp %}
+                    <a href="https://wa.me/{{ contact.whatsapp }}" class="me-3" target="_blank"><i class="fab fa-whatsapp fa-lg"></i></a>
+                    {% endif %}
+                    {% if contact.instagram %}
+                    <a href="{{ contact.instagram }}" target="_blank"><i class="fab fa-instagram fa-lg"></i></a>
+                    {% endif %}
                 </div>
             </div>
         </div>

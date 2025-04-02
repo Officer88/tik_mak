@@ -3,8 +3,8 @@ from flask_login import current_user, login_required
 from datetime import datetime
 
 from app import db
-from models import User, Event, Category, Venue, Ticket, Review, Slide, Order, OrderItem
-from forms import EventForm, CategoryForm, VenueForm, TicketForm, SlideForm
+from models import User, Event, Category, Venue, Ticket, Review, Slide, Order, OrderItem, Contact
+from forms import EventForm, CategoryForm, VenueForm, TicketForm, SlideForm, ContactForm
 
 # Create blueprint
 admin_bp = Blueprint('admin', __name__)
@@ -527,3 +527,36 @@ def delete_slide(slide_id):
     
     flash('Слайд успешно удален', 'success')
     return redirect(url_for('admin.sliders'))
+
+@admin_bp.route('/contacts', methods=['GET', 'POST'])
+@login_required
+@admin_required
+def contacts():
+    contact = Contact.query.first()
+    if not contact:
+        contact = Contact(
+            phone='+7 (800) 123-45-67',
+            email='info@magiktiket.ru',
+            telegram='',
+            whatsapp='',
+            vk='',
+            instagram=''
+        )
+        db.session.add(contact)
+        db.session.commit()
+    
+    form = ContactForm(obj=contact)
+    
+    if form.validate_on_submit():
+        contact.phone = form.phone.data
+        contact.email = form.email.data
+        contact.telegram = form.telegram.data
+        contact.whatsapp = form.whatsapp.data
+        contact.vk = form.vk.data
+        contact.instagram = form.instagram.data
+        
+        db.session.commit()
+        flash('Контакты успешно обновлены', 'success')
+        return redirect(url_for('admin.contacts'))
+    
+    return render_template('admin/contacts.html', form=form)

@@ -132,6 +132,15 @@ class SlideForm(FlaskForm):
     submit = SubmitField('Сохранить')
 
 # Sell Ticket Form
+class ContactForm(FlaskForm):
+    phone = StringField('Телефон', validators=[DataRequired(), Length(max=32)])
+    email = StringField('Email', validators=[DataRequired(), Email(), Length(max=128)])
+    telegram = StringField('Telegram', validators=[Optional(), Length(max=128)])
+    whatsapp = StringField('WhatsApp', validators=[Optional(), Length(max=32)])
+    vk = StringField('VK', validators=[Optional(), Length(max=128)])
+    instagram = StringField('Instagram', validators=[Optional(), Length(max=128)])
+    submit = SubmitField('Сохранить')
+
 class SellTicketForm(FlaskForm):
     event_name = StringField('Название мероприятия', validators=[DataRequired(), Length(max=128)])
     event_id = HiddenField()

@@ -211,3 +211,15 @@ class CartItem(db.Model):
     
     def __repr__(self):
         return f'<CartItem {self.id} for Session {self.session_id}>'
+
+class Contact(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    phone = db.Column(db.String(32), nullable=False)
+    email = db.Column(db.String(128), nullable=False)
+    telegram = db.Column(db.String(128), nullable=True)
+    whatsapp = db.Column(db.String(32), nullable=True)
+    vk = db.Column(db.String(128), nullable=True)
+    instagram = db.Column(db.String(128), nullable=True)
+    
+    def __repr__(self):
+        return f'<Contact {self.email}>'
