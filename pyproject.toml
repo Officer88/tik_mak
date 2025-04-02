@@ -17,4 +17,5 @@ dependencies = [
     "trafilatura>=2.0.0",
     "requests>=2.32.3",
     "beautifulsoup4>=4.13.3",
+    "flask-migrate>=4.1.0",
 ]
