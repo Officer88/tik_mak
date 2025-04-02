@@ -40,16 +40,14 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(data => {
                 console.log('Response data:', data);
                 if (data.success) {
-                    // Toggle active class and update visual appearance
+                    // Toggle active class
                     this.classList.toggle('active');
-                    this.classList.toggle('btn-danger');
-                    this.classList.toggle('btn-outline-danger');
                     
-                    // Update icon
+                    // Update icon color
                     const icon = this.querySelector('i');
                     if (icon) {
-                        icon.classList.toggle('fas');
-                        icon.classList.toggle('far');
+                        icon.classList.toggle('text-white');
+                        icon.classList.toggle('text-warning');
                     }
                     
                     // Update text

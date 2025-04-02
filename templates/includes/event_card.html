@@ -45,11 +45,9 @@
         <!-- Кнопка покупки и избранное рядом -->
         <div class="d-flex align-items-center justify-content-between mb-2">
             <a href="{{ url_for('main.event_detail', event_id=event.id) }}" class="btn btn-primary flex-grow-1 me-2">Купить билет</a>
-            <form action="{% if is_favorite|default(false) %}{{ url_for('main.remove_from_favorites', event_id=event.id) }}{% else %}{{ url_for('main.add_to_favorites', event_id=event.id) }}{% endif %}" method="post">
-                <button type="submit" class="favorite-btn btn btn-outline-secondary {% if is_favorite|default(false) %}active{% endif %}">
-                    <i class="{% if is_favorite|default(false) %}fas{% else %}far{% endif %} fa-heart"></i>
-                </button>
-            </form>
+            <button type="button" class="favorite-btn btn btn-danger {% if is_favorite|default(false) %}active{% endif %}" data-event-id="{{ event.id }}">
+                <i class="{% if is_favorite|default(false) %}text-warning{% else %}text-white{% endif %} fa-heart fas"></i>
+            </button>
         </div>
         
         <!-- Схема площадки (если есть) -->
