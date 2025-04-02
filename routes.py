@@ -5,15 +5,17 @@ import uuid
 
 from app import db
 from models import Event, Category, Venue, Ticket, Review, Favorite, CartItem, TicketForSale, Slide
-from flask_login import current_user
+from forms import EventSearchForm, ReviewForm, CheckoutForm, SellTicketForm
+from helpers import get_categories
+
+# Create blueprint
+main_bp = Blueprint('main', __name__)
 
 @main_bp.route('/reviews')
 def reviews():
     reviews = Review.query.filter_by(is_approved=True).order_by(Review.created_at.desc()).all()
     form = ReviewForm() if current_user.is_authenticated else None
     return render_template('reviews.html', reviews=reviews, form=form)
-from forms import EventSearchForm, ReviewForm, CheckoutForm, SellTicketForm
-from helpers import get_categories
 
 # Create blueprint
 main_bp = Blueprint('main', __name__)
