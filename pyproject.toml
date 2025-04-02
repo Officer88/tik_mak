@@ -18,4 +18,5 @@ dependencies = [
     "requests>=2.32.3",
     "beautifulsoup4>=4.13.3",
     "flask-migrate>=4.1.0",
+    "pillow>=11.1.0",
 ]

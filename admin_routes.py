@@ -80,10 +80,22 @@ def add_event():
     form.venue_id.choices = [(v.id, v.name) for v in Venue.query.order_by(Venue.name).all()]
     
     if form.validate_on_submit():
+        from image_utils import process_image
+        
+        # Process image if URL provided
+        image_url = form.image_url.data
+        if image_url:
+            try:
+                processed_image_path = process_image(image_url)
+                image_url = processed_image_path
+            except Exception as e:
+                flash(f'Ошибка обработки изображения: {str(e)}', 'error')
+                image_url = form.image_url.data
+        
         event = Event(
             title=form.title.data,
             description=form.description.data,
-            image_url=form.image_url.data,
+            image_url=image_url,
             date=form.date.data,
             end_date=form.end_date.data,
             category_id=form.category_id.data,
