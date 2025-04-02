@@ -83,7 +83,10 @@ class Event(db.Model):
     tickets = db.relationship('Ticket', backref='event', lazy='dynamic')
     reviews = db.relationship('Review', backref='event', lazy='dynamic')
     favorites = db.relationship('Favorite', backref='event', lazy='dynamic')
-    tickets_for_sale = db.relationship('TicketForSale', backref='event', lazy='dynamic')
+    tickets_for_sale = db.relationship('TicketForSale', 
+                                     backref='event', 
+                                     lazy='dynamic',
+                                     foreign_keys='TicketForSale.event_id')
     
     def __repr__(self):
         return f'<Event {self.title} on {self.date}>'
@@ -184,7 +187,7 @@ class Slide(db.Model):
 class TicketForSale(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)  # Разрешаем NULL для неавторизованных пользователей
-    event_id = db.Column(db.Integer, db.ForeignKey('event.id'), nullable=True)
+    event_id = db.Column(db.Integer, db.ForeignKey('event.id', ondelete='SET NULL'), nullable=True)
     event_name = db.Column(db.String(128), nullable=False)
     venue_name = db.Column(db.String(128), nullable=False)
     ticket_type = db.Column(db.String(32), nullable=False)  # electronic or physical
