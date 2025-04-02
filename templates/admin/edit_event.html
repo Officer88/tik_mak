@@ -28,16 +28,17 @@
             </div>
             
             <div class="col-md-6 mb-3">
-                <label for="image_url" class="form-label">URL изображения</label>
-                {{ form.image_url(class="form-control") }}
-                {% if form.image_url.errors %}
-                <div class="invalid-feedback d-block">
-                    {% for error in form.image_url.errors %}
-                    {{ error }}
-                    {% endfor %}
+                <label for="image" class="form-label">Изображение мероприятия</label>
+                <div class="upload-zone" id="upload-zone">
+                    <input type="file" id="image" name="image" class="form-control" accept="image/*" 
+                           onchange="previewImage(this);">
+                    <div class="upload-prompt">
+                        <i class="fas fa-cloud-upload-alt fa-2x mb-2"></i>
+                        <p>Перетащите изображение сюда или кликните для выбора</p>
+                    </div>
+                    <img id="image-preview" class="img-preview d-none">
                 </div>
-                {% endif %}
-                <div class="form-text">URL изображения для обложки мероприятия</div>
+                <div class="form-text">Загрузите изображение для обложки мероприятия</div>
             </div>
         </div>
         
@@ -139,17 +140,24 @@
             {% endif %}
         </div>
         
-        <div class="mb-3 form-check">
-            {{ form.is_active(class="form-check-input") }}
-            <label class="form-check-label" for="is_active">Активно</label>
-            {% if form.is_active.errors %}
-            <div class="invalid-feedback d-block">
-                {% for error in form.is_active.errors %}
-                {{ error }}
-                {% endfor %}
+        <div class="mb-3">
+            <div class="form-check mb-2">
+                {{ form.is_active(class="form-check-input") }}
+                <label class="form-check-label" for="is_active">Активно</label>
+                <div class="form-text">Если отключено, мероприятие не будет отображаться на сайте</div>
             </div>
-            {% endif %}
-            <div class="form-text">Если отключено, мероприятие не будет отображаться на сайте</div>
+            
+            <div class="form-check mb-2">
+                {{ form.is_popular(class="form-check-input") }}
+                <label class="form-check-label" for="is_popular">Популярное мероприятие</label>
+                <div class="form-text">Отметьте для отображения в разделе популярных мероприятий</div>
+            </div>
+            
+            <div class="form-check">
+                {{ form.is_featured(class="form-check-input") }}
+                <label class="form-check-label" for="is_featured">Показывать на главной странице</label>
+                <div class="form-text">Отметьте для отображения в разделе ближайших мероприятий</div>
+            </div>
         </div>
         
         <h4 class="mt-4 mb-3">SEO настройки</h4>

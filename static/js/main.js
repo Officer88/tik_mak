@@ -223,3 +223,60 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+
+// File upload handling
+function previewImage(input) {
+    const preview = document.getElementById('image-preview');
+    const uploadZone = document.getElementById('upload-zone');
+    
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            preview.src = e.target.result;
+            preview.classList.remove('d-none');
+            uploadZone.classList.add('has-image');
+        }
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+// Drag and drop handling
+const uploadZone = document.getElementById('upload-zone');
+if (uploadZone) {
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        uploadZone.addEventListener(eventName, preventDefaults, false);
+    });
+
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+        uploadZone.addEventListener(eventName, highlight, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        uploadZone.addEventListener(eventName, unhighlight, false);
+    });
+
+    function highlight(e) {
+        uploadZone.classList.add('highlight');
+    }
+
+    function unhighlight(e) {
+        uploadZone.classList.remove('highlight');
+    }
+
+    uploadZone.addEventListener('drop', handleDrop, false);
+
+    function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        const fileInput = document.getElementById('image');
+        
+        fileInput.files = files;
+        previewImage(fileInput);
+    }
+}
