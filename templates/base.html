@@ -20,18 +20,10 @@
 <body>
     <!-- Header -->
     <header class="site-header">
-        <nav class="navbar navbar-expand-lg navbar-dark">
+        <!-- Темно-синяя верхняя полоса -->
+        <nav class="navbar navbar-dark">
             <div class="container">
                 <a class="navbar-brand" href="{{ url_for('main.index') }}">MAGIK TIKET</a>
-                
-                <!-- Кнопка мобильного меню -->
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                    <i class="fas fa-bars"></i>
-                </button>
-                
-                <div class="collapse navbar-collapse" id="navbarNav">
-                    <!-- Пустой блок для мобильного меню - поиск перенесен в желтую полосу -->
-                </div>
             </div>
         </nav>
         
@@ -39,12 +31,19 @@
         <div class="bg-yellow py-3">
             <div class="container">
                 <div class="row align-items-center">
+                    <!-- Кнопка мобильного меню (слева на мобильных) -->
+                    <div class="d-lg-none col-2">
+                        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar" aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
+                            <i class="fas fa-bars" style="color: var(--dark-blue);"></i>
+                        </button>
+                    </div>
+                    
                     <!-- Поиск -->
-                    <div class="col-12 col-lg-8 mb-3 mb-lg-0">
+                    <div class="col-10 col-lg-8 mb-3 mb-lg-0">
                         <form action="{{ url_for('main.events') }}" method="get" class="d-flex">
                             <div class="input-group">
-                                <input class="form-control" type="search" name="q" placeholder="Поиск мероприятий, артистов, площадок..." value="{{ request.args.get('q', '') }}">
-                                <button class="btn btn-dark-blue" type="submit">
+                                <input class="form-control" type="search" name="query" placeholder="Поиск мероприятий, артистов, площадок..." aria-label="Search" value="{{ request.args.get('query', '') }}">
+                                <button class="btn btn-dark" type="submit">
                                     <i class="fas fa-search"></i>
                                 </button>
                             </div>
@@ -58,27 +57,31 @@
                                 <i class="fas fa-heart"></i>
                             </a>
                             {% if current_user.is_authenticated %}
-                            <a class="nav-link px-2 dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" title="Личный кабинет">
-                                <i class="fas fa-user"></i>
-                            </a>
-                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                                <li><span class="dropdown-item-text">{{ current_user.username }}</span></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="{{ url_for('auth.profile') }}">Мой профиль</a></li>
-                                {% if current_user.is_admin %}
-                                <li><a class="dropdown-item" href="{{ url_for('admin.dashboard') }}">Панель администратора</a></li>
-                                {% endif %}
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}">Выйти</a></li>
-                            </ul>
+                            <div class="dropdown">
+                                <a class="nav-link px-2 dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" title="Личный кабинет">
+                                    <i class="fas fa-user"></i>
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                                    <li><span class="dropdown-item-text">{{ current_user.username }}</span></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="{{ url_for('auth.profile') }}">Мой профиль</a></li>
+                                    {% if current_user.is_admin %}
+                                    <li><a class="dropdown-item" href="{{ url_for('admin.dashboard') }}">Панель администратора</a></li>
+                                    {% endif %}
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}">Выйти</a></li>
+                                </ul>
+                            </div>
                             {% else %}
-                            <a class="nav-link px-2 dropdown-toggle" href="#" id="loginDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" title="Войти/Регистрация">
-                                <i class="fas fa-sign-in-alt"></i>
-                            </a>
-                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="loginDropdown">
-                                <li><a class="dropdown-item" href="{{ url_for('auth.login') }}">Войти</a></li>
-                                <li><a class="dropdown-item" href="{{ url_for('auth.register') }}">Регистрация</a></li>
-                            </ul>
+                            <div class="dropdown">
+                                <a class="nav-link px-2 dropdown-toggle" href="#" id="loginDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" title="Войти/Регистрация">
+                                    <i class="fas fa-sign-in-alt"></i>
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="loginDropdown">
+                                    <li><a class="dropdown-item" href="{{ url_for('auth.login') }}">Войти</a></li>
+                                    <li><a class="dropdown-item" href="{{ url_for('auth.register') }}">Регистрация</a></li>
+                                </ul>
+                            </div>
                             {% endif %}
                         </div>
                     </div>

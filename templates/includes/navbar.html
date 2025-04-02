@@ -1,5 +1,6 @@
 <nav class="navbar navbar-expand-lg main-nav">
     <div class="container">
+        <!-- Мобильная навигация с иконкой бургера слева -->
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar" aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
             <i class="fas fa-bars" style="color: var(--dark-blue);"></i>
         </button>
@@ -9,24 +10,29 @@
                 <li class="nav-item">
                     <a class="nav-link" href="{{ url_for('main.events') }}">ВСЕ МЕРОПРИЯТИЯ</a>
                 </li>
-                <!-- Выводим только первые 3 категории в меню -->
-                {% for category in categories[:3] %}
                 <li class="nav-item">
-                    <a class="nav-link" href="{{ url_for('main.category_events', category_id=category.id) }}">{{ category.name|upper }}</a>
+                    <a class="nav-link" href="{{ url_for('main.category_events', category_id=2) }}">ВЫСТАВКИ</a>
                 </li>
-                {% endfor %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('main.category_events', category_id=1) }}">КОНЦЕРТЫ</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('main.category_events', category_id=3) }}">МЕЖДУНАРОДНЫЕ СОБЫТИЯ</a>
+                </li>
                 <!-- Выпадающее подменю "Ещё" для остальных категорий -->
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="moreCategories" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                         ЕЩЁ
                     </a>
                     <ul class="dropdown-menu" aria-labelledby="moreCategories">
-                        {% for category in categories[3:] %}
+                        {% for category in categories %}
+                        {% if category.name not in ['Выставки', 'Концерты', 'Международные события'] %}
                         <li>
                             <a class="dropdown-item" href="{{ url_for('main.category_events', category_id=category.id) }}">
                                 <i class="fas {{ category.icon }} me-2"></i>{{ category.name }}
                             </a>
                         </li>
+                        {% endif %}
                         {% endfor %}
                         <li><hr class="dropdown-divider"></li>
                         <li>

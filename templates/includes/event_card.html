@@ -17,32 +17,48 @@
         <div class="event-price mt-2">
             от {{ event.base_price|int }} ₽
         </div>
-        <div class="event-delivery-methods mb-2">
+        
+        <!-- Иконки доставки -->
+        <div class="event-delivery-methods mb-3">
+            {% if 'email' in event.delivery_methods.split(',') %}
             <span class="delivery-icon" title="Электронный билет">
                 <i class="fas fa-envelope"></i>
             </span>
+            {% endif %}
+            {% if 'courier' in event.delivery_methods.split(',') %}
             <span class="delivery-icon" title="Курьерская доставка">
                 <i class="fas fa-truck"></i>
             </span>
+            {% endif %}
+            {% if 'event_day' in event.delivery_methods.split(',') %}
             <span class="delivery-icon" title="В день мероприятия">
                 <i class="fas fa-calendar-day"></i>
             </span>
+            {% endif %}
+            {% if '24h' in event.delivery_methods.split(',') %}
             <span class="delivery-icon" title="В течение 24 часов">
                 <i class="fas fa-clock"></i>
             </span>
+            {% endif %}
         </div>
-        <div class="d-grid gap-2">
-            <a href="{{ url_for('main.event_detail', event_id=event.id) }}" class="btn btn-primary">Купить билет</a>
+        
+        <!-- Кнопка покупки и избранное рядом -->
+        <div class="d-flex align-items-center justify-content-between mb-2">
+            <a href="{{ url_for('main.event_detail', event_id=event.id) }}" class="btn btn-primary flex-grow-1 me-2">Купить билет</a>
+            <form action="{% if is_favorite|default(false) %}{{ url_for('main.remove_from_favorites', event_id=event.id) }}{% else %}{{ url_for('main.add_to_favorites', event_id=event.id) }}{% endif %}" method="post">
+                <button type="submit" class="favorite-btn btn btn-outline-secondary {% if is_favorite|default(false) %}active{% endif %}">
+                    <i class="{% if is_favorite|default(false) %}fas{% else %}far{% endif %} fa-heart"></i>
+                </button>
+            </form>
         </div>
-    </div>
-    <div class="event-card-footer">
-        <span class="event-category">
-            <i class="fas {{ event.category.icon }} me-1"></i> {{ event.category.name }}
-        </span>
-        <form action="{% if is_favorite|default(false) %}{{ url_for('main.remove_from_favorites', event_id=event.id) }}{% else %}{{ url_for('main.add_to_favorites', event_id=event.id) }}{% endif %}" method="post">
-            <button type="submit" class="favorite-btn {% if is_favorite|default(false) %}active{% endif %}">
-                <i class="{% if is_favorite|default(false) %}fas{% else %}far{% endif %} fa-heart"></i>
-            </button>
-        </form>
+        
+        <!-- Схема площадки (если есть) -->
+        {% if event.venue.venue_map or event.venue.scheme_url %}
+        <div class="text-center mt-2">
+            <a href="{{ url_for('main.venue_detail', venue_id=event.venue.id) }}" class="venue-scheme-link small">
+                <i class="fas fa-map-marked-alt me-1"></i> Схема площадки
+            </a>
+        </div>
+        {% endif %}
     </div>
 </div>
