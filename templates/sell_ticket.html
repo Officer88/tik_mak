@@ -19,7 +19,6 @@
                     <div class="mb-4">
                         <label for="event_name" class="form-label">Название мероприятия</label>
                         {{ form.event_name(class="form-control") }}
-                        {{ form.event_id() }}
                         {% if form.event_name.errors %}
                         <div class="invalid-feedback d-block">
                             {% for error in form.event_name.errors %}

@@ -451,14 +451,9 @@ def sell_ticket():
         if current_user.is_authenticated:
             user_id = current_user.id
         
-        # Проверяем наличие event_id
-        if not form.event_id.data:
-            flash('Пожалуйста, выберите мероприятие', 'danger')
-            return redirect(url_for('main.sell_ticket'))
-            
         ticket = TicketForSale(
             user_id=user_id if user_id else None,
-            event_id=form.event_id.data,
+            event_id=None,
             ticket_type=form.ticket_type.data,
             section=form.section.data,
             row=form.row.data,
