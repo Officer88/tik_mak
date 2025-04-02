@@ -288,6 +288,13 @@
                     </form>
                     {% endif %}
                 </div>
+                
+                <!-- Sell your ticket button -->
+                <div class="mt-3">
+                    <a href="{{ url_for('main.sell_ticket', event_id=event.id) }}" class="btn btn-outline-primary w-100">
+                        <i class="fas fa-ticket-alt me-2"></i> Продать свой билет
+                    </a>
+                </div>
             </div>
             
             <!-- Delivery methods info -->
