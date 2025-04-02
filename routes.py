@@ -390,7 +390,6 @@ def submit_review(event_id):
 
 # Sell ticket route
 @main_bp.route('/sell-ticket', methods=['GET', 'POST'])
-@login_required
 def sell_ticket():
     form = SellTicketForm()
     
@@ -401,8 +400,13 @@ def sell_ticket():
     ]
     
     if form.validate_on_submit():
+        # Определяем user_id для билета
+        user_id = None
+        if current_user.is_authenticated:
+            user_id = current_user.id
+        
         ticket = TicketForSale(
-            user_id=current_user.id,
+            user_id=user_id if user_id else None,
             event_id=form.event_id.data,
             ticket_type=form.ticket_type.data,
             section=form.section.data,

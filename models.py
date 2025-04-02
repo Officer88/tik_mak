@@ -179,7 +179,7 @@ class Slide(db.Model):
 # User's Tickets for Sale model
 class TicketForSale(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)  # Разрешаем NULL для неавторизованных пользователей
     event_id = db.Column(db.Integer, db.ForeignKey('event.id'), nullable=False)
     ticket_type = db.Column(db.String(32), nullable=False)  # electronic or physical
     section = db.Column(db.String(64), nullable=True)
