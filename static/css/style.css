@@ -29,13 +29,13 @@ body {
 }
 
 .nav-link {
-    color: var(--white) !important;
+    color: var(--dark-blue) !important;
     font-weight: 500;
 }
 
 .navbar-nav .nav-link:hover,
 .navbar-nav .nav-link.active {
-    color: var(--yellow) !important;
+    color: var(--red) !important;
 }
 
 .btn-primary {
@@ -115,10 +115,28 @@ body {
     font-weight: 700;
 }
 
+/* Десктоп навигация */
+.d-lg-flex .nav {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+}
+
+.d-lg-flex .nav-link {
+    color: var(--dark-blue) !important;
+    font-weight: 600;
+    text-transform: uppercase;
+    padding: 0.6rem 1rem;
+}
+
+.d-lg-flex .nav-link:hover {
+    color: var(--red) !important;
+}
+
 /* Желтая полоса */
 .bg-yellow {
     background-color: var(--yellow);
-    padding: 1rem 0;
+    padding: 0.5rem 0;
 }
 
 .bg-yellow .header-icons .nav-link {
