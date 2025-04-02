@@ -1,6 +1,7 @@
+
 {% extends 'admin/base.html' %}
 
-{% block title %}Управление площадками - BiletService{% endblock %}
+{% block title %}Управление площадками - MAGIK TIKET{% endblock %}
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -56,6 +57,44 @@
                 {% endif %}
             </div>
         </div>
+
+        <div class="mb-3">
+            <label for="description" class="form-label">Описание площадки</label>
+            {{ form.description(class="form-control", rows=4) }}
+            {% if form.description.errors %}
+            <div class="invalid-feedback d-block">
+                {% for error in form.description.errors %}
+                {{ error }}
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="logo_url" class="form-label">URL логотипа</label>
+                {{ form.logo_url(class="form-control") }}
+                {% if form.logo_url.errors %}
+                <div class="invalid-feedback d-block">
+                    {% for error in form.logo_url.errors %}
+                    {{ error }}
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="col-md-6 mb-3">
+                <label for="scheme_url" class="form-label">URL схемы зала</label>
+                {{ form.scheme_url(class="form-control") }}
+                {% if form.scheme_url.errors %}
+                <div class="invalid-feedback d-block">
+                    {% for error in form.scheme_url.errors %}
+                    {{ error }}
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
         
         <div class="mb-3">
             <label for="venue_map" class="form-label">Схема зала (SVG)</label>
@@ -88,8 +127,9 @@
                     <th>Название</th>
                     <th>Город</th>
                     <th>Адрес</th>
-                    <th>Мероприятия</th>
-                    <th>Схема зала</th>
+                    <th>Описание</th>
+                    <th>Логотип</th>
+                    <th>Схема</th>
                     <th>Действия</th>
                 </tr>
             </thead>
@@ -100,14 +140,29 @@
                     <td>{{ venue.name }}</td>
                     <td>{{ venue.city }}</td>
                     <td>{{ venue.address }}</td>
-                    <td>{{ venue.events.count() }}</td>
                     <td>
-                        {% if venue.venue_map %}
-                        <button type="button" class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#venueMapModal{{ venue.id }}">
-                            <i class="fas fa-map"></i> Просмотр
-                        </button>
+                        {% if venue.description %}
+                        <span class="text-truncate d-inline-block" style="max-width: 200px;">{{ venue.description }}</span>
                         {% else %}
-                        <span class="badge bg-secondary">Отсутствует</span>
+                        <span class="text-muted">—</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if venue.logo_url %}
+                        <a href="{{ venue.logo_url }}" target="_blank" class="btn btn-sm btn-outline-info">
+                            <i class="fas fa-image"></i>
+                        </a>
+                        {% else %}
+                        <span class="text-muted">—</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if venue.scheme_url %}
+                        <a href="{{ venue.scheme_url }}" target="_blank" class="btn btn-sm btn-outline-info">
+                            <i class="fas fa-map"></i>
+                        </a>
+                        {% else %}
+                        <span class="text-muted">—</span>
                         {% endif %}
                     </td>
                     <td>
@@ -145,31 +200,11 @@
                                 </div>
                             </div>
                         </div>
-                        
-                        <!-- Venue Map Modal -->
-                        {% if venue.venue_map %}
-                        <div class="modal fade" id="venueMapModal{{ venue.id }}" tabindex="-1" aria-labelledby="venueMapModalLabel{{ venue.id }}" aria-hidden="true">
-                            <div class="modal-dialog modal-lg">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h5 class="modal-title" id="venueMapModalLabel{{ venue.id }}">Схема зала - {{ venue.name }}</h5>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                    </div>
-                                    <div class="modal-body text-center">
-                                        {{ venue.venue_map|safe }}
-                                    </div>
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        {% endif %}
                     </td>
                 </tr>
                 {% else %}
                 <tr>
-                    <td colspan="7" class="text-center">Площадки не найдены.</td>
+                    <td colspan="8" class="text-center">Площадки не найдены.</td>
                 </tr>
                 {% endfor %}
             </tbody>
