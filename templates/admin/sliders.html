@@ -67,11 +67,11 @@
                 {% if slide and slide.image_url and slide.image_url.startswith('/static/uploads/') %}
                 <img src="{{ slide.image_url }}" class="img-preview" alt="Превью слайда">
                 {% endif %}
-                {{ form.image(class="form-control", accept=".jpg,.jpeg,.png,.gif", style="display: none;") }}
+                {{ form.image_file(class="form-control", accept=".jpg,.jpeg,.png,.gif", style="display: none;") }}
             </div>
-            {% if form.image.errors %}
+            {% if form.image_file.errors %}
             <div class="invalid-feedback d-block">
-                {% for error in form.image.errors %}
+                {% for error in form.image_file.errors %}
                 {{ error }}
                 {% endfor %}
             </div>
