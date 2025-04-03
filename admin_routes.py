@@ -8,6 +8,7 @@ from datetime import datetime, timedelta
 from app import db
 from models import Event, Venue, Category, Ticket, Review, Order, Slide, TicketForSale, Contact
 from forms import EventForm, VenueForm, CategoryForm, LoginForm, TicketForm, SlideForm, SellTicketForm, ContactForm, NotificationSettingForm
+from helpers import admin_required
 from image_utils import save_image, process_image, save_special_format_file
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
