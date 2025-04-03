@@ -683,6 +683,7 @@ def sliders():
         total_tickets = available_tickets + sold_tickets
 
         return render_template('admin/dashboard.html',
+                             total_events=total_events,
                              upcoming_events=upcoming_events,
                              total_users=total_users,
                              total_orders=total_orders,
