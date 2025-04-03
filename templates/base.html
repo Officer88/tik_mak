@@ -102,10 +102,10 @@
                                     <i class="fas fa-user"></i>
                                 </a>
                                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                                    <li><span class="dropdown-item-text">{{ current_user.username }}</span></li>
+                                    <li><span class="dropdown-item-text">{{ current_user.safe_username }}</span></li>
                                     <li><hr class="dropdown-divider"></li>
                                     <li><a class="dropdown-item" href="{{ url_for('auth.profile') }}">Мой профиль</a></li>
-                                    {% if current_user.is_admin %}
+                                    {% if current_user.safe_is_admin %}
                                     <li><a class="dropdown-item" href="{{ url_for('admin.dashboard') }}">Панель администратора</a></li>
                                     {% endif %}
                                     <li><hr class="dropdown-divider"></li>
@@ -185,7 +185,7 @@
                             <i class="fas fa-user me-2"></i>Мой профиль
                         </a>
                     </li>
-                    {% if current_user.is_admin %}
+                    {% if current_user.safe_is_admin %}
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('admin.dashboard') }}">
                             <i class="fas fa-cog me-2"></i>Панель администратора

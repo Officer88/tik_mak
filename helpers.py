@@ -371,27 +371,42 @@ def get_current_user_info():
 
 def get_popular_events():
     """Получение популярных событий"""
+    import logging
+    logger = logging.getLogger(__name__)
+    
     try:
+        # Обновляем сессию перед запросом
+        db.session.expire_all()
         events = Event.query.filter_by(is_popular=True, is_active=True).all()
         return [EventDTO(event) for event in events]
     except Exception as e:
-        print(f"Ошибка при получении популярных событий: {e}")
+        logger.error(f"Ошибка при получении популярных событий: {e}")
         return []
 
 def get_featured_events():
     """Получение избранных событий"""
+    import logging
+    logger = logging.getLogger(__name__)
+    
     try:
+        # Обновляем сессию перед запросом
+        db.session.expire_all()
         events = Event.query.filter_by(is_featured=True, is_active=True).order_by(Event.date).all()
         return [EventDTO(event) for event in events]
     except Exception as e:
-        print(f"Ошибка при получении featured событий: {e}")
+        logger.error(f"Ошибка при получении featured событий: {e}")
         return []
 
 def get_active_slides():
     """Получение активных слайдов"""
+    import logging
+    logger = logging.getLogger(__name__)
+    
     try:
+        # Обновляем сессию перед запросом
+        db.session.expire_all()
         slides = Slide.query.filter_by(is_active=True).order_by(Slide.order).all()
         return [SlideDTO(slide) for slide in slides]
     except Exception as e:
-        print(f"Ошибка при получении слайдов: {e}")
+        logger.error(f"Ошибка при получении слайдов: {e}")
         return []

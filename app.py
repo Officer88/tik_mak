@@ -68,6 +68,9 @@ with app.app_context():
     app.register_blueprint(auth_bp, url_prefix='/auth')
     app.register_blueprint(admin_bp, url_prefix='/admin')
     
+    # Временно отключаем регистрацию фильтров, пока не решим проблему
+    print("Запуск приложения без пользовательских фильтров Jinja2")
+    
     # Создаем директории для загрузок
     ensure_upload_dirs()
     
@@ -98,15 +101,19 @@ with app.app_context():
     @login_manager.user_loader
     def load_user(user_id):
         try:
-            # Создаем новую сессию для каждого запроса
-            db.session.remove()
-            db.session.begin()
-            
-            # Получаем пользователя и присоединяем его к текущей сессии
+            # Получаем пользователя через query.filter_by.first() вместо query.get() 
+            # для гарантированного получения нового объекта
+            db.session.expire_all()
             user = User.query.filter_by(id=int(user_id)).first()
+            
+            # Обеспечиваем сохранение базовых данных для случаев отсоединения экземпляра
             if user:
-                db.session.add(user)
-                db.session.commit()
+                # Сохраняем базовые данные как атрибуты объекта для доступа даже при отсоединении
+                user._id = user.id
+                user._username = user.username
+                user._email = user.email
+                user._is_admin = user.is_admin
+                
             return user
         except Exception as e:
             print(f"Ошибка при загрузке пользователя: {e}")

@@ -35,10 +35,12 @@ class User(UserMixin, db.Model):
     def get_id(self):
         """Возвращает идентификатор пользователя для Flask-Login"""
         try:
-            return str(self._id if self._id is not None else self.id)
+            return str(self.id)
         except Exception as e:
             logging.error(f"Ошибка при получении ID пользователя: {e}")
-            return str(self._id) if self._id is not None else "0"
+            if hasattr(self, '_id') and self._id is not None:
+                return str(self._id)
+            return "0"
     
     @property
     def safe_username(self):
