@@ -105,7 +105,7 @@
                         <p class="text-muted small">Поддерживаются JPG, PNG, GIF</p>
                     </div>
                     {% if venue and venue.logo_path %}
-                    <img src="{{ venue.logo_path }}" class="img-preview" alt="Логотип площадки">
+                    <img src="/static/uploads/venues/{{ venue.logo_path }}" class="img-preview" alt="Логотип площадки">
                     {% endif %}
                     {{ form.logo_file(class="form-control", accept=".jpg,.jpeg,.png,.gif", style="display: none;") }}
                 </div>
@@ -264,7 +264,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     <td>
                         {% if venue.logo_path %}
                         <a href="{{ venue.logo_path }}" target="_blank" class="btn btn-sm btn-outline-info">
-                            <img src="{{ venue.logo_path }}" alt="{{ venue.name }}" style="max-width: 40px; max-height: 40px;">
+                            <img src="/static/uploads/venues/{{ venue.logo_path }}" alt="{{ venue.name }}" style="max-width: 40px; max-height: 40px;">
                         </a>
                         {% elif venue.logo_url %}
                         <a href="{{ venue.logo_url }}" target="_blank" class="btn btn-sm btn-outline-info">
