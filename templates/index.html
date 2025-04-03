@@ -35,9 +35,9 @@
     <section class="popular-events-section py-5 bg-light">
         <div class="container">
             <h2 class="mb-4">Популярные мероприятия</h2>
-            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-2">
+            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 event-row">
                 {% for event in popular_events %}
-                    <div class="col mb-2">
+                    <div class="col">
                         {% include 'includes/event_card.html' %}
                     </div>
                 {% else %}
@@ -58,9 +58,9 @@
     <section class="upcoming-events-section py-5">
         <div class="container">
             <h2 class="mb-4">Ближайшие мероприятия</h2>
-            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-2">
+            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 event-row">
                 {% for event in upcoming_events %}
-                    <div class="col mb-2">
+                    <div class="col">
                         {% include 'includes/event_card.html' %}
                     </div>
                 {% else %}

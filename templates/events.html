@@ -69,9 +69,9 @@
     </div>
     
     <!-- Events grid -->
-    <div class="row g-2">
+    <div class="row event-row">
         {% for event in events.items %}
-            <div class="col-md-6 col-lg-4 mb-2">
+            <div class="col-md-6 col-lg-4">
                 <div class="event-card">
                     <div class="event-image" style="background-image: url('{{ event.image_url }}');">
                         <div class="event-date">
