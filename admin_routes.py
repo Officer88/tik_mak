@@ -24,42 +24,83 @@ def check_admin():
 # Главная страница админки
 @admin_bp.route('/')
 def dashboard():
-    # Закрываем текущую сессию для обновления данных
-    db.session.expire_all()
-    db.session.close()
-    
     try:
-        # Подсчет статистики с новой сессией
-        event_count = db.session.query(Event).count()
-        venue_count = db.session.query(Venue).count()
-        category_count = db.session.query(Category).count()
-        review_count = db.session.query(Review).count()
-        
-        # Последние заказы
-        recent_orders = db.session.query(Order).order_by(Order.created_at.desc()).limit(5).all()
-        recent_order_dtos = [OrderDTO(order) for order in recent_orders]
-        
-        # Билеты на продажу
-        pending_tickets = db.session.query(TicketForSale).filter_by(status='pending').count()
-        
-        # События на этой неделе
-        next_week = datetime.now() + timedelta(days=7)
-        upcoming_events = db.session.query(Event).filter(
-            Event.date >= datetime.now(),
-            Event.date <= next_week
-        ).count()
-        
-        # Статистика заказов
-        total_orders = db.session.query(Order).count()
-        completed_orders = db.session.query(Order).filter_by(status='completed').count()
-        pending_orders = db.session.query(Order).filter_by(status='pending').count()
-        
-        # Получаем информацию о пользователе
-        user_info = get_current_user_info()
-        
+        with db.session.begin():
+            # Статистика событий
+            total_events = db.session.query(Event).count()
+            upcoming_events = db.session.query(Event).filter(
+                Event.date >= datetime.now()
+            ).count()
+            
+            # Статистика заказов
+            total_orders = db.session.query(Order).count()
+            completed_orders = db.session.query(Order).filter_by(status='completed').count()
+            pending_orders = db.session.query(Order).filter_by(status='pending').count()
+            
+            # Статистика пользователей
+            total_users = db.session.query(User).count()
+            
+            # Билеты
+            total_tickets = db.session.query(Ticket).count()
+            sold_tickets = db.session.query(Ticket).filter_by(is_available=False).count()
+            available_tickets = total_tickets - sold_tickets
+            
+            # Последние заказы
+            recent_orders = db.session.query(Order).order_by(Order.created_at.desc()).limit(10).all()
+            
+            # Статистика по категориям
+            categories = db.session.query(Category).all()
+            category_stats = []
+            
+            for category in categories:
+                events = Event.query.filter_by(category_id=category.id).all()
+                event_ids = [event.id for event in events]
+                
+                sold_tickets_count = Ticket.query.filter(
+                    Ticket.event_id.in_(event_ids),
+                    Ticket.is_available == False
+                ).count()
+                
+                category_stats.append({
+                    'name': category.name,
+                    'sold_tickets': sold_tickets_count
+                })
+            
+            # Получаем текущего пользователя
+            admin_username = current_user.username if current_user else None
+            
+            return render_template(
+                'admin/dashboard.html',
+                total_events=total_events,
+                upcoming_events=upcoming_events,
+                total_tickets=total_tickets,
+                sold_tickets=sold_tickets,
+                available_tickets=available_tickets,
+                total_users=total_users,
+                total_orders=total_orders,
+                completed_orders=completed_orders,
+                pending_orders=pending_orders,
+                recent_orders=recent_orders,
+                category_stats=category_stats,
+                admin_username=admin_username
+            )
     except Exception as e:
         print(f"Ошибка при получении статистики: {e}")
-        return render_template('admin/dashboard.html', error="Ошибка при загрузке данных")
+        return render_template(
+            'admin/dashboard.html',
+            error="Ошибка при загрузке данных",
+            total_events=0,
+            upcoming_events=0,
+            total_tickets=0,
+            sold_tickets=0,
+            available_tickets=0,
+            total_users=0,
+            total_orders=0,
+            completed_orders=0,
+            pending_orders=0,
+            recent_orders=[],
+            category_stats=[]
+        )
     
     # Счетчики для дашборда - использование db.session для свежих данных
     event_count = db.session.query(Event).count()
