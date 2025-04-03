@@ -25,24 +25,24 @@ def check_admin():
 @admin_bp.route('/')
 def dashboard():
     try:
-        # Статистика событий
-        total_events = Event.query.count()
-        upcoming_events = Event.query.filter(
-            Event.date >= datetime.now()
-        ).count()
+        # Получаем статистику по билетам на продажу
+        pending_tickets = TicketForSale.query.filter_by(status='pending').count()
+        confirmed_tickets = TicketForSale.query.filter_by(status='confirmed').count()
+        rejected_tickets = TicketForSale.query.filter_by(status='rejected').count()
+        sold_tickets_resale = TicketForSale.query.filter_by(status='sold').count()
 
-        # Статистика заказов
+        # Общая статистика
+        total_events = Event.query.count()
+        upcoming_events = Event.query.filter(Event.date >= datetime.now()).count()
+        total_users = User.query.count()
         total_orders = Order.query.count()
         completed_orders = Order.query.filter_by(status='completed').count()
         pending_orders = Order.query.filter_by(status='pending').count()
 
-        # Статистика пользователей
-        total_users = User.query.count()
-
-        # Билеты
-        total_tickets = Ticket.query.count()
+        # Статистика по билетам
+        available_tickets = Ticket.query.filter_by(is_available=True).count()
         sold_tickets = Ticket.query.filter_by(is_available=False).count()
-        available_tickets = total_tickets - sold_tickets
+        total_tickets = available_tickets + sold_tickets
 
         # Последние заказы
         recent_orders = Order.query.order_by(Order.created_at.desc()).limit(10).all()
@@ -50,41 +50,55 @@ def dashboard():
         # Статистика по категориям
         categories = Category.query.all()
         category_stats = []
-
         for category in categories:
             events = Event.query.filter_by(category_id=category.id).all()
             event_ids = [event.id for event in events]
-
-            if event_ids:  # Проверяем, есть ли события в категории
-                sold_tickets_count = Ticket.query.filter(
-                    Ticket.event_id.in_(event_ids),
-                    Ticket.is_available == False
-                ).count()
-            else:
-                sold_tickets_count = 0
-
+            sold_tickets_count = Ticket.query.filter(
+                Ticket.event_id.in_(event_ids) if event_ids else False,
+                Ticket.is_available == False
+            ).count()
             category_stats.append({
                 'name': category.name,
                 'sold_tickets': sold_tickets_count
             })
 
-        # Получаем текущего пользователя
-        admin_username = current_user.username if current_user else None
-
-        return render_template(
-            'admin/dashboard.html',
+        return render_template('admin/dashboard.html',
             total_events=total_events,
             upcoming_events=upcoming_events,
-            total_tickets=total_tickets,
-            sold_tickets=sold_tickets,
-            available_tickets=available_tickets,
             total_users=total_users,
             total_orders=total_orders,
             completed_orders=completed_orders,
             pending_orders=pending_orders,
+            pending_tickets=pending_tickets,
+            confirmed_tickets=confirmed_tickets,
+            rejected_tickets=rejected_tickets,
+            sold_tickets_resale=sold_tickets_resale,
+            total_tickets=total_tickets,
+            sold_tickets=sold_tickets,
+            available_tickets=available_tickets,
             recent_orders=recent_orders,
             category_stats=category_stats,
-            admin_username=admin_username
+            admin_username=current_user.username if current_user else None
+        )
+    except Exception as e:
+        print(f"Ошибка при получении статистики: {e}")
+        return render_template('admin/dashboard.html',
+            total_events=0,
+            upcoming_events=0,
+            total_users=0,
+            total_orders=0,
+            completed_orders=0,
+            pending_orders=0,
+            pending_tickets=0,
+            confirmed_tickets=0,
+            rejected_tickets=0,
+            sold_tickets_resale=0,
+            total_tickets=0,
+            sold_tickets=0,
+            available_tickets=0,
+            recent_orders=[],
+            category_stats=[],
+            admin_username=current_user.username if current_user else None
         )
     except Exception as e:
         print(f"Ошибка при получении статистики: {e}")
@@ -664,51 +678,9 @@ def delete_ticket(ticket_id):
 # Управление слайдером
 @admin_bp.route('/sliders', methods=['GET', 'POST'])
 def sliders():
-    try:
-        # Статистика по предложенным билетам
-        pending_tickets = db.session.query(TicketForSale).filter_by(status='pending').count()
-        confirmed_tickets = db.session.query(TicketForSale).filter_by(status='confirmed').count()
-        rejected_tickets = db.session.query(TicketForSale).filter_by(status='rejected').count()
-        sold_tickets_resale = db.session.query(TicketForSale).filter_by(status='sold').count()
-
-        # Получение общей статистики
-        total_events = db.session.query(Event).count()
-        upcoming_events = db.session.query(Event).filter(Event.date >= datetime.now()).count()
-        total_users = db.session.query(User).count()
-        total_orders = db.session.query(Order).count()
-
-        # Статистика по билетам
-        available_tickets = db.session.query(Ticket).filter_by(is_available=True).count()
-        sold_tickets = db.session.query(Ticket).filter_by(is_available=False).count()
-        total_tickets = available_tickets + sold_tickets
-
-        return render_template('admin/dashboard.html',
-                             total_events=total_events,
-                             upcoming_events=upcoming_events,
-                             total_users=total_users,
-                             total_orders=total_orders,
-                             pending_tickets=pending_tickets,
-                             confirmed_tickets=confirmed_tickets,
-                             rejected_tickets=rejected_tickets,
-                             sold_tickets_resale=sold_tickets_resale,
-                             total_tickets=total_tickets,
-                             sold_tickets=sold_tickets,
-                             available_tickets=available_tickets)
-
-    except Exception as e:
-        print(f"Ошибка при получении статистики: {e}")
-        return render_template('admin/dashboard.html',
-                             total_events=0,
-                             upcoming_events=0,
-                             total_users=0,
-                             total_orders=0,
-                             pending_tickets=0,
-                             confirmed_tickets=0,
-                             rejected_tickets=0,
-                             sold_tickets_resale=0,
-                             total_tickets=0,
-                             sold_tickets=0,
-                             available_tickets=0)
+    # Получаем слайды
+    slides = Slide.query.order_by(Slide.order).all()
+    return render_template('admin/sliders.html', slides=slides)
 
 # Добавление слайда
 @admin_bp.route('/sliders/add', methods=['GET', 'POST'])
