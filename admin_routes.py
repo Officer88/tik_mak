@@ -312,15 +312,20 @@ def add_category():
                 filename = secure_filename(form.icon_image.data.filename)
                 unique_filename = f"{uuid.uuid4().hex}_{filename}"
                 
-                # Для SVG-файлов просто сохраняем без обработки
-                if filename.lower().endswith('.svg'):
-                    full_path = os.path.join(upload_folder, unique_filename)
-                    with open(full_path, 'wb') as f:
-                        form.icon_image.data.seek(0)
-                        f.write(form.icon_image.data.read())
-                    category.icon_image_path = f'/static/uploads/categories/{unique_filename}'
+                # Используем специальную функцию для обработки особых форматов файлов
+                from image_utils import save_special_format_file
+                
+                if filename.lower().endswith('.svg') or filename.lower().endswith('.gif') or 'photoviewer.fileassoc.tiff' in filename.lower():
+                    # Используем специальную функцию для SVG, GIF и других особых форматов
+                    saved_path = save_special_format_file(
+                        file_obj=form.icon_image.data,
+                        folder_type='categories'
+                    )
+                    if saved_path:
+                        category.icon_image_path = f'/static/{saved_path}'
+                        print(f"Сохранена иконка категории в специальном формате: {saved_path}")
                 else:
-                    # Для других изображений обрабатываем через process_image
+                    # Для обычных изображений используем process_image
                     saved_path = process_image(
                         source=None,
                         max_size=(100, 100),  # Размер иконки категории
@@ -391,15 +396,20 @@ def edit_category(category_id):
             filename = secure_filename(form.icon_image.data.filename)
             unique_filename = f"{uuid.uuid4().hex}_{filename}"
             
-            # Для SVG-файлов просто сохраняем без обработки
-            if filename.lower().endswith('.svg'):
-                full_path = os.path.join(upload_folder, unique_filename)
-                with open(full_path, 'wb') as f:
-                    form.icon_image.data.seek(0)
-                    f.write(form.icon_image.data.read())
-                category.icon_image_path = f'/static/uploads/categories/{unique_filename}'
+            # Используем специальную функцию для обработки особых форматов файлов
+            from image_utils import save_special_format_file
+            
+            if filename.lower().endswith('.svg') or filename.lower().endswith('.gif') or 'photoviewer.fileassoc.tiff' in filename.lower():
+                # Используем специальную функцию для SVG, GIF и других особых форматов
+                saved_path = save_special_format_file(
+                    file_obj=form.icon_image.data,
+                    folder_type='categories'
+                )
+                if saved_path:
+                    category.icon_image_path = f'/static/{saved_path}'
+                    print(f"Сохранена иконка категории в специальном формате при редактировании: {saved_path}")
             else:
-                # Для других изображений обрабатываем через process_image
+                # Для обычных изображений используем process_image
                 saved_path = process_image(
                     source=None,
                     max_size=(100, 100),  # Размер иконки категории
@@ -500,15 +510,20 @@ def add_venue():
             filename = secure_filename(form.scheme_file.data.filename)
             unique_filename = f"{uuid.uuid4().hex}_{filename}"
             
-            # Для SVG-файлов просто сохраняем без обработки
-            if filename.lower().endswith('.svg'):
-                full_path = os.path.join(upload_folder, unique_filename)
-                with open(full_path, "wb") as f:
-                    form.scheme_file.data.seek(0)
-                    f.write(form.scheme_file.data.read())
-                venue.scheme_path = f'/static/uploads/venues/schemes/{unique_filename}'
+            # Используем специальную функцию для обработки особых форматов файлов
+            from image_utils import save_special_format_file
+            
+            if filename.lower().endswith('.svg') or filename.lower().endswith('.gif') or 'photoviewer.fileassoc.tiff' in filename.lower():
+                # Используем специальную функцию для SVG, GIF и других особых форматов
+                saved_path = save_special_format_file(
+                    file_obj=form.scheme_file.data,
+                    folder_type='venues/schemes'
+                )
+                if saved_path:
+                    venue.scheme_path = f'/static/{saved_path}'
+                    print(f"Сохранена схема зала в специальном формате: {saved_path}")
             else:
-                # Для изображений обрабатываем через process_image
+                # Для обычных изображений используем process_image
                 saved_path = process_image(
                     source=None,
                     max_size=(800, 800),  # Размер схемы зала
@@ -595,13 +610,20 @@ def edit_venue(venue_id):
             filename = secure_filename(form.scheme_file.data.filename)
             unique_filename = f"{uuid.uuid4().hex}_{filename}"
             
-            # Для SVG-файлов просто сохраняем без обработки
-            if filename.lower().endswith('.svg'):
-                full_path = os.path.join(upload_folder, unique_filename)
-                form.scheme_file.data.save(full_path)
-                venue.scheme_path = f'/static/uploads/venues/schemes/{unique_filename}'
+            # Используем специальную функцию для обработки особых форматов файлов
+            from image_utils import save_special_format_file
+            
+            if filename.lower().endswith('.svg') or filename.lower().endswith('.gif') or 'photoviewer.fileassoc.tiff' in filename.lower():
+                # Используем специальную функцию для SVG, GIF и других особых форматов
+                saved_path = save_special_format_file(
+                    file_obj=form.scheme_file.data,
+                    folder_type='venues/schemes'
+                )
+                if saved_path:
+                    venue.scheme_path = f'/static/{saved_path}'
+                    print(f"Сохранена схема зала в специальном формате при редактировании: {saved_path}")
             else:
-                # Для изображений обрабатываем через process_image
+                # Для обычных изображений используем process_image
                 saved_path = process_image(
                     source=None,
                     max_size=(800, 800),  # Размер схемы зала

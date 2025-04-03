@@ -13,6 +13,89 @@ import logging
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
+def save_special_format_file(file_obj, destination=None, folder_type='events'):
+    """
+    Сохраняет файл специального формата (SVG, GIF, PhotoViewer.FileAssoc.Tiff) без обработки.
+    
+    Parameters:
+    - file_obj: Файловый объект из формы
+    - destination: Опциональный путь для сохранения
+    - folder_type: Тип папки для сохранения (events, categories, venues, slides, venues/schemes)
+    
+    Returns:
+    - Путь к сохраненному файлу относительно static
+    """
+    try:
+        if not file_obj:
+            logger.error("Не передан файловый объект")
+            return None
+            
+        filename = file_obj.filename if hasattr(file_obj, 'filename') else "unknown.file"
+        
+        # Определяем тип файла
+        file_type = 'UNKNOWN'
+        if filename.lower().endswith('.svg'):
+            file_type = 'SVG'
+        elif filename.lower().endswith('.gif'):
+            file_type = 'GIF'
+        elif 'photoviewer.fileassoc.tiff' in filename.lower():
+            file_type = 'TIFF-GIF'
+        
+        logger.info(f"Обработка файла специального формата ({file_type}): {filename}")
+        
+        # Генерируем уникальное имя файла с временной меткой
+        unique_id = uuid.uuid4().hex
+        timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
+        
+        # Для PhotoViewer.FileAssoc.Tiff устанавливаем расширение .gif
+        if 'photoviewer.fileassoc.tiff' in filename.lower():
+            unique_filename = f"{unique_id}_{timestamp}_animated.gif"
+        else:
+            # Сохраняем оригинальное расширение файла
+            base_name, ext = os.path.splitext(filename)
+            if not ext:
+                # Если расширения нет, определяем его по типу
+                if file_type == 'SVG':
+                    ext = '.svg'
+                elif file_type == 'GIF':
+                    ext = '.gif'
+                else:
+                    ext = '.dat'  # Для неизвестных типов
+            
+            # Очистим расширение от лишних символов
+            ext = ext.lower()
+            if not ext.startswith('.'):
+                ext = '.' + ext
+            
+            unique_filename = f"{unique_id}_{timestamp}_{base_name}{ext}"
+        
+        # Определяем путь для сохранения
+        if destination:
+            save_path = destination
+        else:
+            # Создаем папку для загрузки, если она не существует
+            save_dir = os.path.join('static', 'uploads', folder_type)
+            os.makedirs(save_dir, exist_ok=True)
+            save_path = os.path.join(save_dir, unique_filename)
+        
+        # Перемещаем указатель файла в начало
+        file_obj.seek(0)
+        
+        # Сохраняем файл как есть, без обработки
+        with open(save_path, 'wb') as f:
+            f.write(file_obj.read())
+        
+        logger.info(f"Файл специального формата сохранен как: {save_path}")
+        
+        # Возвращаем путь относительно 'static'
+        if save_path.startswith('static/'):
+            return save_path[7:]  # Удаляем 'static/' для URL
+        return save_path
+        
+    except Exception as e:
+        logger.error(f"Ошибка при сохранении специального формата: {str(e)}")
+        return None
+
 def process_image(source, max_size=(240, 320), file_obj=None, destination=None):
     """
     Process image from URL or file object:
@@ -30,55 +113,29 @@ def process_image(source, max_size=(240, 320), file_obj=None, destination=None):
     - Path to saved image relative to static folder
     """
     try:
-        # Специальные форматы обрабатываем отдельно - просто копируем без преобразования
+        # Специальные форматы обрабатываем через специальную функцию
         if file_obj and (file_obj.filename.lower().endswith('.svg') or 
                          file_obj.filename.lower().endswith('.gif') or 
                          'photoviewer.fileassoc.tiff' in file_obj.filename.lower()):
             
-            file_type = 'SVG' if file_obj.filename.lower().endswith('.svg') else 'GIF'
-            if 'photoviewer.fileassoc.tiff' in file_obj.filename.lower():
-                file_type = 'TIFF-GIF'
-                
-            logger.info(f"Обнаружен файл специального формата ({file_type}): {file_obj.filename}")
+            logger.info(f"Обнаружен файл специального формата в process_image: {file_obj.filename}")
             
+            # Используем функцию save_special_format_file для специальных форматов
+            folder_type = 'events'  # По умолчанию папка events
+            
+            # Определяем папку из пути назначения, если он задан
             if destination:
-                save_path = destination
-            else:
-                save_dir = 'static/uploads/events'
-                os.makedirs(save_dir, exist_ok=True)
-                
-                # Для PhotoViewer.FileAssoc.Tiff (.gif) устанавливаем правильное расширение
-                if 'photoviewer.fileassoc.tiff' in file_obj.filename.lower():
-                    base = f"gif_{uuid.uuid4().hex}"
-                    ext = '.gif'
-                else:
-                    base, ext = os.path.splitext(file_obj.filename)
-                    if not ext:
-                        ext = '.gif' if file_type == 'GIF' else '.svg'
-                
-                timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
-                unique_id = str(uuid.uuid4())[:8]
-                save_path = os.path.join(save_dir, f"{base}_{timestamp}_{unique_id}{ext}")
+                if '/categories/' in destination:
+                    folder_type = 'categories'
+                elif '/venues/schemes/' in destination:
+                    folder_type = 'venues/schemes'
+                elif '/venues/' in destination:
+                    folder_type = 'venues'
+                elif '/slides/' in destination:
+                    folder_type = 'slides'
             
-            # Перемещаем указатель файла в начало
-            file_obj.seek(0)
-            
-            # Убедимся, что директория существует
-            save_dir = os.path.dirname(save_path)
-            os.makedirs(save_dir, exist_ok=True)
-            
-            # Сохраняем файл напрямую через открытие и запись в бинарном режиме
-            with open(save_path, 'wb') as f:
-                file_obj.seek(0)
-                f.write(file_obj.read())
-            
-            # Возвращаем относительный путь для базы данных
-            rel_path = save_path
-            if save_path.startswith('static/'):
-                rel_path = save_path[7:]  # Удаляем 'static/' из пути
-            
-            logger.info(f"Файл специального формата ({file_type}) сохранен как: {save_path}")
-            return rel_path
+            # Используем специальную функцию сохранения
+            return save_special_format_file(file_obj, destination, folder_type)
         
         if file_obj:
             # Use uploaded file
