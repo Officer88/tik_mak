@@ -6,7 +6,7 @@ import uuid
 from app import db
 from models import Event, Category, Venue, Ticket, Review, Favorite, CartItem, TicketForSale, Slide
 from forms import EventSearchForm, ReviewForm, CheckoutForm, SellTicketForm
-from helpers import get_categories
+from helpers import get_categories, get_active_slides, get_popular_events, get_featured_events
 
 # Create blueprint
 main_bp = Blueprint('main', __name__)
@@ -27,57 +27,65 @@ def get_cart_session_id():
 @main_bp.route('/')
 def index():
     # Очистка старых событий (деактивация)
-    from helpers import clean_old_events, get_active_slides
+    from helpers import clean_old_events
     clean_old_events()
     
-    # Get categories for display
-    categories = Category.query.all()
+    # Используем helper-функции для получения данных с обработкой detached instance error
+    categories = get_categories()
     
-    # Get popular events (based on favorites count)
-    popular_events = db.session.query(Event, db.func.count(Favorite.id).label('favorite_count')) \
-        .join(Favorite, Event.id == Favorite.event_id) \
-        .filter(Event.date >= datetime.now(), Event.is_active == True) \
-        .group_by(Event.id) \
-        .order_by(db.desc('favorite_count')) \
-        .limit(4) \
-        .all()
-    
-    # If not enough popular events, get recent events
+    # Получаем популярные события через helper-функцию
+    from helpers import get_popular_events
+    popular_events = get_popular_events()
+    # Если недостаточно популярных событий, добавим дополнительные
     if len(popular_events) < 4:
-        recent_events = Event.query.filter(
-            Event.date >= datetime.now(),
-            Event.is_active == True
-        ).order_by(Event.date).limit(4 - len(popular_events)).all()
-        popular_events.extend([(event, 0) for event in recent_events])
+        # Используем напрямую query, эта проблема не так критична, если не попадаем в шаблон
+        try:
+            # Обновляем сессию
+            db.session.expire_all()
+            db.session.close()
+            
+            recent_events = Event.query.filter(
+                Event.date >= datetime.now(),
+                Event.is_active == True
+            ).order_by(Event.date).limit(4 - len(popular_events)).all()
+            
+            # Создаем EventDTO для каждого события
+            # Импортируем для доступа к классам
+            import helpers
+            for event in recent_events:
+                if len(popular_events) > 0:
+                    dto = popular_events[0].__class__(event)
+                else:
+                    # Если нет ни одного популярного события, создаем "сырой" DTO
+                    from helpers import get_popular_events
+                    event_dto_class = getattr(helpers, 'EventDTO')
+                    dto = event_dto_class(event)
+                popular_events.append(dto)
+        except Exception as e:
+            print(f"Ошибка при получении дополнительных событий: {e}")
     
-    # Get upcoming events
-    upcoming_events = Event.query.filter(
-        Event.date >= datetime.now(),
-        Event.is_active == True,
-        Event.is_featured == True
-    ).order_by(Event.date).limit(4).all()
+    # Получаем избранные события через helper-функцию
+    upcoming_events = get_featured_events()
     
-    # Если недостаточно featured событий, добавим ближайшие
-    if len(upcoming_events) < 4:
-        additional_events = Event.query.filter(
-            Event.date >= datetime.now(),
-            Event.is_active == True,
-            ~Event.id.in_([e.id for e in upcoming_events])
-        ).order_by(Event.date).limit(4 - len(upcoming_events)).all()
-        upcoming_events.extend(additional_events)
-    
-    # Get active slides - используем специальную функцию с обновлением сессии
+    # Получаем активные слайды через helper-функцию
     slides = get_active_slides()
     
-    # Get popular venues (limited to 8)
-    venues = Venue.query.order_by(
-        db.func.random()
-    ).limit(8).all()
+    # Получаем популярные площадки через новую сессию 
+    db.session.expire_all()
+    db.session.close()
+    
+    try:
+        venues = Venue.query.order_by(
+            db.func.random()
+        ).limit(8).all()
+    except Exception as e:
+        print(f"Ошибка при получении площадок: {e}")
+        venues = []
     
     return render_template(
         'index.html',
         categories=categories,
-        popular_events=[e[0] for e in popular_events],
+        popular_events=popular_events,
         upcoming_events=upcoming_events,
         slides=slides,
         venues=venues
@@ -146,8 +154,8 @@ def events():
     # Paginate results
     events = query_obj.paginate(page=page, per_page=12, error_out=False)
     
-    # Get all categories for filter sidebar
-    categories = Category.query.all()
+    # Получаем категории через helper-функцию (исправляет detached instance error)
+    categories = get_categories()
     
     return render_template(
         'catalog.html',

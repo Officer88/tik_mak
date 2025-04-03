@@ -6,9 +6,9 @@ import json
 from datetime import datetime, timedelta
 
 from app import db
-from models import Event, Venue, Category, Ticket, Review, Order, Slide, TicketForSale, Contact
+from models import Event, Venue, Category, Ticket, Review, Order, Slide, TicketForSale, Contact, Notification, User
 from forms import EventForm, VenueForm, CategoryForm, LoginForm, TicketForm, SlideForm, SellTicketForm, ContactForm, NotificationSettingForm
-from helpers import admin_required
+from helpers import admin_required, get_current_user_info, CategoryDTO, EventDTO, VenueDTO, SlideDTO, ReviewDTO, OrderDTO, TicketDTO, TicketForSaleDTO, UserDTO
 from image_utils import save_image, process_image, save_special_format_file
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
@@ -24,29 +24,38 @@ def check_admin():
 # Главная страница админки
 @admin_bp.route('/')
 def dashboard():
-    # Счетчики для дашборда
-    event_count = Event.query.count()
-    venue_count = Venue.query.count()
-    category_count = Category.query.count()
-    review_count = Review.query.count()
+    # Закрываем текущую сессию для обновления данных
+    db.session.expire_all()
+    db.session.close()
+    
+    # Счетчики для дашборда - использование db.session для свежих данных
+    event_count = db.session.query(Event).count()
+    venue_count = db.session.query(Venue).count()
+    category_count = db.session.query(Category).count()
+    review_count = db.session.query(Review).count()
     
     # Последние 5 заказов
-    recent_orders = Order.query.order_by(Order.created_at.desc()).limit(5).all()
+    recent_orders = db.session.query(Order).order_by(Order.created_at.desc()).limit(5).all()
     
     # Билеты на продажу, ожидающие подтверждения
-    pending_tickets = TicketForSale.query.filter_by(status='pending').count()
+    pending_tickets = db.session.query(TicketForSale).filter_by(status='pending').count()
     
     # Количество событий на этой неделе
     next_week = datetime.now() + timedelta(days=7)
-    upcoming_events = Event.query.filter(
+    upcoming_events = db.session.query(Event).filter(
         Event.date >= datetime.now(),
         Event.date <= next_week
     ).count()
     
     # Данные для графика заказов
-    total_orders = Order.query.count()
-    completed_orders = Order.query.filter_by(status='completed').count()
-    pending_orders = Order.query.filter_by(status='pending').count()
+    total_orders = db.session.query(Order).count()
+    completed_orders = db.session.query(Order).filter_by(status='completed').count()
+    pending_orders = db.session.query(Order).filter_by(status='pending').count()
+    
+    # Получаем данные о текущем пользователе через Helper-функцию 
+    # (исправляет DetachedInstanceError)
+    user_info = get_current_user_info()
+    admin_username = user_info['username']
     
     # Исправление переменной для dashboard.html
     total_events = event_count
@@ -63,7 +72,8 @@ def dashboard():
         total_orders=total_orders,
         completed_orders=completed_orders,
         pending_orders=pending_orders,
-        total_events=total_events
+        total_events=total_events,
+        admin_username=admin_username
     )
 
 # Управление событиями
@@ -251,7 +261,18 @@ def delete_event(event_id):
 # Управление площадками
 @admin_bp.route('/venues')
 def venues():
-    venues = Venue.query.all()
+    # Обновляем сессию перед запросом для избежания detached instance
+    db.session.expire_all()
+    db.session.close()
+    
+    try:
+        # Получаем площадки и используем DTO для предотвращения detached instance
+        venue_records = db.session.query(Venue).all()
+        venues = [VenueDTO(venue) for venue in venue_records]
+    except Exception as e:
+        print(f"Ошибка при получении площадок: {e}")
+        venues = []
+        
     return render_template('admin/venues.html', venues=venues)
 
 # Добавление площадки
@@ -409,7 +430,18 @@ def delete_venue(venue_id):
 # Управление категориями
 @admin_bp.route('/categories')
 def categories():
-    categories = Category.query.all()
+    # Обновляем сессию перед запросом для избежания detached instance
+    db.session.expire_all()
+    db.session.close()
+    
+    try:
+        # Получаем категории и используем DTO для предотвращения detached instance
+        category_records = db.session.query(Category).all()
+        categories = [CategoryDTO(category) for category in category_records]
+    except Exception as e:
+        print(f"Ошибка при получении категорий: {e}")
+        categories = []
+        
     return render_template('admin/categories.html', categories=categories)
 
 # Добавление категории
@@ -556,7 +588,18 @@ def delete_ticket(ticket_id):
 # Управление слайдером
 @admin_bp.route('/sliders', methods=['GET', 'POST'])
 def sliders():
-    slides = Slide.query.order_by(Slide.order).all()
+    # Обновляем сессию перед запросом для избежания detached instance
+    db.session.expire_all()
+    db.session.close()
+    
+    try:
+        # Получаем слайды и используем DTO для предотвращения detached instance
+        slide_records = db.session.query(Slide).order_by(Slide.order).all()
+        slides = [SlideDTO(slide) for slide in slide_records]
+    except Exception as e:
+        print(f"Ошибка при получении слайдов: {e}")
+        slides = []
+        
     form = SlideForm()
     
     return render_template('admin/sliders.html', slides=slides, form=form, add_mode=False)
@@ -657,10 +700,22 @@ def delete_slide(slide_id):
 # Отзывы на модерации
 @admin_bp.route('/reviews')
 def reviews():
-    # Получаем отзывы, ожидающие модерации
-    pending_reviews = Review.query.filter_by(is_approved=False).all()
-    # Получаем уже одобренные отзывы
-    approved_reviews = Review.query.filter_by(is_approved=True).all()
+    # Обновляем сессию перед запросом для избежания detached instance
+    db.session.expire_all()
+    db.session.close()
+    
+    try:
+        # Получаем отзывы, ожидающие модерации, используя DTO
+        pending_review_records = db.session.query(Review).filter_by(is_approved=False).all()
+        pending_reviews = [ReviewDTO(review) for review in pending_review_records]
+        
+        # Получаем уже одобренные отзывы, используя DTO
+        approved_review_records = db.session.query(Review).filter_by(is_approved=True).all()
+        approved_reviews = [ReviewDTO(review) for review in approved_review_records]
+    except Exception as e:
+        print(f"Ошибка при получении отзывов: {e}")
+        pending_reviews = []
+        approved_reviews = []
     
     return render_template('admin/reviews.html', 
                           pending_reviews=pending_reviews, 
@@ -689,13 +744,35 @@ def reject_review(review_id):
 # Заказы
 @admin_bp.route('/orders')
 def orders():
-    orders = Order.query.order_by(Order.created_at.desc()).all()
+    # Обновляем сессию перед запросом для избежания detached instance
+    db.session.expire_all()
+    db.session.close()
+    
+    try:
+        # Получаем заказы и используем DTO для предотвращения detached instance
+        order_records = db.session.query(Order).order_by(Order.created_at.desc()).all()
+        orders = [OrderDTO(order) for order in order_records]
+    except Exception as e:
+        print(f"Ошибка при получении заказов: {e}")
+        orders = []
+        
     return render_template('admin/orders.html', orders=orders)
 
 # Детали заказа
 @admin_bp.route('/orders/<int:order_id>')
 def order_detail(order_id):
-    order = Order.query.get_or_404(order_id)
+    # Обновляем сессию перед запросом для избежания detached instance
+    db.session.expire_all()
+    db.session.close()
+    
+    try:
+        order_record = db.session.query(Order).filter_by(id=order_id).first_or_404()
+        order = OrderDTO(order_record)
+    except Exception as e:
+        print(f"Ошибка при получении заказа: {e}")
+        flash('Ошибка при получении данных заказа', 'danger')
+        return redirect(url_for('admin.orders'))
+        
     return render_template('admin/order_detail.html', order=order)
 
 # Изменение статуса заказа
@@ -716,7 +793,18 @@ def update_order_status(order_id):
 # Билеты на продажу от пользователей
 @admin_bp.route('/tickets-for-sale')
 def tickets_for_sale():
-    tickets = TicketForSale.query.order_by(TicketForSale.created_at.desc()).all()
+    # Обновляем сессию перед запросом для избежания detached instance
+    db.session.expire_all()
+    db.session.close()
+    
+    try:
+        # Получаем билеты на продажу и используем DTO для предотвращения detached instance
+        ticket_records = db.session.query(TicketForSale).order_by(TicketForSale.created_at.desc()).all()
+        tickets = [TicketForSaleDTO(ticket) for ticket in ticket_records]
+    except Exception as e:
+        print(f"Ошибка при получении билетов на продажу: {e}")
+        tickets = []
+        
     return render_template('admin/tickets_for_sale.html', tickets=tickets)
 
 # Подтверждение билета на продажу
