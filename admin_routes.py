@@ -665,24 +665,22 @@ def delete_ticket(ticket_id):
 @admin_bp.route('/sliders', methods=['GET', 'POST'])
 def sliders():
     try:
-        # Используем единую сессию для всех запросов
-        with db.session.begin():
-            # Статистика по предложенным билетам
-            pending_tickets = db.session.query(TicketForSale).filter_by(status='pending').count()
-            confirmed_tickets = db.session.query(TicketForSale).filter_by(status='confirmed').count()
-            rejected_tickets = db.session.query(TicketForSale).filter_by(status='rejected').count()
-            sold_tickets_resale = db.session.query(TicketForSale).filter_by(status='sold').count()
+        # Статистика по предложенным билетам
+        pending_tickets = db.session.query(TicketForSale).filter_by(status='pending').count()
+        confirmed_tickets = db.session.query(TicketForSale).filter_by(status='confirmed').count()
+        rejected_tickets = db.session.query(TicketForSale).filter_by(status='rejected').count()
+        sold_tickets_resale = db.session.query(TicketForSale).filter_by(status='sold').count()
 
-            # Получение общей статистики
-            total_events = db.session.query(Event).count()
-            upcoming_events = db.session.query(Event).filter(Event.date >= datetime.now()).count()
-            total_users = db.session.query(User).count()
-            total_orders = db.session.query(Order).count()
+        # Получение общей статистики
+        total_events = db.session.query(Event).count()
+        upcoming_events = db.session.query(Event).filter(Event.date >= datetime.now()).count()
+        total_users = db.session.query(User).count()
+        total_orders = db.session.query(Order).count()
 
-            # Статистика по билетам
-            available_tickets = db.session.query(Ticket).filter_by(is_available=True).count()
-            sold_tickets = db.session.query(Ticket).filter_by(is_available=False).count()
-            total_tickets = available_tickets + sold_tickets
+        # Статистика по билетам
+        available_tickets = db.session.query(Ticket).filter_by(is_available=True).count()
+        sold_tickets = db.session.query(Ticket).filter_by(is_available=False).count()
+        total_tickets = available_tickets + sold_tickets
 
             return render_template('admin/dashboard.html',
                              total_events=total_events,
@@ -696,6 +694,21 @@ def sliders():
                              total_tickets=total_tickets,
                              sold_tickets=sold_tickets,
                              available_tickets=available_tickets)
+
+    except Exception as e:
+        print(f"Ошибка при получении статистики: {e}")
+        return render_template('admin/dashboard.html',
+                             total_events=0,
+                             upcoming_events=0,
+                             total_users=0,
+                             total_orders=0,
+                             pending_tickets=0,
+                             confirmed_tickets=0,
+                             rejected_tickets=0,
+                             sold_tickets_resale=0,
+                             total_tickets=0,
+                             sold_tickets=0,
+                             available_tickets=0)
 
     except Exception as e:
         print(f"Ошибка при получении статистики: {e}")
