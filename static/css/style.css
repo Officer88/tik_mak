@@ -250,10 +250,14 @@ body {
 .event-row {
     margin-left: -8px;
     margin-right: -8px;
+    display: flex;
+    flex-wrap: wrap;
 }
 
-.event-row > .col {
+.event-row > .col,
+.event-row > [class*="col-"] {
     padding: 8px;
+    display: flex;
 }
 
 .event-card:hover {
@@ -642,6 +646,24 @@ body {
 }
 
 /* Responsive adjustments */
+@media (max-width: 1200px) {
+    .event-row {
+        margin-left: -6px;
+        margin-right: -6px;
+    }
+    
+    .event-row > .col,
+    .event-row > [class*="col-"] {
+        padding: 6px;
+    }
+}
+
+@media (max-width: 992px) {
+    .event-card {
+        max-width: 220px;
+    }
+}
+
 @media (max-width: 768px) {
     .carousel-item {
         height: 300px;
@@ -657,6 +679,20 @@ body {
     
     .admin-content {
         padding: 1rem;
+    }
+    
+    .event-row {
+        margin-left: -5px;
+        margin-right: -5px;
+    }
+    
+    .event-row > .col,
+    .event-row > [class*="col-"] {
+        padding: 5px;
+    }
+    
+    .event-card {
+        max-width: 100%;
     }
 }
 
@@ -680,6 +716,16 @@ body {
     .event-date-badge {
         font-size: 0.8rem;
         padding: 0.2rem 0.5rem;
+    }
+    
+    .event-row {
+        margin-left: -4px;
+        margin-right: -4px;
+    }
+    
+    .event-row > .col,
+    .event-row > [class*="col-"] {
+        padding: 4px;
     }
 }
 
