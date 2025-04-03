@@ -299,14 +299,11 @@ def delete_event(event_id):
 # Управление площадками
 @admin_bp.route('/venues')
 def venues():
-    # Обновляем сессию перед запросом для избежания detached instance
-    db.session.expire_all()
-    db.session.close()
-    
     try:
-        # Получаем площадки и используем DTO для предотвращения detached instance
-        venue_records = db.session.query(Venue).all()
-        venues = [VenueDTO(venue) for venue in venue_records]
+        venues = []
+        with db.session.begin():
+            venue_records = Venue.query.all()
+            venues = [VenueDTO(venue) for venue in venue_records]
     except Exception as e:
         print(f"Ошибка при получении площадок: {e}")
         venues = []
@@ -468,14 +465,12 @@ def delete_venue(venue_id):
 # Управление категориями
 @admin_bp.route('/categories')
 def categories():
-    # Обновляем сессию перед запросом для избежания detached instance
-    db.session.expire_all()
-    db.session.close()
-    
     try:
-        # Получаем категории и используем DTO для предотвращения detached instance
-        category_records = db.session.query(Category).all()
-        categories = [CategoryDTO(category) for category in category_records]
+        # Используем новую сессию
+        categories = []
+        with db.session.begin():
+            category_records = Category.query.all()
+            categories = [CategoryDTO(category) for category in category_records]
     except Exception as e:
         print(f"Ошибка при получении категорий: {e}")
         categories = []
