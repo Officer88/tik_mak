@@ -6,7 +6,7 @@ import uuid
 from app import db
 from models import Event, Category, Venue, Ticket, Review, Favorite, CartItem, TicketForSale, Slide
 from forms import EventSearchForm, ReviewForm, CheckoutForm, SellTicketForm
-from helpers import get_categories, get_active_slides, get_popular_events, get_featured_events
+from helpers import get_categories, get_active_slides, get_popular_events, get_featured_events, VenueDTO
 
 # Create blueprint
 main_bp = Blueprint('main', __name__)
@@ -75,9 +75,10 @@ def index():
     db.session.close()
     
     try:
-        venues = Venue.query.order_by(
+        venue_records = Venue.query.order_by(
             db.func.random()
         ).limit(8).all()
+        venues = [VenueDTO(venue) for venue in venue_records]
     except Exception as e:
         print(f"Ошибка при получении площадок: {e}")
         venues = []
