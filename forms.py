@@ -139,7 +139,7 @@ class SlideForm(FlaskForm):
     title = StringField('Заголовок', validators=[DataRequired(), Length(max=100)])
     subtitle = StringField('Подзаголовок', validators=[Optional(), Length(max=200)])
     image_url = StringField('URL изображения', validators=[Optional(), Length(max=256)])
-    image = FileField('Загрузить изображение', validators=[Optional(), FileAllowed(['jpg', 'jpeg', 'png', 'gif'], 'Только изображения!')])
+    image_file = FileField('Загрузить изображение', validators=[Optional(), FileAllowed(['jpg', 'jpeg', 'png', 'gif'], 'Только изображения!')])
     button_text = StringField('Текст кнопки', validators=[Optional(), Length(max=32)])
     button_url = StringField('URL кнопки', validators=[Optional(), Length(max=256)])
     order = IntegerField('Порядок', validators=[Optional(), NumberRange(min=0)])

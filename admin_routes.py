@@ -211,8 +211,8 @@ def add_event():
             event.custom_venue_address = form.custom_venue_address.data
 
         # Обработка изображения
-        if form.image.data and hasattr(form.image.data, 'filename') and form.image.data.filename:
-            image_url = save_image(form.image.data, folder_type='events', max_size=(400, 300))
+        if form.image_file.data and hasattr(form.image_file.data, 'filename') and form.image_file.data.filename:
+            image_url = save_image(form.image_file.data, folder_type='events', max_size=(400, 300))
             if image_url:
                 event.image_url = image_url
 
@@ -296,8 +296,8 @@ def edit_event(event_id):
         event.delivery_methods = ','.join(form.delivery_methods.data)
 
         # Обработка загруженного изображения
-        if form.image.data and hasattr(form.image.data, 'filename') and form.image.data.filename:
-            new_image_url = save_image(form.image.data, folder_type='events', max_size=(240, 320))
+        if form.image_file.data and hasattr(form.image_file.data, 'filename') and form.image_file.data.filename:
+            new_image_url = save_image(form.image_file.data, folder_type='events', max_size=(240, 320))
             if new_image_url:
                 event.image_url = new_image_url
 
@@ -583,16 +583,16 @@ def add_slide():
         )
 
         # Обработка загруженного изображения
-        if form.image.data:
+        if form.image_file.data:
             # Сохраняем и обрабатываем изображение
             saved_path = save_image(
-                file_obj=form.image.data,
+                file_obj=form.image_file.data,
                 folder_type='slides',
                 max_size=(1200, 600)  # Размер слайдера
             )
 
             if saved_path:
-                slide.image_url = '/' + saved_path
+                slide.image_url = saved_path
 
         db.session.add(slide)
         db.session.commit()
@@ -628,20 +628,20 @@ def edit_slide(slide_id):
         slide.is_active = form.is_active.data
 
         # Only update image_url from form if no uploaded file
-        if not form.image.data and form.image_url.data:
+        if not form.image_file.data and form.image_url.data:
             slide.image_url = form.image_url.data
 
         # Handle uploaded image
-        if form.image.data:
+        if form.image_file.data:
             # Save and process image
             saved_path = save_image(
-                file_obj=form.image.data,
+                file_obj=form.image_file.data,
                 folder_type='slides',
                 max_size=(1200, 600)  # Slider size
             )
 
             if saved_path:
-                slide.image_url = '/' + saved_path
+                slide.image_url = saved_path
 
         db.session.commit()
         flash('Слайд успешно обновлен', 'success')

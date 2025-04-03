@@ -88,8 +88,17 @@ def save_special_format_file(file_obj, destination=None, folder_type='events'):
         
         # Возвращаем путь относительно 'static'
         if save_path.startswith('static/'):
-            return save_path[7:]  # Удаляем 'static/' для URL
-        return save_path
+            rel_path = save_path[7:]  # Удаляем 'static/' для URL
+        else:
+            rel_path = save_path
+            
+        # Добавляем префикс '/static/' для правильного отображения
+        if not rel_path.startswith('/static/') and not rel_path.startswith('static/'):
+            rel_path = '/static/' + rel_path
+        elif rel_path.startswith('static/'):
+            rel_path = '/' + rel_path
+            
+        return rel_path
         
     except Exception as e:
         logger.error(f"Ошибка при сохранении специального формата: {str(e)}")
@@ -238,6 +247,12 @@ def process_image(file_obj, max_size=(240, 320), folder_type='events'):
             rel_path = save_path
             
         logger.info(f"Файл успешно сохранён по пути: {rel_path}")
+        # Добавляем префикс '/static/' для правильного отображения
+        if not rel_path.startswith('/static/') and not rel_path.startswith('static/'):
+            rel_path = '/static/' + rel_path
+        elif rel_path.startswith('static/'):
+            rel_path = '/' + rel_path
+        
         return rel_path
         
     except Exception as e:
