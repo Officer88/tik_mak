@@ -381,8 +381,8 @@ def add_venue():
         )
 
         # Обработка логотипа
-        if form.logo.data:
-            logo_file = form.logo.data
+        if form.logo_file.data:
+            logo_file = form.logo_file.data
 
             # Проверяем, является ли это специальным форматом (SVG или GIF)
             filename = logo_file.filename.lower() if hasattr(logo_file, 'filename') else ''
@@ -401,8 +401,8 @@ def add_venue():
                 venue.logo_path = saved_path
 
         # Обработка схемы зала
-        if form.scheme.data:
-            scheme_file = form.scheme.data
+        if form.scheme_file.data:
+            scheme_file = form.scheme_file.data
 
             # Проверяем, является ли это специальным форматом (SVG или большая схема)
             filename = scheme_file.filename.lower() if hasattr(scheme_file, 'filename') else ''
@@ -454,8 +454,8 @@ def edit_venue(venue_id):
         venue.description = form.description.data
 
         # Обработка нового логотипа, если загружен
-        if form.logo.data:
-            logo_file = form.logo.data
+        if form.logo_file.data:
+            logo_file = form.logo_file.data
 
             # Проверяем, является ли это специальным форматом (SVG или GIF)
             filename = logo_file.filename.lower() if hasattr(logo_file, 'filename') else ''
@@ -474,8 +474,8 @@ def edit_venue(venue_id):
                 venue.logo_path = saved_path
 
         # Обработка новой схемы зала, если загружена
-        if form.scheme.data:
-            scheme_file = form.scheme.data
+        if form.scheme_file.data:
+            scheme_file = form.scheme_file.data
 
             # Проверяем, является ли это специальным форматом (SVG)
             filename = scheme_file.filename.lower() if hasattr(scheme_file, 'filename') else ''
@@ -526,11 +526,11 @@ def categories():
         # Обновляем сессию перед запросом
         db.session.expire_all()
         db.session.close()
-        
+
         # Получаем категории
         category_records = Category.query.all()
         categories = [CategoryDTO(category) for category in category_records]
-        
+
         return render_template('admin/categories.html', categories=categories)
     except Exception as e:
         print(f"Ошибка при получении категорий: {e}")
@@ -765,7 +765,7 @@ def edit_slide(slide_id):
         flash('Слайд успешно обновлен', 'success')
         return redirect(url_for('admin.sliders'))
 
-    return render_template('admin/edit_slide.html', form=form, slide=slide)
+    return renderrender_template('admin/edit_slide.html', form=form, slide=slide)
 
 @admin_bp.route('/sliders/delete/<int:slide_id>', methods=['POST'])
 def delete_slide(slide_id):
