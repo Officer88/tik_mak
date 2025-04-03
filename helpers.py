@@ -19,7 +19,6 @@ class VenueDTO:
         self.scheme_url = venue.scheme_url
         self.scheme_path = venue.scheme_path
         self.description = venue.description
-        self._events_count = None
 
         # Подсчитываем количество событий сразу при создании DTO
         try:
@@ -35,7 +34,8 @@ class VenueDTO:
             self._events_count = 0
 
     def events(self):
-        return type('EventCounter', (), {'count': lambda _: self._events_count})()
+        """Возвращает количество событий для площадки"""
+        return {'count': lambda: self._events_count}
 
 class CategoryDTO:
     """Класс передачи данных для категорий"""
@@ -46,7 +46,6 @@ class CategoryDTO:
         self.icon_image_path = category.icon_image_path if hasattr(category, 'icon_image_path') else None
         self.seo_title = category.seo_title
         self.seo_description = category.seo_description
-        self._events_count = None
 
         # Подсчитываем количество событий при создании DTO
         try:
@@ -61,12 +60,12 @@ class CategoryDTO:
             self._events_count = 0
 
     def events(self):
-        return type('EventCounter', (), {'count': lambda _: self._events_count})()
+        """Возвращает количество событий для категории"""
+        return {'count': lambda: self._events_count}
 
 class EventDTO:
     """Класс передачи данных для событий"""
     def __init__(self, event):
-        # Основные атрибуты события
         self.id = event.id
         self.title = event.title
         self.description = event.description
@@ -86,7 +85,6 @@ class EventDTO:
         self.seo_description = event.seo_description
         self.delivery_methods = event.delivery_methods
 
-        # Получаем связанную площадку для предотвращения detached instance
         if hasattr(event, 'venue') and event.venue:
             try:
                 venue = event.venue
@@ -97,7 +95,6 @@ class EventDTO:
         else:
             self.venue = None
 
-        # Получаем связанную категорию для предотвращения detached instance
         if hasattr(event, 'category') and event.category:
             try:
                 category = event.category
@@ -131,7 +128,6 @@ class ReviewDTO:
         self.created_at = review.created_at
         self.is_approved = review.is_approved
 
-        # Получаем связанные данные
         if hasattr(review, 'user') and review.user:
             try:
                 self.user = UserDTO(review.user)
@@ -171,7 +167,6 @@ class OrderDTO:
         self.contact_phone = order.contact_phone
         self.address = order.address
 
-        # Связанные данные
         if hasattr(order, 'user') and order.user:
             try:
                 self.user = UserDTO(order.user)
@@ -180,7 +175,6 @@ class OrderDTO:
         else:
             self.user = None
 
-        # Элементы заказа
         self.items = []
         if hasattr(order, 'items'):
             try:
@@ -197,7 +191,6 @@ class OrderItemDTO:
         self.ticket_id = item.ticket_id
         self.price = item.price
 
-        # Связанный билет
         if hasattr(item, 'ticket') and item.ticket:
             try:
                 self.ticket = TicketDTO(item.ticket)
@@ -218,7 +211,6 @@ class TicketDTO:
         self.is_available = ticket.is_available
         self.created_at = ticket.created_at
 
-        # Связанное событие
         if hasattr(ticket, 'event') and ticket.event:
             try:
                 self.event = EventDTO(ticket.event)
@@ -245,7 +237,6 @@ class TicketForSaleDTO:
         self.created_at = ticket.created_at
         self.status = ticket.status
 
-        # Связанные данные
         if hasattr(ticket, 'user') and ticket.user:
             try:
                 self.user = UserDTO(ticket.user)
@@ -307,18 +298,9 @@ def get_event_card_date(event):
     return f"{event.date.day:02d}.{event.date.month:02d} {weekdays[event.date.weekday()]}"
 
 def get_categories():
-    """
-    Получение всех категорий для шаблонов, с исправлением проблемы
-    детачмента сессии SQLAlchemy. Используем глобальный класс CategoryDTO.
-    """
-    # Закрываем текущую сессию для обновления данных
-    db.session.expire_all()
-    db.session.close()
-
+    """Получение списка категорий"""
     try:
-        # Получаем категории напрямую из базы
-        categories = db.session.query(Category).order_by(Category.name).all()
-        # Создаем независимые объекты
+        categories = Category.query.order_by(Category.name).all()
         return [CategoryDTO(category) for category in categories]
     except Exception as e:
         print(f"Ошибка при получении категорий: {e}")
@@ -346,19 +328,8 @@ def get_pending_tickets_count():
 
 
 def get_contact():
-    """
-    Получает актуальную контактную информацию, принудительно обновляя данные
-    и избегая проблем с кэшированием SQLAlchemy.
-    """
-    # Закрываем текущую сессию и запрашиваем свежие данные
-    db.session.expire_all()
-    db.session.close()
-
-    # Получаем все контакты напрямую из базы
-    contacts = db.session.query(Contact).all()
-    contact = contacts[0] if contacts else None
-
-    # Если запись не найдена, создаем новую
+    """Получение контактной информации"""
+    contact = Contact.query.first()
     if not contact:
         contact = Contact(
             phone='+7 (XXX) XXX-XX-XX',
@@ -366,18 +337,10 @@ def get_contact():
         )
         db.session.add(contact)
         db.session.commit()
-
     return contact
 
-
 def get_current_user_info():
-    """
-    Безопасно получает информацию о текущем пользователе,
-    избегая проблем с детачментом сессии.
-    """
-    from flask_login import current_user
-
-    # Проверяем, аутентифицирован ли пользователь
+    """Получение информации о текущем пользователе"""
     if not current_user.is_authenticated:
         return {
             'username': 'Гость',
@@ -385,15 +348,8 @@ def get_current_user_info():
             'is_admin': False
         }
 
-    # Закрываем текущую сессию для обновления данных
-    db.session.expire_all()
-    db.session.close()
-
     try:
-        # Получаем свежие данные пользователя
-        from models import User
-        user = db.session.query(User).filter_by(id=current_user.id).first()
-
+        user = User.query.get(current_user.id)
         if user:
             return {
                 'username': user.username,
@@ -401,78 +357,38 @@ def get_current_user_info():
                 'is_admin': user.is_admin,
                 'id': user.id
             }
-        else:
-            return {
-                'username': 'Неизвестный пользователь',
-                'is_authenticated': True,
-                'is_admin': False
-            }
     except Exception as e:
         print(f"Ошибка при получении данных пользователя: {e}")
-        return {
-            'username': 'Ошибка данных',
-            'is_authenticated': False,
-            'is_admin': False
-        }
 
+    return {
+        'username': 'Ошибка данных',
+        'is_authenticated': False,
+        'is_admin': False
+    }
 
 def get_popular_events():
-    """
-    Получает популярные события, избегая проблем с детачментом сессии.
-    Возвращает список объектов EventDTO с данными о популярных событиях.
-    """
-    # Обновляем сессию
-    db.session.expire_all()
-    db.session.close()
-
+    """Получение популярных событий"""
     try:
-        # Получаем популярные события
-        events = db.session.query(Event).filter_by(
-            is_popular=True, is_active=True
-        ).all()
-        # Создаем независимые объекты
+        events = Event.query.filter_by(is_popular=True, is_active=True).all()
         return [EventDTO(event) for event in events]
     except Exception as e:
         print(f"Ошибка при получении популярных событий: {e}")
         return []
 
 def get_featured_events():
-    """
-    Получает избранные события, избегая проблем с детачментом сессии.
-    Возвращает список объектов EventDTO с данными о избранных событиях.
-    """
-    # Обновляем сессию
-    db.session.expire_all()
-    db.session.close()
-
+    """Получение избранных событий"""
     try:
-        # Получаем фичеринговые события
-        events = db.session.query(Event).filter_by(
-            is_featured=True, is_active=True
-        ).order_by(Event.date).all()
-        # Создаем независимые объекты
+        events = Event.query.filter_by(is_featured=True, is_active=True).order_by(Event.date).all()
         return [EventDTO(event) for event in events]
     except Exception as e:
         print(f"Ошибка при получении featured событий: {e}")
         return []
 
 def get_active_slides():
-    """
-    Получает активные слайды, принудительно обновляя данные
-    и избегая проблем с кэшированием SQLAlchemy.
-    Создает полные детаченные копии объектов для шаблонов.
-    """
-    # Закрываем текущую сессию и запрашиваем свежие данные
-    db.session.expire_all()
-    db.session.close()
-
-    # Получаем слайды напрямую из базы и создаем независимые копии
+    """Получение активных слайдов"""
     try:
-        # Получаем слайды
-        slides = db.session.query(Slide).filter_by(is_active=True).order_by(Slide.order).all()
-        # Создаем независимые объекты
+        slides = Slide.query.filter_by(is_active=True).order_by(Slide.order).all()
         return [SlideDTO(slide) for slide in slides]
     except Exception as e:
-        # В случае ошибки возвращаем пустой список
         print(f"Ошибка при получении слайдов: {e}")
         return []
