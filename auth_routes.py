@@ -153,8 +153,7 @@ def profile():
     if not notification_settings:
         notification_settings = NotificationSetting(
             user_id=user.id,
-            email_enabled=True,
-            sms_enabled=False
+            email_enabled=True
         )
         db.session.add(notification_settings)
         db.session.commit()
@@ -162,8 +161,6 @@ def profile():
     # Pre-fill notification form with user's settings
     if request.method == 'GET':
         notification_form.email_enabled.data = notification_settings.email_enabled
-        notification_form.sms_enabled.data = notification_settings.sms_enabled
-        notification_form.phone_number.data = notification_settings.phone_number
     
     return render_template('profile.html', form=form, orders=orders, tickets_for_sale=tickets_for_sale, notification_form=notification_form)
 
@@ -197,21 +194,7 @@ def notification_settings():
             
             # Update settings
             settings.email_enabled = form.email_enabled.data
-            settings.sms_enabled = form.sms_enabled.data
-            
-            # If SMS enabled, phone number is required
-            if settings.sms_enabled and not form.phone_number.data:
-                flash('Для получения SMS-уведомлений необходимо указать номер телефона', 'danger')
-                return redirect(url_for('auth.profile'))
-            
-            settings.phone_number = form.phone_number.data
             db.session.commit()
-            
-            # Проверяем учетные данные Twilio, если включены SMS
-            if settings.sms_enabled:
-                from send_message import TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_PHONE_NUMBER
-                if not all([TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_PHONE_NUMBER]):
-                    flash('SMS-уведомления настроены, но учетные данные Twilio отсутствуют. Обратитесь к администратору.', 'warning')
             
             flash('Настройки уведомлений успешно сохранены', 'success')
         else:

@@ -88,3 +88,21 @@ def register_filters(app):
         except Exception as e:
             logger.error(f"Ошибка при получении имени пользователя: {e}")
             return "Пользователь"
+            
+    @app.template_filter('format_price')
+    def format_price_filter(value):
+        """
+        Форматирует цену в удобном для отображения формате
+        
+        Использование в шаблоне: {{ 1000|format_price }}
+        Результат: 1 000 ₽
+        """
+        if value is None:
+            return "0 ₽"
+        try:
+            # Форматируем число с разделителями тысяч
+            formatted = "{:,}".format(int(value)).replace(",", " ")
+            return f"{formatted} ₽"
+        except Exception as e:
+            logger.error(f"Ошибка при форматировании цены {value}: {e}")
+            return f"{value} ₽"

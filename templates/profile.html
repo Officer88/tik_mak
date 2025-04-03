@@ -11,8 +11,8 @@
             <div class="card mb-4">
                 <div class="card-body text-center">
                     <i class="fas fa-user-circle fa-5x mb-3 text-muted"></i>
-                    <h5 class="card-title">{{ current_user.username }}</h5>
-                    <p class="card-text text-muted">{{ current_user.email }}</p>
+                    <h5 class="card-title">{{ current_user|safe_user_attr('username') }}</h5>
+                    <p class="card-text text-muted">{{ current_user|safe_user_attr('email') }}</p>
                 </div>
             </div>
             
@@ -51,7 +51,7 @@
                                             {% for order in orders %}
                                                 <tr>
                                                     <td>{{ order.id }}</td>
-                                                    <td>{{ order.order_date.strftime('%d.%m.%Y %H:%M') }}</td>
+                                                    <td>{{ order.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
                                                     <td>{{ order.total_amount|format_price }}</td>
                                                     <td>
                                                         <span class="badge {% if order.status == 'completed' %}bg-success{% elif order.status == 'pending' %}bg-warning{% else %}bg-danger{% endif %}">
@@ -71,38 +71,41 @@
                                                             Курьером
                                                         {% elif order.delivery_method == 'event_day' %}
                                                             В день мероприятия
-                                                        {% elif order.delivery_method == '24h_email' %}
+                                                        {% elif order.delivery_method == '24h' %}
                                                             В течение 24ч на email
                                                         {% endif %}
                                                     </td>
                                                     <td>
                                                         <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#tickets-{{ order.id }}">
-                                                            Показать ({{ order.tickets|length }})
+                                                            Показать ({{ order.items.count() }})
                                                         </button>
                                                     </td>
                                                 </tr>
                                                 <tr class="collapse" id="tickets-{{ order.id }}">
                                                     <td colspan="6">
                                                         <div class="p-3">
-                                                            {% for ticket in order.tickets %}
+                                                            {% for item in order.items %}
                                                                 <div class="mb-2 p-2 border rounded">
                                                                     <div class="d-flex justify-content-between align-items-center">
                                                                         <div>
-                                                                            <h6 class="mb-1">{{ ticket.event.title }}</h6>
+                                                                            <h6 class="mb-1">{{ item.ticket.event.title }}</h6>
                                                                             <div class="small text-muted">
-                                                                                {{ ticket.event.date.strftime('%d.%m.%Y %H:%M') }}, {{ ticket.event.venue.name }}
+                                                                                {{ item.ticket.event.date.strftime('%d.%m.%Y %H:%M') }}
+                                                                                {% if item.ticket.event.venue %}
+                                                                                , {{ item.ticket.event.venue.name }}
+                                                                                {% endif %}
                                                                             </div>
                                                                             <div class="small">
-                                                                                {% if ticket.section or ticket.row or ticket.seat %}
-                                                                                    {% if ticket.section %}Секция: {{ ticket.section }}{% endif %}
-                                                                                    {% if ticket.row %}Ряд: {{ ticket.row }}{% endif %}
-                                                                                    {% if ticket.seat %}Место: {{ ticket.seat }}{% endif %}
+                                                                                {% if item.ticket.section or item.ticket.row or item.ticket.seat %}
+                                                                                    {% if item.ticket.section %}Секция: {{ item.ticket.section }}{% endif %}
+                                                                                    {% if item.ticket.row %}Ряд: {{ item.ticket.row }}{% endif %}
+                                                                                    {% if item.ticket.seat %}Место: {{ item.ticket.seat }}{% endif %}
                                                                                 {% else %}
                                                                                     Без определенного места
                                                                                 {% endif %}
                                                                             </div>
                                                                         </div>
-                                                                        <div class="fs-5 fw-bold">{{ ticket.price|format_price }}</div>
+                                                                        <div class="fs-5 fw-bold">{{ item.price|format_price }}</div>
                                                                     </div>
                                                                 </div>
                                                             {% endfor %}
@@ -146,9 +149,9 @@
                                         <tbody>
                                             {% for ticket in tickets_for_sale %}
                                                 <tr>
-                                                    <td>{{ ticket.event_title }}</td>
-                                                    <td>{{ ticket.event_date.strftime('%d.%m.%Y %H:%M') }}</td>
-                                                    <td>{{ ticket.venue }}, {{ ticket.city }}</td>
+                                                    <td>{{ ticket.event_name }}</td>
+                                                    <td>{{ ticket.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
+                                                    <td>{{ ticket.venue_name }}</td>
                                                     <td>
                                                         {% if ticket.section or ticket.row or ticket.seat %}
                                                             {% if ticket.section %}Секция: {{ ticket.section }}{% endif %}
@@ -158,7 +161,7 @@
                                                             Без определенного места
                                                         {% endif %}
                                                     </td>
-                                                    <td>{{ ticket.asking_price|format_price }}</td>
+                                                    <td>{{ ticket.selling_price|format_price }}</td>
                                                     <td>
                                                         {% if ticket.ticket_type == 'electronic' %}
                                                             Электронный
@@ -167,8 +170,8 @@
                                                         {% endif %}
                                                     </td>
                                                     <td>
-                                                        <span class="badge {% if ticket.is_sold %}bg-success{% else %}bg-primary{% endif %}">
-                                                            {% if ticket.is_sold %}
+                                                        <span class="badge {% if ticket.status == 'sold' %}bg-success{% else %}bg-primary{% endif %}">
+                                                            {% if ticket.status == 'sold' %}
                                                                 Продан
                                                             {% else %}
                                                                 В продаже
@@ -196,7 +199,7 @@
                             <h5 class="card-title mb-0">Настройки уведомлений</h5>
                         </div>
                         <div class="card-body">
-                            <form method="POST" action="{{ url_for('notification_settings') }}">
+                            <form method="POST" action="{{ url_for('auth.notification_settings') }}">
                                 {{ notification_form.hidden_tag() }}
                                 
                                 <div class="mb-3">
@@ -207,28 +210,7 @@
                                     <small class="text-muted">Вы будете получать уведомления о статусе заказов, мероприятиях и специальных предложениях.</small>
                                 </div>
                                 
-                                <div class="mb-3">
-                                    <div class="form-check form-switch">
-                                        {{ notification_form.sms_enabled(class="form-check-input") }}
-                                        {{ notification_form.sms_enabled.label(class="form-check-label") }}
-                                    </div>
-                                    <small class="text-muted">Вы будете получать SMS-уведомления о важных событиях (например, подтверждение заказа).</small>
-                                </div>
-                                
-                                <div class="mb-3" id="phone-number-field" {% if not notification_form.sms_enabled.data %}style="display: none;"{% endif %}>
-                                    {{ notification_form.phone_number.label(class="form-label") }}
-                                    {{ notification_form.phone_number(class="form-control") }}
-                                    {% if notification_form.phone_number.errors %}
-                                        <div class="invalid-feedback d-block">
-                                            {% for error in notification_form.phone_number.errors %}
-                                                {{ error }}
-                                            {% endfor %}
-                                        </div>
-                                    {% endif %}
-                                    <small class="text-muted">Введите номер в международном формате, например: +79123456789</small>
-                                </div>
-                                
-                                <div class="mb-3">
+                                <div class="d-grid">
                                     {{ notification_form.submit(class="btn btn-primary") }}
                                 </div>
                             </form>
@@ -239,18 +221,4 @@
         </div>
     </div>
 </div>
-
-<script>
-    // Показывать/скрывать поле номера телефона в зависимости от состояния чекбокса SMS
-    document.addEventListener('DOMContentLoaded', function() {
-        const smsCheckbox = document.querySelector('#sms_enabled');
-        const phoneField = document.querySelector('#phone-number-field');
-        
-        if (smsCheckbox && phoneField) {
-            smsCheckbox.addEventListener('change', function() {
-                phoneField.style.display = this.checked ? 'block' : 'none';
-            });
-        }
-    });
-</script>
 {% endblock %}
