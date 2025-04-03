@@ -772,7 +772,12 @@ def contacts():
         contact.vk = form.vk.data
         contact.instagram = form.instagram.data
         
+        # Сохраняем изменения и принудительно обновляем объект
         db.session.commit()
+        
+        # Очищаем сессию, чтобы гарантировать свежие данные при следующем запросе
+        db.session.close()
+        
         flash('Контактная информация обновлена', 'success')
         return redirect(url_for('admin.contacts'))
     

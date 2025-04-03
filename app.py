@@ -76,7 +76,11 @@ with app.app_context():
     
     @app.context_processor
     def utility_processor():
-        contact = Contact.query.first()
+        # Добавляем .all() чтобы принудительно выполнить запрос заново, избегая кэширования SQLAlchemy
+        # И затем берем первый элемент, если он есть
+        contacts = Contact.query.all()
+        contact = contacts[0] if contacts else None
+        
         if not contact:
             contact = Contact(
                 phone='+7 (XXX) XXX-XX-XX',
@@ -84,6 +88,9 @@ with app.app_context():
             )
             db.session.add(contact)
             db.session.commit()
+        
+        # Запрашиваем объект снова, чтобы точно получить свежие данные
+        db.session.refresh(contact)
         
         return {
             'get_categories': get_categories,
