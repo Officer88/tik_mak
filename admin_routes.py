@@ -523,16 +523,18 @@ def delete_venue(venue_id):
 @admin_bp.route('/categories')
 def categories():
     try:
-        # Используем новую сессию
-        categories = []
-        with db.session.begin():
-            category_records = Category.query.all()
-            categories = [CategoryDTO(category) for category in category_records]
+        # Обновляем сессию перед запросом
+        db.session.expire_all()
+        db.session.close()
+        
+        # Получаем категории
+        category_records = Category.query.all()
+        categories = [CategoryDTO(category) for category in category_records]
+        
+        return render_template('admin/categories.html', categories=categories)
     except Exception as e:
         print(f"Ошибка при получении категорий: {e}")
-        categories = []
-
-    return render_template('admin/categories.html', categories=categories)
+        return render_template('admin/categories.html', categories=[])
 
 # Добавление категории
 @admin_bp.route('/categories/add', methods=['GET', 'POST'])

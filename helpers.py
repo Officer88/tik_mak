@@ -259,7 +259,7 @@ def admin_required(f):
         if not current_user.is_authenticated or not current_user.is_admin:
             abort(403)
         return f(*args, **kwargs)
-    return decorated_function
+    return admin_required
 
 def format_date(date):
     """Format date for display in Russian style"""
@@ -300,6 +300,9 @@ def get_event_card_date(event):
 def get_categories():
     """Получение списка категорий"""
     try:
+        # Обновляем сессию перед запросом
+        db.session.expire_all()
+        db.session.close()
         categories = Category.query.order_by(Category.name).all()
         return [CategoryDTO(category) for category in categories]
     except Exception as e:
