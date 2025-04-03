@@ -39,22 +39,16 @@
             </li>
             {% endif %}
             
-            {% for page_num in events.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
-                {% if page_num %}
-                    {% if page_num == events.page %}
-                    <li class="page-item active">
-                        <span class="page-link">{{ page_num }}</span>
-                    </li>
-                    {% else %}
-                    <li class="page-item">
-                        <a class="page-link" href="{{ url_for('main.category_events', category_id=category.id, page=page_num) }}">
-                            {{ page_num }}
-                        </a>
-                    </li>
-                    {% endif %}
+            {% for page_num in range(1, events.pages + 1) %}
+                {% if page_num == events.page %}
+                <li class="page-item active">
+                    <span class="page-link">{{ page_num }}</span>
+                </li>
                 {% else %}
-                <li class="page-item disabled">
-                    <span class="page-link">...</span>
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('main.category_events', category_id=category.id, page=page_num) }}">
+                        {{ page_num }}
+                    </a>
                 </li>
                 {% endif %}
             {% endfor %}

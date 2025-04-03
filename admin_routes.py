@@ -44,35 +44,51 @@ def check_admin():
 @admin_bp.route('/')
 def dashboard():
     try:
-        # Получаем статистику по билетам на продажу
-        pending_tickets = TicketForSale.query.filter_by(status='pending').count()
-        confirmed_tickets = TicketForSale.query.filter_by(status='confirmed').count()
-        rejected_tickets = TicketForSale.query.filter_by(status='rejected').count()
-        sold_tickets_resale = TicketForSale.query.filter_by(status='sold').count()
+        # Обновляем сессию для получения свежих данных
+        db.session.expire_all()
+        
+        # Статистика по билетам на продажу
+        pending_tickets = db.session.query(TicketForSale).filter_by(status='pending').count()
+        confirmed_tickets = db.session.query(TicketForSale).filter_by(status='confirmed').count()
+        rejected_tickets = db.session.query(TicketForSale).filter_by(status='rejected').count()
+        sold_tickets_resale = db.session.query(TicketForSale).filter_by(status='sold').count()
 
         # Общая статистика
-        total_events = Event.query.count()
-        upcoming_events = Event.query.filter(Event.date >= datetime.now()).count()
-        total_users = User.query.count()
-        total_orders = Order.query.count()
-        completed_orders = Order.query.filter_by(status='completed').count()
-        pending_orders = Order.query.filter_by(status='pending').count()
+        event_count = db.session.query(Event).count()
+        venue_count = db.session.query(Venue).count()
+        category_count = db.session.query(Category).count()
+        review_count = db.session.query(Review).count()
+        
+        # Количество событий на этой неделе
+        next_week = datetime.now() + timedelta(days=7)
+        upcoming_events = db.session.query(Event).filter(
+            Event.date >= datetime.now(),
+            Event.date <= next_week
+        ).count()
+        
+        # Статистика по пользователям
+        total_users = db.session.query(User).count()
+        
+        # Статистика по заказам
+        total_orders = db.session.query(Order).count()
+        completed_orders = db.session.query(Order).filter_by(status='completed').count()
+        pending_orders = db.session.query(Order).filter_by(status='pending').count()
 
         # Статистика по билетам
-        available_tickets = Ticket.query.filter_by(is_available=True).count()
-        sold_tickets = Ticket.query.filter_by(is_available=False).count()
+        available_tickets = db.session.query(Ticket).filter_by(is_available=True).count()
+        sold_tickets = db.session.query(Ticket).filter_by(is_available=False).count()
         total_tickets = available_tickets + sold_tickets
 
         # Последние заказы
-        recent_orders = Order.query.order_by(Order.created_at.desc()).limit(10).all()
+        recent_orders = db.session.query(Order).order_by(Order.created_at.desc()).limit(10).all()
 
         # Статистика по категориям
-        categories = Category.query.all()
+        categories = db.session.query(Category).all()
         category_stats = []
         for category in categories:
-            events = Event.query.filter_by(category_id=category.id).all()
+            events = db.session.query(Event).filter_by(category_id=category.id).all()
             event_ids = [event.id for event in events]
-            sold_tickets_count = Ticket.query.filter(
+            sold_tickets_count = db.session.query(Ticket).filter(
                 Ticket.event_id.in_(event_ids) if event_ids else False,
                 Ticket.is_available == False
             ).count()
@@ -81,8 +97,13 @@ def dashboard():
                 'sold_tickets': sold_tickets_count
             })
 
+        # Получаем данные о текущем пользователе через Helper-функцию 
+        # (исправляет DetachedInstanceError)
+        user_info = get_current_user_info()
+        admin_username = user_info['username']
+
         return render_template('admin/dashboard.html',
-            total_events=total_events,
+            total_events=event_count,
             upcoming_events=upcoming_events,
             total_users=total_users,
             total_orders=total_orders,
@@ -97,11 +118,19 @@ def dashboard():
             available_tickets=available_tickets,
             recent_orders=recent_orders,
             category_stats=category_stats,
-            admin_username=current_user.username if current_user else None
+            admin_username=admin_username,
+            event_count=event_count,
+            venue_count=venue_count,
+            category_count=category_count,
+            review_count=review_count
         )
     except Exception as e:
-        print(f"Ошибка при получении статистики: {e}")
+        import logging
+        logging.error(f"Ошибка при получении статистики для панели администратора: {e}", exc_info=True)
+        
+        # Возвращаем шаблон с нулевыми значениями
         return render_template('admin/dashboard.html',
+            error="Ошибка при загрузке данных",
             total_events=0,
             upcoming_events=0,
             total_users=0,
@@ -117,73 +146,12 @@ def dashboard():
             available_tickets=0,
             recent_orders=[],
             category_stats=[],
-            admin_username=current_user.username if current_user else None
+            admin_username=current_user.username if current_user else None,
+            event_count=0,
+            venue_count=0,
+            category_count=0,
+            review_count=0
         )
-    except Exception as e:
-        print(f"Ошибка при получении статистики: {e}")
-        return render_template(
-            'admin/dashboard.html',
-            error="Ошибка при загрузке данных",
-            total_events=0,
-            upcoming_events=0,
-            total_tickets=0,
-            sold_tickets=0,
-            available_tickets=0,
-            total_users=0,
-            total_orders=0,
-            completed_orders=0,
-            pending_orders=0,
-            recent_orders=[],
-            category_stats=[]
-        )
-
-    # Счетчики для дашборда - использование db.session для свежих данных
-    event_count = db.session.query(Event).count()
-    venue_count = db.session.query(Venue).count()
-    category_count = db.session.query(Category).count()
-    review_count = db.session.query(Review).count()
-
-    # Последние 5 заказов
-    recent_orders = db.session.query(Order).order_by(Order.created_at.desc()).limit(5).all()
-
-    # Билеты на продажу, ожидающие подтверждения
-    pending_tickets = db.session.query(TicketForSale).filter_by(status='pending').count()
-
-    # Количество событий на этой неделе
-    next_week = datetime.now() + timedelta(days=7)
-    upcoming_events = db.session.query(Event).filter(
-        Event.date >= datetime.now(),
-        Event.date <= next_week
-    ).count()
-
-    # Данные для графика заказов
-    total_orders = db.session.query(Order).count()
-    completed_orders = db.session.query(Order).filter_by(status='completed').count()
-    pending_orders = db.session.query(Order).filter_by(status='pending').count()
-
-    # Получаем данные о текущем пользователе через Helper-функцию 
-    # (исправляет DetachedInstanceError)
-    user_info = get_current_user_info()
-    admin_username = user_info['username']
-
-    # Исправление переменной для dashboard.html
-    total_events = event_count
-
-    return render_template(
-        'admin/dashboard.html', 
-        event_count=event_count,
-        venue_count=venue_count,
-        category_count=category_count,
-        review_count=review_count,
-        recent_orders=recent_orders,
-        pending_tickets=pending_tickets,
-        upcoming_events=upcoming_events,
-        total_orders=total_orders,
-        completed_orders=completed_orders,
-        pending_orders=pending_orders,
-        total_events=total_events,
-        admin_username=admin_username
-    )
 
 # Управление событиями
 @admin_bp.route('/events')
@@ -243,24 +211,10 @@ def add_event():
             event.custom_venue_address = form.custom_venue_address.data
 
         # Обработка изображения
-        if form.image.data:
-            # Для загрузки локального изображения
-            if hasattr(form.image.data, 'filename') and form.image.data.filename:
-                image_file = form.image.data
-
-                # Проверяем, является ли это специальным форматом
-                filename = image_file.filename.lower()
-                if filename.endswith('.svg') or filename.endswith('.gif') or 'photoviewer.fileassoc.tiff' in filename:
-                    # Сохраняем файл специального формата
-                    image_url = save_special_format_file(image_file, folder_type='events')
-                else:
-                    # Обрабатываем загруженный файл через нашу функцию process_image
-                    import logging
-                    logging.info(f"Processing image: {image_file.filename}")
-                    image_url = process_image(file_obj=image_file, max_size=(400, 300), folder_type='events')
-
-                if image_url:
-                    event.image_url = image_url
+        if form.image.data and hasattr(form.image.data, 'filename') and form.image.data.filename:
+            image_url = save_image(form.image.data, folder_type='events', max_size=(400, 300))
+            if image_url:
+                event.image_url = image_url
 
         # Сохраняем событие в базу данных
         db.session.add(event)
@@ -343,17 +297,7 @@ def edit_event(event_id):
 
         # Обработка загруженного изображения
         if form.image.data and hasattr(form.image.data, 'filename') and form.image.data.filename:
-            image_file = form.image.data
-
-            # Проверяем, является ли это специальным форматом
-            filename = image_file.filename.lower()
-            if filename.endswith('.svg') or filename.endswith('.gif') or 'photoviewer.fileassoc.tiff' in filename:
-                # Сохраняем файл специального формата
-                new_image_url = save_special_format_file(image_file, folder_type='events')
-            else:
-                # Обрабатываем загруженный файл через нашу функцию process_image
-                new_image_url = process_image(file_obj=image_file, max_size=(240, 320), folder_type='events')
-
+            new_image_url = save_image(form.image.data, folder_type='events', max_size=(240, 320))
             if new_image_url:
                 event.image_url = new_image_url
 
@@ -402,41 +346,13 @@ def add_venue():
 
         # Обработка логотипа
         if form.logo_file.data:
-            logo_file = form.logo_file.data
-
-            # Проверяем, является ли это специальным форматом (SVG или GIF)
-            filename = logo_file.filename.lower() if hasattr(logo_file, 'filename') else ''
-            if filename.endswith('.svg') or filename.endswith('.gif') or 'photoviewer.fileassoc.tiff' in filename:
-                # Для SVG, GIF и других специальных форматов используем save_special_format_file
-                saved_path = save_special_format_file(logo_file, folder_type='venues')
-            else:
-                # Для обычных изображений используем process_image
-                saved_path = process_image(
-                    file_obj=logo_file, 
-                    max_size=(240, 240),  # Квадратный логотип
-                    folder_type='venues'
-                )
-
+            saved_path = save_image(form.logo_file.data, folder_type='venues', max_size=(240, 240))
             if saved_path:
                 venue.logo_path = saved_path
 
         # Обработка схемы зала
         if form.scheme_file.data:
-            scheme_file = form.scheme_file.data
-
-            # Проверяем, является ли это специальным форматом (SVG или большая схема)
-            filename = scheme_file.filename.lower() if hasattr(scheme_file, 'filename') else ''
-            if filename.endswith('.svg') or filename.endswith('.gif'):
-                # Для SVG используем специальную обработку
-                saved_path = save_special_format_file(scheme_file, folder_type='venues/schemes')
-            else:
-                # Для обычных изображений сохраняем в большом размере
-                saved_path = process_image(
-                    file_obj=scheme_file, 
-                    max_size=(1200, 1200),  # Большой размер для схемы
-                    folder_type='venues/schemes'
-                )
-
+            saved_path = save_image(form.scheme_file.data, folder_type='venues/schemes', max_size=(1200, 1200))
             if saved_path:
                 venue.scheme_path = saved_path
 
@@ -475,41 +391,13 @@ def edit_venue(venue_id):
 
         # Обработка нового логотипа, если загружен
         if form.logo_file.data:
-            logo_file = form.logo_file.data
-
-            # Проверяем, является ли это специальным форматом (SVG или GIF)
-            filename = logo_file.filename.lower() if hasattr(logo_file, 'filename') else ''
-            if filename.endswith('.svg') or filename.endswith('.gif') or 'photoviewer.fileassoc.tiff' in filename:
-                # Для SVG и GIF используем специальную обработку
-                saved_path = save_special_format_file(logo_file, folder_type='venues')
-            else:
-                # Для обычных изображений используем process_image
-                saved_path = process_image(
-                    file_obj=logo_file, 
-                    max_size=(240, 240),  # Квадратный логотип
-                    folder_type='venues'
-                )
-
+            saved_path = save_image(form.logo_file.data, folder_type='venues', max_size=(240, 240))
             if saved_path:
                 venue.logo_path = saved_path
 
         # Обработка новой схемы зала, если загружена
         if form.scheme_file.data:
-            scheme_file = form.scheme_file.data
-
-            # Проверяем, является ли это специальным форматом (SVG)
-            filename = scheme_file.filename.lower() if hasattr(scheme_file, 'filename') else ''
-            if filename.endswith('.svg') or filename.endswith('.gif'):
-                # Для SVG используем специальную обработку
-                saved_path = save_special_format_file(scheme_file, folder_type='venues/schemes')
-            else:
-                # Для обычных изображений сохраняем в большом размере
-                saved_path = process_image(
-                    file_obj=scheme_file, 
-                    max_size=(1200, 1200),  # Большой размер для схемы
-                    folder_type='venues/schemes'
-                )
-
+            saved_path = save_image(form.scheme_file.data, folder_type='venues/schemes', max_size=(1200, 1200))
             if saved_path:
                 venue.scheme_path = saved_path
 
@@ -571,20 +459,7 @@ def add_category():
 
         # Обработка загруженной иконки
         if form.icon_image.data:
-            icon_file = form.icon_image.data
-
-            # Проверяем, является ли это SVG
-            if hasattr(icon_file, 'filename') and icon_file.filename.lower().endswith('.svg'):
-                # Для SVG используем специальную обработку
-                saved_path = save_special_format_file(icon_file, folder_type='categories')
-            else:
-                # Для обычных изображений используем стандартную обработку
-                saved_path = process_image(
-                    file_obj=icon_file, 
-                    max_size=(64, 64),  # Маленький размер для иконки
-                    folder_type='categories'
-                )
-
+            saved_path = save_image(form.icon_image.data, folder_type='categories', max_size=(64, 64))
             if saved_path:
                 category.icon_image_path = saved_path
 
@@ -618,20 +493,7 @@ def edit_category(category_id):
 
         # Обработка новой иконки, если загружена
         if form.icon_image.data:
-            icon_file = form.icon_image.data
-
-            # Проверяем, является ли это SVG
-            if hasattr(icon_file, 'filename') and icon_file.filename.lower().endswith('.svg'):
-                # Для SVG используем специальную обработку
-                saved_path = save_special_format_file(icon_file, folder_type='categories')
-            else:
-                # Для обычных изображений используем стандартную обработку
-                saved_path = process_image(
-                    file_obj=icon_file, 
-                    max_size=(64, 64),  # Маленький размер для иконки
-                    folder_type='categories'
-                )
-
+            saved_path = save_image(form.icon_image.data, folder_type='categories', max_size=(64, 64))
             if saved_path:
                 category.icon_image_path = saved_path
 
@@ -785,7 +647,7 @@ def edit_slide(slide_id):
         flash('Слайд успешно обновлен', 'success')
         return redirect(url_for('admin.sliders'))
 
-    return renderrender_template('admin/edit_slide.html', form=form, slide=slide)
+    return render_template('admin/edit_slide.html', form=form, slide=slide)
 
 @admin_bp.route('/sliders/delete/<int:slide_id>', methods=['POST'])
 def delete_slide(slide_id):

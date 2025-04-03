@@ -358,21 +358,80 @@ def venue_detail(venue_id):
 # View favorites route
 @main_bp.route('/favorites')
 def favorites():
-    events = []
+    events_list = []
     
     if current_user.is_authenticated:
-        # Get favorites from database
-        favorites = Favorite.query.filter_by(user_id=current_user.id).all()
-        events = [fav.event for fav in favorites]
+        try:
+            # Get favorites from database
+            favorites = Favorite.query.filter_by(user_id=current_user.id).all()
+            
+            # Безопасное получение событий из избранного
+            for fav in favorites:
+                try:
+                    event = Event.query.get(fav.event_id)
+                    if event:
+                        event_data = {
+                            'id': event.id,
+                            'title': event.title,
+                            'image_url': event.image_url,
+                            'base_price': event.base_price,
+                            'delivery_methods': event.delivery_methods,
+                            'date': event.date,
+                            'venue': None
+                        }
+                        
+                        # Если есть площадка, добавляем данные о ней
+                        if event.venue:
+                            event_data['venue'] = {
+                                'id': event.venue.id,
+                                'name': event.venue.name
+                            }
+                        
+                        events_list.append(event_data)
+                except Exception as e:
+                    import logging
+                    logging.error(f"Ошибка при получении данных о событии {fav.event_id}: {e}")
+        except Exception as e:
+            import logging
+            logging.error(f"Ошибка при получении избранного: {e}")
     else:
         # Get favorites from session
         if 'favorites' in session and session['favorites']:
-            # Convert to list and get unique IDs
-            favorite_ids = list(set(session['favorites']))
-            # Get events from database using the IDs in session
-            events = Event.query.filter(Event.id.in_(favorite_ids)).all()
+            try:
+                # Convert to list and get unique IDs
+                favorite_ids = list(set(session['favorites']))
+                
+                # Получаем каждое событие отдельно
+                for event_id in favorite_ids:
+                    try:
+                        event = Event.query.get(event_id)
+                        if event:
+                            event_data = {
+                                'id': event.id,
+                                'title': event.title,
+                                'image_url': event.image_url,
+                                'base_price': event.base_price,
+                                'delivery_methods': event.delivery_methods,
+                                'date': event.date,
+                                'venue': None
+                            }
+                            
+                            # Если есть площадка, добавляем данные о ней
+                            if event.venue:
+                                event_data['venue'] = {
+                                    'id': event.venue.id,
+                                    'name': event.venue.name
+                                }
+                            
+                            events_list.append(event_data)
+                    except Exception as e:
+                        import logging
+                        logging.error(f"Ошибка при получении данных о событии {event_id}: {e}")
+            except Exception as e:
+                import logging
+                logging.error(f"Ошибка при обработке сессии избранного: {e}")
     
-    return render_template('favorites.html', events=events)
+    return render_template('favorites.html', events=events_list)
 
 # Add to cart route
 @main_bp.route('/cart/add/<int:ticket_id>', methods=['POST'])
@@ -593,14 +652,14 @@ def sell_ticket():
 # Category events route
 @main_bp.route('/category/<int:category_id>')
 def category_events(category_id):
-    category = Category.query.get_or_404(category_id)
-    page = request.args.get('page', 1, type=int)
+    try:
+        # Пока отключаем страницу категорий и делаем редирект
+        # на страницу событий с флагом, что нужно доработать эту страницу
+        flash('Страница категории временно недоступна. Ведутся технические работы.', 'info')
+        return redirect(url_for('main.events'))
     
-    events = Event.query.filter_by(
-        category_id=category.id,
-        is_active=True
-    ).filter(Event.date >= datetime.now()).order_by(Event.date).paginate(
-        page=page, per_page=12, error_out=False
-    )
-    
-    return render_template('category_events.html', category=category, events=events)
+    except Exception as e:
+        import logging
+        logging.error(f"Ошибка при отображении событий категории {category_id}: {e}")
+        flash('Произошла ошибка при загрузке категории.', 'danger')
+        return redirect(url_for('main.events'))
