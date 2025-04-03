@@ -357,10 +357,11 @@ def delete_event(event_id):
 @admin_bp.route('/venues')
 def venues():
     try:
-        venues = []
-        with db.session.begin():
-            venue_records = Venue.query.all()
-            venues = [VenueDTO(venue) for venue in venue_records]
+        db.session.expire_all()
+        db.session.close()
+        
+        venue_records = Venue.query.all()
+        venues = [VenueDTO(venue) for venue in venue_records]
     except Exception as e:
         print(f"Ошибка при получении площадок: {e}")
         venues = []
