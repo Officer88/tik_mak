@@ -46,6 +46,22 @@ class CategoryDTO:
         self.icon_image_path = category.icon_image_path if hasattr(category, 'icon_image_path') else None
         self.seo_title = category.seo_title
         self.seo_description = category.seo_description
+        self._events_count = None
+        
+        # Подсчитываем количество событий при создании DTO
+        try:
+            from models import Event
+            from datetime import datetime
+            self._events_count = Event.query.filter(
+                Event.category_id == category.id,
+                Event.is_active == True
+            ).count()
+        except Exception as e:
+            print(f"Ошибка при подсчете событий для категории: {e}")
+            self._events_count = 0
+            
+    def events(self):
+        return type('EventCounter', (), {'count': lambda _: self._events_count})()
 
 class EventDTO:
     """Класс передачи данных для событий"""
