@@ -35,7 +35,7 @@ class VenueDTO:
             self._events_count = 0
 
     def events(self):
-        return {'count': lambda: self._events_count}
+        return type('EventCounter', (), {'count': lambda _: self._events_count})()
 
 class CategoryDTO:
     """Класс передачи данных для категорий"""

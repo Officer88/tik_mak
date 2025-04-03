@@ -1,4 +1,3 @@
-
 {% extends 'admin/base.html' %}
 
 {% block title %}Управление площадками - MAGIK TIKET{% endblock %}
@@ -19,7 +18,7 @@
     <h4 class="mb-3">{{ 'Добавить площадку' if add_mode else 'Редактировать площадку' }}</h4>
     <form method="post" action="{% if edit_mode %}{{ url_for('admin.edit_venue', venue_id=venue.id) }}{% else %}{{ url_for('admin.add_venue') }}{% endif %}" enctype="multipart/form-data">
         {{ form.hidden_tag() }}
-        
+
         <div class="mb-3">
             <label for="name" class="form-label">Название</label>
             {{ form.name(class="form-control") }}
@@ -31,7 +30,7 @@
             </div>
             {% endif %}
         </div>
-        
+
         <div class="row">
             <div class="col-md-6 mb-3">
                 <label for="city" class="form-label">Город</label>
@@ -44,7 +43,7 @@
                 </div>
                 {% endif %}
             </div>
-            
+
             <div class="col-md-6 mb-3">
                 <label for="address" class="form-label">Адрес</label>
                 {{ form.address(class="form-control") }}
@@ -82,7 +81,7 @@
                 </div>
                 {% endif %}
             </div>
-            
+
             <div class="col-md-6 mb-3">
                 <label for="scheme_url" class="form-label">URL схемы зала</label>
                 {{ form.scheme_url(class="form-control") }}
@@ -95,7 +94,7 @@
                 {% endif %}
             </div>
         </div>
-        
+
         <div class="row">
             <div class="col-md-6 mb-3">
                 <label for="logo_file" class="form-label">Загрузить логотип</label>
@@ -118,7 +117,7 @@
                 </div>
                 {% endif %}
             </div>
-            
+
             <div class="col-md-6 mb-3">
                 <label for="scheme_file" class="form-label">Загрузить схему зала</label>
                 <div class="upload-zone" id="scheme-upload-zone">
@@ -141,7 +140,7 @@
                 {% endif %}
             </div>
         </div>
-        
+
         <div class="mb-3">
             <label for="venue_map" class="form-label">Схема зала (SVG)</label>
             {{ form.venue_map(class="form-control", rows=10) }}
@@ -154,7 +153,7 @@
             {% endif %}
             <div class="form-text">Вставьте SVG-код схемы зала. Необязательно.</div>
         </div>
-        
+
         <div>
             <a href="{{ url_for('admin.venues') }}" class="btn btn-secondary me-2">Отмена</a>
             {{ form.submit(class="btn btn-primary") }}
@@ -168,34 +167,34 @@ document.addEventListener('DOMContentLoaded', function() {
     function initUploadZone(zoneId) {
         const uploadZone = document.getElementById(zoneId);
         if (!uploadZone) return;
-        
+
         const fileInput = uploadZone.querySelector('input[type="file"]');
-        
+
         // Обработка клика на зону загрузки
         uploadZone.addEventListener('click', function() {
             fileInput.click();
         });
-        
+
         // Обработка перетаскивания файлов
         uploadZone.addEventListener('dragover', function(e) {
             e.preventDefault();
             uploadZone.classList.add('highlight');
         });
-        
+
         uploadZone.addEventListener('dragleave', function() {
             uploadZone.classList.remove('highlight');
         });
-        
+
         uploadZone.addEventListener('drop', function(e) {
             e.preventDefault();
             uploadZone.classList.remove('highlight');
-            
+
             if (e.dataTransfer.files.length) {
                 fileInput.files = e.dataTransfer.files;
                 updatePreview(e.dataTransfer.files[0], uploadZone);
             }
         });
-        
+
         // Обработка выбора файла
         fileInput.addEventListener('change', function() {
             if (fileInput.files.length) {
@@ -203,7 +202,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
-    
+
     // Функция обновления предпросмотра
     function updatePreview(file, uploadZone) {
         // Очищаем предыдущий превью, если он есть
@@ -211,7 +210,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (existingPreview) {
             existingPreview.remove();
         }
-        
+
         // Создаем превью
         const reader = new FileReader();
         reader.onload = function(e) {
@@ -224,7 +223,7 @@ document.addEventListener('DOMContentLoaded', function() {
         };
         reader.readAsDataURL(file);
     }
-    
+
     // Инициализируем зоны загрузки
     initUploadZone('logo-upload-zone');
     initUploadZone('scheme-upload-zone');
@@ -297,7 +296,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <i class="fas fa-trash-alt"></i>
                             </button>
                         </div>
-                        
+
                         <!-- Delete Modal -->
                         <div class="modal fade" id="deleteVenueModal{{ venue.id }}" tabindex="-1" aria-labelledby="deleteVenueModalLabel{{ venue.id }}" aria-hidden="true">
                             <div class="modal-dialog">
@@ -308,16 +307,16 @@ document.addEventListener('DOMContentLoaded', function() {
                                     </div>
                                     <div class="modal-body">
                                         <p>Вы уверены, что хотите удалить площадку "{{ venue.name }}"?</p>
-                                        {% if venue.events.count() > 0 %}
+                                        {% if venue.events().count() > 0 %}
                                         <div class="alert alert-warning">
-                                            <i class="fas fa-exclamation-triangle me-2"></i> Внимание! К этой площадке привязано {{ venue.events.count() }} мероприятий. Удаление невозможно.
+                                            <i class="fas fa-exclamation-triangle me-2"></i> Внимание! К этой площадке привязано {{ venue.events().count() }} мероприятий. Удаление невозможно.
                                         </div>
                                         {% endif %}
                                     </div>
                                     <div class="modal-footer">
                                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
                                         <form action="{{ url_for('admin.delete_venue', venue_id=venue.id) }}" method="post">
-                                            <button type="submit" class="btn btn-danger" {% if venue.events.count() > 0 %}disabled{% endif %}>Удалить</button>
+                                            <button type="submit" class="btn btn-danger" {% if venue.events().count() > 0 %}disabled{% endif %}>Удалить</button>
                                         </form>
                                     </div>
                                 </div>
