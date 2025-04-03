@@ -651,7 +651,7 @@ def edit_slide(slide_id):
 
     # Получаем все слайды для отображения в таблице
     slides = Slide.query.order_by(Slide.order).all()
-    return render_template('admin/sliders.html', form=form, slide=slide, slides=slides, add_mode=False)
+    return render_template('admin/sliders.html', form=form, slide=slide, slides=slides, edit_mode=True)
 
 @admin_bp.route('/sliders/delete/<int:slide_id>', methods=['POST'])
 def delete_slide(slide_id):
