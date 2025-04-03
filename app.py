@@ -39,6 +39,21 @@ login_manager.init_app(app)
 login_manager.login_view = 'auth.login'
 login_manager.login_message = 'Пожалуйста, войдите для доступа к этой странице.'
 
+# Создаем необходимые директории для загрузок файлов
+def ensure_upload_dirs():
+    upload_dirs = [
+        os.path.join('static', 'uploads'),
+        os.path.join('static', 'uploads', 'events'),
+        os.path.join('static', 'uploads', 'categories'),
+        os.path.join('static', 'uploads', 'venues'),
+        os.path.join('static', 'uploads', 'venues', 'schemes'),
+        os.path.join('static', 'uploads', 'slides'),
+    ]
+    
+    for directory in upload_dirs:
+        os.makedirs(directory, exist_ok=True)
+        print(f"Убедились, что директория {directory} существует")
+
 # Initialize app context
 with app.app_context():
     # Import models to ensure they're registered with SQLAlchemy
@@ -52,6 +67,9 @@ with app.app_context():
     app.register_blueprint(main_bp)
     app.register_blueprint(auth_bp, url_prefix='/auth')
     app.register_blueprint(admin_bp, url_prefix='/admin')
+    
+    # Создаем директории для загрузок
+    ensure_upload_dirs()
     
     # Register context processors
     from helpers import get_categories, get_pending_tickets_count

@@ -38,10 +38,16 @@ def process_image(source, max_size=(240, 320), file_obj=None, destination=None):
     else:
         return None
     
+    # Убедимся, что у нас есть расширение файла
+    if not filename or '.' not in filename:
+        # Если нет имени или расширения, используем временное имя с расширением .jpg
+        filename = f"image_{uuid.uuid4().hex}.jpg"
+    
     # Проверка, является ли файл GIF-анимацией
     is_animated_gif = False
-    if hasattr(img, 'is_animated') and img.is_animated:
-        is_animated_gif = True
+    if filename.lower().endswith('.gif'):
+        if hasattr(img, 'is_animated') and img.is_animated:
+            is_animated_gif = True
     
     # Если это не анимированный GIF, конвертируем в RGB при необходимости
     if not is_animated_gif and img.mode in ('RGBA', 'P'):
@@ -78,6 +84,11 @@ def process_image(source, max_size=(240, 320), file_obj=None, destination=None):
         
         # Генерируем уникальное имя файла с временной меткой и UUID
         base, ext = os.path.splitext(filename)
+        # Проверяем, что у нас действительно есть расширение
+        if not ext:
+            # По умолчанию используем .jpg
+            ext = '.jpg'
+            
         timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
         unique_id = str(uuid.uuid4())[:8]
         save_path = os.path.join(save_dir, f"{base}_{timestamp}_{unique_id}{ext}")
@@ -86,12 +97,31 @@ def process_image(source, max_size=(240, 320), file_obj=None, destination=None):
     save_dir = os.path.dirname(save_path)
     os.makedirs(save_dir, exist_ok=True)
     
+    # Получаем расширение для определения формата
+    _, ext = os.path.splitext(save_path)
+    # Если расширения нет, добавляем .jpg
+    if not ext:
+        save_path = f"{save_path}.jpg"
+        ext = '.jpg'
+    
     # Сохраняем с оптимизацией
-    if is_animated_gif:
+    if is_animated_gif or ext.lower() == '.gif':
         # Для GIF-анимаций сохраняем как есть
-        img.save(save_path)
+        img.save(save_path, format='GIF', save_all=True)
+    elif ext.lower() in ['.jpg', '.jpeg']:
+        img.save(save_path, format='JPEG', optimize=True, quality=85)
+    elif ext.lower() == '.png':
+        img.save(save_path, format='PNG', optimize=True)
     else:
-        img.save(save_path, optimize=True, quality=85)
+        # Для других форматов пробуем использовать расширение
+        format_name = ext[1:].upper()  # убираем точку и переводим в верхний регистр
+        try:
+            img.save(save_path, format=format_name)
+        except ValueError:
+            # Если формат не поддерживается, сохраняем как JPEG
+            if not save_path.lower().endswith('.jpg'):
+                save_path = save_path + '.jpg'
+            img.save(save_path, format='JPEG', optimize=True, quality=85)
     
     # Возвращаем относительный путь для базы данных
     rel_path = save_path

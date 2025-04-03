@@ -312,16 +312,22 @@ def add_category():
                 filename = secure_filename(form.icon_image.data.filename)
                 unique_filename = f"{uuid.uuid4().hex}_{filename}"
                 
-                # Сохраняем и обрабатываем изображение
-                saved_path = process_image(
-                    source=None,
-                    max_size=(100, 100),  # Размер иконки категории
-                    file_obj=form.icon_image.data,
-                    destination=os.path.join(upload_folder, unique_filename)
-                )
-                
-                if saved_path:
-                    category.icon_image_path = '/' + saved_path
+                # Для SVG-файлов просто сохраняем без обработки
+                if filename.lower().endswith('.svg'):
+                    full_path = os.path.join(upload_folder, unique_filename)
+                    form.icon_image.data.save(full_path)
+                    category.icon_image_path = f'/static/uploads/categories/{unique_filename}'
+                else:
+                    # Для других изображений обрабатываем через process_image
+                    saved_path = process_image(
+                        source=None,
+                        max_size=(100, 100),  # Размер иконки категории
+                        file_obj=form.icon_image.data,
+                        destination=os.path.join(upload_folder, unique_filename)
+                    )
+                    
+                    if saved_path:
+                        category.icon_image_path = '/' + saved_path
             
             db.session.add(category)
             db.session.commit()
@@ -383,16 +389,22 @@ def edit_category(category_id):
             filename = secure_filename(form.icon_image.data.filename)
             unique_filename = f"{uuid.uuid4().hex}_{filename}"
             
-            # Сохраняем и обрабатываем изображение
-            saved_path = process_image(
-                source=None,
-                max_size=(100, 100),  # Размер иконки категории
-                file_obj=form.icon_image.data,
-                destination=os.path.join(upload_folder, unique_filename)
-            )
-            
-            if saved_path:
-                category.icon_image_path = '/' + saved_path
+            # Для SVG-файлов просто сохраняем без обработки
+            if filename.lower().endswith('.svg'):
+                full_path = os.path.join(upload_folder, unique_filename)
+                form.icon_image.data.save(full_path)
+                category.icon_image_path = f'/static/uploads/categories/{unique_filename}'
+            else:
+                # Для других изображений обрабатываем через process_image
+                saved_path = process_image(
+                    source=None,
+                    max_size=(100, 100),  # Размер иконки категории
+                    file_obj=form.icon_image.data,
+                    destination=os.path.join(upload_folder, unique_filename)
+                )
+                
+                if saved_path:
+                    category.icon_image_path = '/' + saved_path
         
         db.session.commit()
         
