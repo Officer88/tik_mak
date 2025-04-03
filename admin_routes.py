@@ -30,62 +30,62 @@ def dashboard():
         upcoming_events = Event.query.filter(
             Event.date >= datetime.now()
         ).count()
-        
+
         # Статистика заказов
         total_orders = Order.query.count()
         completed_orders = Order.query.filter_by(status='completed').count()
         pending_orders = Order.query.filter_by(status='pending').count()
-        
+
         # Статистика пользователей
         total_users = User.query.count()
-        
+
         # Билеты
         total_tickets = Ticket.query.count()
         sold_tickets = Ticket.query.filter_by(is_available=False).count()
         available_tickets = total_tickets - sold_tickets
-            
-            # Последние заказы
-            recent_orders = Order.query.order_by(Order.created_at.desc()).limit(10).all()
-            
-            # Статистика по категориям
-            categories = Category.query.all()
-            category_stats = []
-            
-            for category in categories:
-                events = Event.query.filter_by(category_id=category.id).all()
-                event_ids = [event.id for event in events]
-                
-                if event_ids:  # Проверяем, есть ли события в категории
-                    sold_tickets_count = Ticket.query.filter(
-                        Ticket.event_id.in_(event_ids),
-                        Ticket.is_available == False
-                    ).count()
-                else:
-                    sold_tickets_count = 0
-                    
-                category_stats.append({
-                    'name': category.name,
-                    'sold_tickets': sold_tickets_count
-                })
-            
-            # Получаем текущего пользователя
-            admin_username = current_user.username if current_user else None
-            
-            return render_template(
-                'admin/dashboard.html',
-                total_events=total_events,
-                upcoming_events=upcoming_events,
-                total_tickets=total_tickets,
-                sold_tickets=sold_tickets,
-                available_tickets=available_tickets,
-                total_users=total_users,
-                total_orders=total_orders,
-                completed_orders=completed_orders,
-                pending_orders=pending_orders,
-                recent_orders=recent_orders,
-                category_stats=category_stats,
-                admin_username=admin_username
-            )
+
+        # Последние заказы
+        recent_orders = Order.query.order_by(Order.created_at.desc()).limit(10).all()
+
+        # Статистика по категориям
+        categories = Category.query.all()
+        category_stats = []
+
+        for category in categories:
+            events = Event.query.filter_by(category_id=category.id).all()
+            event_ids = [event.id for event in events]
+
+            if event_ids:  # Проверяем, есть ли события в категории
+                sold_tickets_count = Ticket.query.filter(
+                    Ticket.event_id.in_(event_ids),
+                    Ticket.is_available == False
+                ).count()
+            else:
+                sold_tickets_count = 0
+
+            category_stats.append({
+                'name': category.name,
+                'sold_tickets': sold_tickets_count
+            })
+
+        # Получаем текущего пользователя
+        admin_username = current_user.username if current_user else None
+
+        return render_template(
+            'admin/dashboard.html',
+            total_events=total_events,
+            upcoming_events=upcoming_events,
+            total_tickets=total_tickets,
+            sold_tickets=sold_tickets,
+            available_tickets=available_tickets,
+            total_users=total_users,
+            total_orders=total_orders,
+            completed_orders=completed_orders,
+            pending_orders=pending_orders,
+            recent_orders=recent_orders,
+            category_stats=category_stats,
+            admin_username=admin_username
+        )
     except Exception as e:
         print(f"Ошибка при получении статистики: {e}")
         return render_template(
@@ -103,39 +103,39 @@ def dashboard():
             recent_orders=[],
             category_stats=[]
         )
-    
+
     # Счетчики для дашборда - использование db.session для свежих данных
     event_count = db.session.query(Event).count()
     venue_count = db.session.query(Venue).count()
     category_count = db.session.query(Category).count()
     review_count = db.session.query(Review).count()
-    
+
     # Последние 5 заказов
     recent_orders = db.session.query(Order).order_by(Order.created_at.desc()).limit(5).all()
-    
+
     # Билеты на продажу, ожидающие подтверждения
     pending_tickets = db.session.query(TicketForSale).filter_by(status='pending').count()
-    
+
     # Количество событий на этой неделе
     next_week = datetime.now() + timedelta(days=7)
     upcoming_events = db.session.query(Event).filter(
         Event.date >= datetime.now(),
         Event.date <= next_week
     ).count()
-    
+
     # Данные для графика заказов
     total_orders = db.session.query(Order).count()
     completed_orders = db.session.query(Order).filter_by(status='completed').count()
     pending_orders = db.session.query(Order).filter_by(status='pending').count()
-    
+
     # Получаем данные о текущем пользователе через Helper-функцию 
     # (исправляет DetachedInstanceError)
     user_info = get_current_user_info()
     admin_username = user_info['username']
-    
+
     # Исправление переменной для dashboard.html
     total_events = event_count
-    
+
     return render_template(
         'admin/dashboard.html', 
         event_count=event_count,
@@ -158,7 +158,7 @@ def events():
     # Обновляем сессию и получаем события через DTO
     db.session.expire_all()
     db.session.close()
-    
+
     events = Event.query.order_by(Event.date.desc()).all()
     event_dtos = [EventDTO(event) for event in events]
     return render_template('admin/events.html', events=event_dtos)
@@ -167,15 +167,15 @@ def events():
 @admin_bp.route('/events/add', methods=['GET', 'POST'])
 def add_event():
     form = EventForm()
-    
+
     # Получаем список категорий для выпадающего списка
     categories = Category.query.all()
     form.category_id.choices = [(c.id, c.name) for c in categories]
-    
+
     # Получаем список площадок для выпадающего списка
     venues = Venue.query.all()
     form.venue_id.choices = [(0, 'Собственная площадка')] + [(v.id, v.name) for v in venues]
-    
+
     if form.validate_on_submit():
         # Создаем новое событие со всеми полями формы
         event = Event(
@@ -192,11 +192,11 @@ def add_event():
             seo_description=form.seo_description.data or None,
             delivery_methods=','.join(form.delivery_methods.data)
         )
-        
+
         # Установка даты окончания, если она указана
         if form.end_date.data:
             event.end_date = form.end_date.data
-        
+
         # Применяем выбор площадки
         if form.venue_id.data > 0:
             event.venue_id = form.venue_id.data
@@ -208,13 +208,13 @@ def add_event():
             event.venue_id = None
             event.custom_venue_name = form.custom_venue_name.data
             event.custom_venue_address = form.custom_venue_address.data
-        
+
         # Обработка изображения
         if form.image.data:
             # Для загрузки локального изображения
             if hasattr(form.image.data, 'filename') and form.image.data.filename:
                 image_file = form.image.data
-                
+
                 # Проверяем, является ли это специальным форматом
                 filename = image_file.filename.lower()
                 if filename.endswith('.svg') or filename.endswith('.gif') or 'photoviewer.fileassoc.tiff' in filename:
@@ -225,17 +225,17 @@ def add_event():
                     import logging
                     logging.info(f"Processing image: {image_file.filename}")
                     image_url = process_image(file_obj=image_file, max_size=(400, 300), folder_type='events')
-                
+
                 if image_url:
                     event.image_url = image_url
-        
+
         # Сохраняем событие в базу данных
         db.session.add(event)
         db.session.commit()
-        
+
         flash('Событие успешно создано', 'success')
         return redirect(url_for('admin.events'))
-    
+
     return render_template('admin/edit_event.html', form=form, event=None)
 
 # Редактирование события
@@ -243,14 +243,14 @@ def add_event():
 def edit_event(event_id):
     event = Event.query.get_or_404(event_id)
     form = EventForm()
-    
+
     # Получаем список категорий и площадок для формы
     categories = Category.query.all()
     form.category_id.choices = [(c.id, c.name) for c in categories]
-    
+
     venues = Venue.query.all()
     form.venue_id.choices = [(0, 'Собственная площадка')] + [(v.id, v.name) for v in venues]
-    
+
     if request.method == 'GET':
         # Заполняем форму данными события
         form.title.data = event.title
@@ -258,7 +258,7 @@ def edit_event(event_id):
         form.date.data = event.date
         form.end_date.data = event.end_date
         form.category_id.data = event.category_id
-        
+
         # Выбор площадки
         if event.venue_id:
             form.venue_id.data = event.venue_id
@@ -266,7 +266,7 @@ def edit_event(event_id):
             form.venue_id.data = 0
             form.custom_venue_name.data = event.custom_venue_name
             form.custom_venue_address.data = event.custom_venue_address
-        
+
         form.base_price.data = event.base_price
         form.max_price.data = event.max_price
         form.is_active.data = event.is_active
@@ -274,13 +274,13 @@ def edit_event(event_id):
         form.is_featured.data = event.is_featured
         form.seo_title.data = event.seo_title
         form.seo_description.data = event.seo_description
-        
+
         # Обработка методов доставки
         if event.delivery_methods:
             form.delivery_methods.data = event.delivery_methods.split(',')
         else:
             form.delivery_methods.data = ['email', 'courier']  # Значения по умолчанию
-    
+
     if form.validate_on_submit():
         # Обновляем данные события
         event.title = form.title.data
@@ -288,7 +288,7 @@ def edit_event(event_id):
         event.date = form.date.data
         event.end_date = form.end_date.data if form.end_date.data else None
         event.category_id = form.category_id.data
-        
+
         # Обновляем информацию о площадке
         if form.venue_id.data > 0:
             event.venue_id = form.venue_id.data
@@ -298,7 +298,7 @@ def edit_event(event_id):
             event.venue_id = None
             event.custom_venue_name = form.custom_venue_name.data
             event.custom_venue_address = form.custom_venue_address.data
-        
+
         event.base_price = form.base_price.data
         event.max_price = form.max_price.data
         event.is_active = form.is_active.data
@@ -307,11 +307,11 @@ def edit_event(event_id):
         event.seo_title = form.seo_title.data
         event.seo_description = form.seo_description.data
         event.delivery_methods = ','.join(form.delivery_methods.data)
-        
+
         # Обработка загруженного изображения
         if form.image.data and hasattr(form.image.data, 'filename') and form.image.data.filename:
             image_file = form.image.data
-            
+
             # Проверяем, является ли это специальным форматом
             filename = image_file.filename.lower()
             if filename.endswith('.svg') or filename.endswith('.gif') or 'photoviewer.fileassoc.tiff' in filename:
@@ -320,14 +320,14 @@ def edit_event(event_id):
             else:
                 # Обрабатываем загруженный файл через нашу функцию process_image
                 new_image_url = process_image(file_obj=image_file, max_size=(240, 320), folder_type='events')
-            
+
             if new_image_url:
                 event.image_url = new_image_url
-        
+
         db.session.commit()
         flash('Событие успешно обновлено', 'success')
         return redirect(url_for('admin.events'))
-    
+
     return render_template('admin/edit_event.html', form=form, event=event)
 
 # Удаление события
@@ -350,14 +350,14 @@ def venues():
     except Exception as e:
         print(f"Ошибка при получении площадок: {e}")
         venues = []
-        
+
     return render_template('admin/venues.html', venues=venues)
 
 # Добавление площадки
 @admin_bp.route('/venues/add', methods=['GET', 'POST'])
 def add_venue():
     form = VenueForm()
-    
+
     if form.validate_on_submit():
         venue = Venue(
             name=form.name.data,
@@ -365,11 +365,11 @@ def add_venue():
             city=form.city.data,
             description=form.description.data
         )
-        
+
         # Обработка логотипа
         if form.logo.data:
             logo_file = form.logo.data
-            
+
             # Проверяем, является ли это специальным форматом (SVG или GIF)
             filename = logo_file.filename.lower() if hasattr(logo_file, 'filename') else ''
             if filename.endswith('.svg') or filename.endswith('.gif') or 'photoviewer.fileassoc.tiff' in filename:
@@ -382,14 +382,14 @@ def add_venue():
                     max_size=(240, 240),  # Квадратный логотип
                     folder_type='venues'
                 )
-            
+
             if saved_path:
                 venue.logo_path = saved_path
-        
+
         # Обработка схемы зала
         if form.scheme.data:
             scheme_file = form.scheme.data
-            
+
             # Проверяем, является ли это специальным форматом (SVG или большая схема)
             filename = scheme_file.filename.lower() if hasattr(scheme_file, 'filename') else ''
             if filename.endswith('.svg') or filename.endswith('.gif'):
@@ -402,20 +402,20 @@ def add_venue():
                     max_size=(1200, 1200),  # Большой размер для схемы
                     folder_type='venues/schemes'
                 )
-            
+
             if saved_path:
                 venue.scheme_path = saved_path
-        
+
         # Сохраняем карту зала, если она указана
         if form.venue_map.data:
             venue.venue_map = form.venue_map.data
-        
+
         db.session.add(venue)
         db.session.commit()
-        
+
         flash('Площадка успешно добавлена', 'success')
         return redirect(url_for('admin.venues'))
-    
+
     return render_template('admin/edit_venue.html', form=form, venue=None)
 
 # Редактирование площадки
@@ -423,7 +423,7 @@ def add_venue():
 def edit_venue(venue_id):
     venue = Venue.query.get_or_404(venue_id)
     form = VenueForm()
-    
+
     if request.method == 'GET':
         # Заполняем форму данными площадки
         form.name.data = venue.name
@@ -431,18 +431,18 @@ def edit_venue(venue_id):
         form.city.data = venue.city
         form.description.data = venue.description
         form.venue_map.data = venue.venue_map
-    
+
     if form.validate_on_submit():
         # Обновляем данные площадки
         venue.name = form.name.data
         venue.address = form.address.data
         venue.city = form.city.data
         venue.description = form.description.data
-        
+
         # Обработка нового логотипа, если загружен
         if form.logo.data:
             logo_file = form.logo.data
-            
+
             # Проверяем, является ли это специальным форматом (SVG или GIF)
             filename = logo_file.filename.lower() if hasattr(logo_file, 'filename') else ''
             if filename.endswith('.svg') or filename.endswith('.gif') or 'photoviewer.fileassoc.tiff' in filename:
@@ -455,14 +455,14 @@ def edit_venue(venue_id):
                     max_size=(240, 240),  # Квадратный логотип
                     folder_type='venues'
                 )
-            
+
             if saved_path:
                 venue.logo_path = saved_path
-        
+
         # Обработка новой схемы зала, если загружена
         if form.scheme.data:
             scheme_file = form.scheme.data
-            
+
             # Проверяем, является ли это специальным форматом (SVG)
             filename = scheme_file.filename.lower() if hasattr(scheme_file, 'filename') else ''
             if filename.endswith('.svg') or filename.endswith('.gif'):
@@ -475,31 +475,31 @@ def edit_venue(venue_id):
                     max_size=(1200, 1200),  # Большой размер для схемы
                     folder_type='venues/schemes'
                 )
-            
+
             if saved_path:
                 venue.scheme_path = saved_path
-        
+
         # Обновляем карту зала, если она указана
         if form.venue_map.data is not None:  # Проверяем на None, так как пустая строка - валидное значение
             venue.venue_map = form.venue_map.data
-        
+
         db.session.commit()
         flash('Площадка успешно обновлена', 'success')
         return redirect(url_for('admin.venues'))
-    
+
     return render_template('admin/edit_venue.html', form=form, venue=venue)
 
 # Удаление площадки
 @admin_bp.route('/venues/delete/<int:venue_id>', methods=['POST'])
 def delete_venue(venue_id):
     venue = Venue.query.get_or_404(venue_id)
-    
+
     # Проверяем, есть ли события, связанные с этой площадкой
     events_count = Event.query.filter_by(venue_id=venue_id).count()
     if events_count > 0:
         flash(f'Невозможно удалить площадку, так как с ней связано {events_count} событий', 'danger')
         return redirect(url_for('admin.venues'))
-    
+
     db.session.delete(venue)
     db.session.commit()
     flash('Площадка успешно удалена', 'success')
@@ -517,14 +517,14 @@ def categories():
     except Exception as e:
         print(f"Ошибка при получении категорий: {e}")
         categories = []
-        
+
     return render_template('admin/categories.html', categories=categories)
 
 # Добавление категории
 @admin_bp.route('/categories/add', methods=['GET', 'POST'])
 def add_category():
     form = CategoryForm()
-    
+
     if form.validate_on_submit():
         category = Category(
             name=form.name.data,
@@ -532,11 +532,11 @@ def add_category():
             seo_title=form.seo_title.data,
             seo_description=form.seo_description.data
         )
-        
+
         # Обработка загруженной иконки
         if form.icon_image.data:
             icon_file = form.icon_image.data
-            
+
             # Проверяем, является ли это SVG
             if hasattr(icon_file, 'filename') and icon_file.filename.lower().endswith('.svg'):
                 # Для SVG используем специальную обработку
@@ -548,16 +548,16 @@ def add_category():
                     max_size=(64, 64),  # Маленький размер для иконки
                     folder_type='categories'
                 )
-            
+
             if saved_path:
                 category.icon_image_path = saved_path
-        
+
         db.session.add(category)
         db.session.commit()
-        
+
         flash('Категория успешно добавлена', 'success')
         return redirect(url_for('admin.categories'))
-    
+
     return render_template('admin/edit_category.html', form=form, category=None)
 
 # Редактирование категории
@@ -565,25 +565,25 @@ def add_category():
 def edit_category(category_id):
     category = Category.query.get_or_404(category_id)
     form = CategoryForm()
-    
+
     if request.method == 'GET':
         # Заполняем форму данными категории
         form.name.data = category.name
         form.icon.data = category.icon
         form.seo_title.data = category.seo_title
         form.seo_description.data = category.seo_description
-    
+
     if form.validate_on_submit():
         # Обновляем данные категории
         category.name = form.name.data
         category.icon = form.icon.data
         category.seo_title = form.seo_title.data
         category.seo_description = form.seo_description.data
-        
+
         # Обработка новой иконки, если загружена
         if form.icon_image.data:
             icon_file = form.icon_image.data
-            
+
             # Проверяем, является ли это SVG
             if hasattr(icon_file, 'filename') and icon_file.filename.lower().endswith('.svg'):
                 # Для SVG используем специальную обработку
@@ -595,27 +595,27 @@ def edit_category(category_id):
                     max_size=(64, 64),  # Маленький размер для иконки
                     folder_type='categories'
                 )
-            
+
             if saved_path:
                 category.icon_image_path = saved_path
-        
+
         db.session.commit()
         flash('Категория успешно обновлена', 'success')
         return redirect(url_for('admin.categories'))
-    
+
     return render_template('admin/edit_category.html', form=form, category=category)
 
 # Удаление категории
 @admin_bp.route('/categories/delete/<int:category_id>', methods=['POST'])
 def delete_category(category_id):
     category = Category.query.get_or_404(category_id)
-    
+
     # Проверяем, есть ли события в этой категории
     events_count = Event.query.filter_by(category_id=category_id).count()
     if events_count > 0:
         flash(f'Невозможно удалить категорию, так как с ней связано {events_count} событий', 'danger')
         return redirect(url_for('admin.categories'))
-    
+
     db.session.delete(category)
     db.session.commit()
     flash('Категория успешно удалена', 'success')
@@ -626,7 +626,7 @@ def delete_category(category_id):
 def tickets(event_id):
     event = Event.query.get_or_404(event_id)
     form = TicketForm()
-    
+
     if form.validate_on_submit():
         # Добавление нового билета
         ticket = Ticket(
@@ -637,16 +637,16 @@ def tickets(event_id):
             price=form.price.data,
             is_available=form.is_available.data
         )
-        
+
         db.session.add(ticket)
         db.session.commit()
-        
+
         flash('Билет успешно добавлен', 'success')
         return redirect(url_for('admin.tickets', event_id=event_id))
-    
+
     # Получение всех билетов для события
     tickets = Ticket.query.filter_by(event_id=event_id).all()
-    
+
     return render_template('admin/tickets.html', event=event, tickets=tickets, form=form)
 
 # Удаление билета
@@ -654,10 +654,10 @@ def tickets(event_id):
 def delete_ticket(ticket_id):
     ticket = Ticket.query.get_or_404(ticket_id)
     event_id = ticket.event_id
-    
+
     db.session.delete(ticket)
     db.session.commit()
-    
+
     flash('Билет успешно удален', 'success')
     return redirect(url_for('admin.tickets', event_id=event_id))
 
@@ -667,7 +667,7 @@ def sliders():
     # Обновляем сессию перед запросом для избежания detached instance
     db.session.expire_all()
     db.session.close()
-    
+
     try:
         # Получаем слайды и используем DTO для предотвращения detached instance
         slide_records = db.session.query(Slide).order_by(Slide.order).all()
@@ -675,16 +675,16 @@ def sliders():
     except Exception as e:
         print(f"Ошибка при получении слайдов: {e}")
         slides = []
-        
+
     form = SlideForm()
-    
+
     return render_template('admin/sliders.html', slides=slides, form=form, add_mode=False)
 
 # Добавление слайда
 @admin_bp.route('/sliders/add', methods=['GET', 'POST'])
 def add_slide():
     form = SlideForm()
-    
+
     if form.validate_on_submit():
         slide = Slide(
             title=form.title.data,
@@ -695,7 +695,7 @@ def add_slide():
             order=form.order.data or 0,
             is_active=form.is_active.data
         )
-        
+
         # Обработка загруженного изображения
         if form.image.data:
             # Сохраняем и обрабатываем изображение
@@ -704,16 +704,16 @@ def add_slide():
                 folder_type='slides',
                 max_size=(1200, 600)  # Размер слайдера
             )
-            
+
             if saved_path:
                 slide.image_url = '/' + saved_path
-        
+
         db.session.add(slide)
         db.session.commit()
-        
+
         flash('Слайд успешно добавлен', 'success')
         return redirect(url_for('admin.sliders'))
-    
+
     return render_template('admin/sliders.html', form=form, add_mode=True)
 
 @admin_bp.route('/sliders/edit/<int:slide_id>', methods=['GET', 'POST'])
@@ -721,7 +721,7 @@ def add_slide():
 def edit_slide(slide_id):
     slide = Slide.query.get_or_404(slide_id)
     form = SlideForm()
-    
+
     if request.method == 'GET':
         # Pre-fill form with slide data
         form.title.data = slide.title
@@ -731,7 +731,7 @@ def edit_slide(slide_id):
         form.button_url.data = slide.button_url
         form.order.data = slide.order
         form.is_active.data = slide.is_active
-    
+
     if form.validate_on_submit():
         # Update slide data
         slide.title = form.title.data
@@ -740,11 +740,11 @@ def edit_slide(slide_id):
         slide.button_url = form.button_url.data
         slide.order = form.order.data
         slide.is_active = form.is_active.data
-        
+
         # Only update image_url from form if no uploaded file
         if not form.image.data and form.image_url.data:
             slide.image_url = form.image_url.data
-        
+
         # Handle uploaded image
         if form.image.data:
             # Save and process image
@@ -753,23 +753,23 @@ def edit_slide(slide_id):
                 folder_type='slides',
                 max_size=(1200, 600)  # Slider size
             )
-            
+
             if saved_path:
                 slide.image_url = '/' + saved_path
-        
+
         db.session.commit()
         flash('Слайд успешно обновлен', 'success')
         return redirect(url_for('admin.sliders'))
-    
+
     return render_template('admin/edit_slide.html', form=form, slide=slide)
 
 @admin_bp.route('/sliders/delete/<int:slide_id>', methods=['POST'])
 def delete_slide(slide_id):
     slide = Slide.query.get_or_404(slide_id)
-    
+
     db.session.delete(slide)
     db.session.commit()
-    
+
     flash('Слайд успешно удален', 'success')
     return redirect(url_for('admin.sliders'))
 
@@ -777,14 +777,14 @@ def delete_slide(slide_id):
 @admin_bp.route('/reviews')
 def reviews():
     # Обновляем сессию перед запросом для избежания detached instance
-    db.session.expire_all()
+        db.session.expire_all()
     db.session.close()
-    
+
     try:
         # Получаем отзывы, ожидающие модерации, используя DTO
         pending_review_records = db.session.query(Review).filter_by(is_approved=False).all()
         pending_reviews = [ReviewDTO(review) for review in pending_review_records]
-        
+
         # Получаем уже одобренные отзывы, используя DTO
         approved_review_records = db.session.query(Review).filter_by(is_approved=True).all()
         approved_reviews = [ReviewDTO(review) for review in approved_review_records]
@@ -792,7 +792,7 @@ def reviews():
         print(f"Ошибка при получении отзывов: {e}")
         pending_reviews = []
         approved_reviews = []
-    
+
     return render_template('admin/reviews.html', 
                           pending_reviews=pending_reviews, 
                           approved_reviews=approved_reviews)
@@ -803,7 +803,7 @@ def approve_review(review_id):
     review = Review.query.get_or_404(review_id)
     review.is_approved = True
     db.session.commit()
-    
+
     flash('Отзыв одобрен', 'success')
     return redirect(url_for('admin.reviews'))
 
@@ -813,7 +813,7 @@ def reject_review(review_id):
     review = Review.query.get_or_404(review_id)
     db.session.delete(review)
     db.session.commit()
-    
+
     flash('Отзыв отклонен', 'success')
     return redirect(url_for('admin.reviews'))
 
@@ -823,7 +823,7 @@ def orders():
     # Обновляем сессию перед запросом для избежания detached instance
     db.session.expire_all()
     db.session.close()
-    
+
     try:
         # Получаем заказы и используем DTO для предотвращения detached instance
         order_records = db.session.query(Order).order_by(Order.created_at.desc()).all()
@@ -831,7 +831,7 @@ def orders():
     except Exception as e:
         print(f"Ошибка при получении заказов: {e}")
         orders = []
-        
+
     return render_template('admin/orders.html', orders=orders)
 
 # Детали заказа
@@ -840,7 +840,7 @@ def order_detail(order_id):
     # Обновляем сессию перед запросом для избежания detached instance
     db.session.expire_all()
     db.session.close()
-    
+
     try:
         order_record = db.session.query(Order).filter_by(id=order_id).first_or_404()
         order = OrderDTO(order_record)
@@ -848,7 +848,7 @@ def order_detail(order_id):
         print(f"Ошибка при получении заказа: {e}")
         flash('Ошибка при получении данных заказа', 'danger')
         return redirect(url_for('admin.orders'))
-        
+
     return render_template('admin/order_detail.html', order=order)
 
 # Изменение статуса заказа
@@ -856,14 +856,14 @@ def order_detail(order_id):
 def update_order_status(order_id):
     order = Order.query.get_or_404(order_id)
     new_status = request.form.get('status')
-    
+
     if new_status in ['pending', 'completed', 'cancelled']:
         order.status = new_status
         db.session.commit()
         flash(f'Статус заказа изменен на {new_status}', 'success')
     else:
         flash('Неверный статус', 'danger')
-    
+
     return redirect(url_for('admin.order_detail', order_id=order_id))
 
 # Билеты на продажу от пользователей
@@ -872,7 +872,7 @@ def tickets_for_sale():
     # Обновляем сессию перед запросом для избежания detached instance
     db.session.expire_all()
     db.session.close()
-    
+
     try:
         # Получаем билеты на продажу и используем DTO для предотвращения detached instance
         ticket_records = db.session.query(TicketForSale).order_by(TicketForSale.created_at.desc()).all()
@@ -880,7 +880,7 @@ def tickets_for_sale():
     except Exception as e:
         print(f"Ошибка при получении билетов на продажу: {e}")
         tickets = []
-        
+
     return render_template('admin/tickets_for_sale.html', tickets=tickets)
 
 # Подтверждение билета на продажу
@@ -889,7 +889,7 @@ def approve_ticket_for_sale(ticket_id):
     ticket = TicketForSale.query.get_or_404(ticket_id)
     ticket.status = 'confirmed'
     db.session.commit()
-    
+
     flash('Билет подтвержден для продажи', 'success')
     return redirect(url_for('admin.tickets_for_sale'))
 
@@ -899,7 +899,7 @@ def reject_ticket_for_sale(ticket_id):
     ticket = TicketForSale.query.get_or_404(ticket_id)
     ticket.status = 'rejected'
     db.session.commit()
-    
+
     flash('Билет отклонен', 'success')
     return redirect(url_for('admin.tickets_for_sale'))
 
@@ -909,7 +909,7 @@ def delete_ticket_for_sale(ticket_id):
     ticket = TicketForSale.query.get_or_404(ticket_id)
     db.session.delete(ticket)
     db.session.commit()
-    
+
     flash('Билет удален', 'success')
     return redirect(url_for('admin.tickets_for_sale'))
 
@@ -918,12 +918,12 @@ def delete_ticket_for_sale(ticket_id):
 def contacts():
     # Импортируем функцию для получения актуальных контактов
     from helpers import get_contact
-    
+
     # Получаем контактную информацию с принудительным обновлением данных
     contact = get_contact()
-    
+
     form = ContactForm(obj=contact)
-    
+
     if form.validate_on_submit():
         contact.phone = form.phone.data
         contact.email = form.email.data
@@ -931,27 +931,27 @@ def contacts():
         contact.whatsapp = form.whatsapp.data
         contact.vk = form.vk.data
         contact.instagram = form.instagram.data
-        
+
         # Сохраняем изменения
         db.session.commit()
-        
+
         # Закрываем сессию и сбрасываем все кэши
         db.session.expire_all()
         db.session.close()
-        
+
         flash('Контактная информация обновлена', 'success')
         return redirect(url_for('admin.contacts'))
-    
+
     return render_template('admin/contacts.html', form=form, contact=contact)
 
 # Настройки уведомлений
 @admin_bp.route('/notifications', methods=['GET', 'POST'])
 def notifications():
     form = NotificationSettingForm()
-    
+
     if form.validate_on_submit():
         # Здесь можно сохранить настройки уведомлений для админа
         flash('Настройки уведомлений обновлены', 'success')
         return redirect(url_for('admin.notifications'))
-    
+
     return render_template('admin/notifications.html', form=form)
