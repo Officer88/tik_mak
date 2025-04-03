@@ -17,8 +17,8 @@
                     {{ form.hidden_tag() }}
                     
                     <div class="mb-4">
-                        <label for="event_name" class="form-label">Название мероприятия</label>
-                        {{ form.event_name(class="form-control") }}
+                        <label for="event_name" class="form-label">Название мероприятия и дата</label>
+                        {{ form.event_name(class="form-control", placeholder="Например: Концерт группы Би-2, 15.05.2025") }}
                         {% if form.event_name.errors %}
                         <div class="invalid-feedback d-block">
                             {% for error in form.event_name.errors %}
@@ -26,7 +26,20 @@
                             {% endfor %}
                         </div>
                         {% endif %}
-                        <div class="form-text">Укажите название мероприятия, на которое у вас есть билет</div>
+                        <div class="form-text">Укажите название мероприятия и дату, на которое у вас есть билет</div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="venue_name" class="form-label">Место проведения (необязательно)</label>
+                        {{ form.venue_name(class="form-control", placeholder="Например: Крокус Сити Холл") }}
+                        {% if form.venue_name.errors %}
+                        <div class="invalid-feedback d-block">
+                            {% for error in form.venue_name.errors %}
+                            {{ error }}
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                        <div class="form-text">Укажите название площадки, где будет проходить мероприятие</div>
                     </div>
                     
                     <div class="mb-4">
@@ -173,4 +186,37 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Получаем радиокнопки типа билета
+    const ticketTypeRadios = document.querySelectorAll('input[name="ticket_type"]');
+    const sectionRowSeatFields = document.getElementById('section-row-seat-fields');
+    
+    // Функция для показа/скрытия полей секции, ряда и места
+    function toggleSectionRowSeatFields() {
+        // Проверяем, выбран ли физический билет
+        const isPhysical = Array.from(ticketTypeRadios).some(radio => 
+            radio.value === 'physical' && radio.checked
+        );
+        
+        // Показываем или скрываем поля в зависимости от типа билета
+        if (isPhysical) {
+            sectionRowSeatFields.classList.remove('d-none');
+        } else {
+            sectionRowSeatFields.classList.add('d-none');
+        }
+    }
+    
+    // Вызываем функцию при загрузке страницы
+    toggleSectionRowSeatFields();
+    
+    // Добавляем обработчик изменения типа билета
+    ticketTypeRadios.forEach(radio => {
+        radio.addEventListener('change', toggleSectionRowSeatFields);
+    });
+});
+</script>
 {% endblock %}

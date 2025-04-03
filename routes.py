@@ -456,6 +456,10 @@ def sell_ticket():
         if not request.form.get('terms_agreement'):
             flash('Необходимо согласиться с правилами сервиса', 'danger')
             return render_template('sell_ticket.html', form=form)
+
+        # Принудительно устанавливаем venue_name как None, если поле пустое
+        if form.venue_name.data == '':
+            form.venue_name.data = None
             
         if form.validate_on_submit():
             # Определяем user_id для билета
@@ -464,36 +468,45 @@ def sell_ticket():
                 user_id = current_user.id
             
             try:
-                venue_name = form.venue_name.data if form.venue_name.data else None
-                
+                # Создаем билет на продажу
                 ticket = TicketForSale(
                     user_id=user_id,
                     event_name=form.event_name.data,
-                    venue_name=venue_name,
+                    venue_name=form.venue_name.data,  # Уже может быть None
                     ticket_type=form.ticket_type.data,
-                    section=form.section.data,
-                    row=form.row.data,
-                    seat=form.seat.data,
+                    section=form.section.data if form.section.data else None,
+                    row=form.row.data if form.row.data else None,
+                    seat=form.seat.data if form.seat.data else None,
                     original_price=form.original_price.data,
                     selling_price=form.selling_price.data,
                     contact_info=form.contact_info.data
                 )
+                
+                # Добавляем и сохраняем в БД
                 db.session.add(ticket)
                 db.session.commit()
                 
+                # Успешное сообщение и редирект
                 flash('Ваш билет отправлен на рассмотрение!', 'success')
                 return redirect(url_for('main.index'))
             except Exception as e:
+                # Обработка ошибок БД
                 db.session.rollback()
                 import logging
                 logging.error(f"Ошибка при сохранении билета: {str(e)}")
                 flash('Произошла ошибка при отправке билета. Пожалуйста, попробуйте еще раз.', 'danger')
         else:
+            # Формируем подробное сообщение об ошибках валидации
             error_messages = []
             for field, errors in form.errors.items():
-                field_label = getattr(form, field).label.text
-                error_msg = f"{field_label}: {', '.join(errors)}"
-                error_messages.append(error_msg)
+                try:
+                    field_label = getattr(form, field).label.text
+                    error_msg = f"{field_label}: {', '.join(errors)}"
+                    error_messages.append(error_msg)
+                except AttributeError:
+                    # Fallback для полей без label
+                    error_msg = f"{field}: {', '.join(errors)}"
+                    error_messages.append(error_msg)
             
             if error_messages:
                 flash(f'Ошибки в форме: {"; ".join(error_messages)}', 'danger')
