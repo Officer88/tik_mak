@@ -113,7 +113,7 @@ def add_event():
                 if not image_url:
                     image_url = '/static/images/default-event.jpg'
             except Exception as e:
-                flash(f'Ошибка обработки изображения: {str(e)}. Рекомендуемый размер: 400x300 пикселей', 'warning')
+                flash(f'Ошибка обработки изображения: {str(e)}. Рекомендуемый размер: 240x320 пикселей (вертикальный формат)', 'warning')
                 image_url = '/static/images/default-event.jpg'
             
             # Соберем список методов доставки
@@ -208,17 +208,17 @@ def edit_event(event_id):
                 
                 if image_file and image_file.filename:
                     # Обрабатываем загруженный файл через нашу функцию process_image
-                    # Рекомендуемый размер для карточки события: 400x300
-                    new_image_url = process_image('', max_size=(400, 300), file_obj=image_file)
+                    # Рекомендуемый размер для карточки события: 240x320 (вертикальный формат)
+                    new_image_url = process_image('', max_size=(240, 320), file_obj=image_file)
                 elif image_url and image_url != event.image_url:
                     # Обрабатываем изображение по URL только если URL изменился
-                    new_image_url = process_image(image_url, max_size=(400, 300))
+                    new_image_url = process_image(image_url, max_size=(240, 320))
                 
                 # Если получили новый URL, обновляем изображение события
                 if new_image_url:
                     event.image_url = new_image_url
             except Exception as e:
-                flash(f'Ошибка обработки изображения: {str(e)}. Рекомендуемый размер: 400x300 пикселей', 'warning')
+                flash(f'Ошибка обработки изображения: {str(e)}. Рекомендуемый размер: 240x320 пикселей (вертикальный формат)', 'warning')
                 # Продолжаем выполнение без обновления изображения
             
             # Соберем список методов доставки

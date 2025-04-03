@@ -7,7 +7,7 @@ import os
 from datetime import datetime
 import uuid
 
-def process_image(source, max_size=(400, 300), file_obj=None):
+def process_image(source, max_size=(240, 320), file_obj=None):
     """
     Process image from URL or file object:
     1. Download image (if URL) or use file object

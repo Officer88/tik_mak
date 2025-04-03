@@ -243,7 +243,7 @@ body {
     height: 100%;
     display: flex;
     flex-direction: column;
-    max-width: 300px; /* Ограничиваем ширину карточки */
+    max-width: 240px; /* Сужаем ширину карточки под вертикальные изображения */
     margin-left: auto;
     margin-right: auto;
 }
@@ -256,7 +256,7 @@ body {
 .event-img-container {
     position: relative;
     overflow: hidden;
-    height: 150px; /* Уменьшаем высоту изображения */
+    height: 320px; /* Увеличиваем высоту для вертикальных изображений */
     flex-shrink: 0;
 }
 
@@ -640,7 +640,7 @@ body {
     }
     
     .event-img-container {
-        height: 150px;
+        height: 250px;
     }
     
     .event-card-body {
