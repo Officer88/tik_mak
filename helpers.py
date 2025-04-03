@@ -1,17 +1,7 @@
 from datetime import datetime, timedelta
-from flask import current_app, abort
-from flask_login import current_user
-from functools import wraps
+from flask import current_app
 from app import db
 from models import Event, Category, TicketForSale
-
-def admin_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if not current_user.is_authenticated or not current_user.is_admin:
-            abort(403)
-        return f(*args, **kwargs)
-    return decorated_function
 
 def format_date(date):
     """Format date for display in Russian style"""

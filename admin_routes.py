@@ -8,7 +8,6 @@ from datetime import datetime, timedelta
 from app import db
 from models import Event, Venue, Category, Ticket, Review, Order, Slide, TicketForSale, Contact
 from forms import EventForm, VenueForm, CategoryForm, LoginForm, TicketForm, SlideForm, SellTicketForm, ContactForm, NotificationSettingForm
-from helpers import admin_required
 from image_utils import save_image, process_image, save_special_format_file
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
@@ -587,7 +586,6 @@ def add_slide():
 
 @admin_bp.route('/sliders/edit/<int:slide_id>', methods=['GET', 'POST'])
 @login_required
-@admin_required
 def edit_slide(slide_id):
     slide = Slide.query.get_or_404(slide_id)
     form = SlideForm()
