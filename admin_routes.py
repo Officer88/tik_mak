@@ -100,30 +100,20 @@ def add_event():
             image_url = form.image_url.data
             image_file = form.image_file.data
             
-            if image_file and image_file.filename:
-                # Сохраняем загруженный файл
-                filename = secure_filename(f"{uuid.uuid4()}_{image_file.filename}")
-                static_folder = os.path.join(os.getcwd(), 'static')
-                uploads_folder = os.path.join(static_folder, 'uploads')
+            try:
+                if image_file and image_file.filename:
+                    # Обрабатываем загруженный файл через нашу функцию process_image
+                    # Рекомендуемый размер для карточки события: 400x300
+                    image_url = process_image('', max_size=(400, 300), file_obj=image_file)
+                elif image_url:
+                    # Обрабатываем изображение по URL
+                    image_url = process_image(image_url, max_size=(400, 300))
                 
-                # Создаем папку uploads, если она не существует
-                if not os.path.exists(uploads_folder):
-                    os.makedirs(uploads_folder)
-                
-                image_path = os.path.join(uploads_folder, filename)
-                image_file.save(image_path)
-                
-                # URL для использования в шаблонах
-                image_url = f"/static/uploads/{filename}"
-            elif image_url:
-                try:
-                    processed_image_path = process_image(image_url)
-                    image_url = processed_image_path
-                except Exception as e:
-                    flash(f'Ошибка обработки изображения: {str(e)}', 'warning')
-            
-            # Если нет ни URL, ни файла - используем значение по умолчанию
-            if not image_url:
+                # Если нет ни URL, ни файла - используем значение по умолчанию
+                if not image_url:
+                    image_url = '/static/images/default-event.jpg'
+            except Exception as e:
+                flash(f'Ошибка обработки изображения: {str(e)}. Рекомендуемый размер: 400x300 пикселей', 'warning')
                 image_url = '/static/images/default-event.jpg'
             
             # Соберем список методов доставки
@@ -213,31 +203,23 @@ def edit_event(event_id):
             image_url = form.image_url.data
             image_file = form.image_file.data
             
-            if image_file and image_file.filename:
-                # Сохраняем загруженный файл
-                filename = secure_filename(f"{uuid.uuid4()}_{image_file.filename}")
-                static_folder = os.path.join(os.getcwd(), 'static')
-                uploads_folder = os.path.join(static_folder, 'uploads')
+            try:
+                new_image_url = None
                 
-                # Создаем папку uploads, если она не существует
-                if not os.path.exists(uploads_folder):
-                    os.makedirs(uploads_folder)
+                if image_file and image_file.filename:
+                    # Обрабатываем загруженный файл через нашу функцию process_image
+                    # Рекомендуемый размер для карточки события: 400x300
+                    new_image_url = process_image('', max_size=(400, 300), file_obj=image_file)
+                elif image_url and image_url != event.image_url:
+                    # Обрабатываем изображение по URL только если URL изменился
+                    new_image_url = process_image(image_url, max_size=(400, 300))
                 
-                image_path = os.path.join(uploads_folder, filename)
-                image_file.save(image_path)
-                
-                # URL для использования в шаблонах
-                image_url = f"/static/uploads/{filename}"
-            elif image_url:
-                try:
-                    processed_image_path = process_image(image_url)
-                    image_url = processed_image_path
-                except Exception as e:
-                    flash(f'Ошибка обработки изображения: {str(e)}', 'warning')
-            
-            # Если указан новый URL, обновляем, иначе оставляем существующий
-            if image_url:
-                event.image_url = image_url
+                # Если получили новый URL, обновляем изображение события
+                if new_image_url:
+                    event.image_url = new_image_url
+            except Exception as e:
+                flash(f'Ошибка обработки изображения: {str(e)}. Рекомендуемый размер: 400x300 пикселей', 'warning')
+                # Продолжаем выполнение без обновления изображения
             
             # Соберем список методов доставки
             delivery_methods = request.form.getlist('delivery_methods')
