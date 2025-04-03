@@ -457,9 +457,15 @@ def sell_ticket():
             flash('Необходимо согласиться с правилами сервиса', 'danger')
             return render_template('sell_ticket.html', form=form)
 
-        # Принудительно устанавливаем venue_name как None, если поле пустое
+        # Принудительно устанавливаем venue_name и другие поля как None, если они пустые
         if form.venue_name.data == '':
             form.venue_name.data = None
+        if form.section.data == '':
+            form.section.data = None
+        if form.row.data == '':
+            form.row.data = None
+        if form.seat.data == '':
+            form.seat.data = None
             
         if form.validate_on_submit():
             # Определяем user_id для билета
@@ -468,15 +474,16 @@ def sell_ticket():
                 user_id = current_user.id
             
             try:
-                # Создаем билет на продажу
+                # Создаем билет на продажу без указания event_id (допускается NULL)
                 ticket = TicketForSale(
                     user_id=user_id,
+                    event_id=None,  # Установка NULL для event_id
                     event_name=form.event_name.data,
-                    venue_name=form.venue_name.data,  # Уже может быть None
+                    venue_name=form.venue_name.data,
                     ticket_type=form.ticket_type.data,
-                    section=form.section.data if form.section.data else None,
-                    row=form.row.data if form.row.data else None,
-                    seat=form.seat.data if form.seat.data else None,
+                    section=form.section.data,
+                    row=form.row.data,
+                    seat=form.seat.data,
                     original_price=form.original_price.data,
                     selling_price=form.selling_price.data,
                     contact_info=form.contact_info.data
