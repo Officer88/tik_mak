@@ -76,10 +76,19 @@ with app.app_context():
     
     @app.context_processor
     def utility_processor():
+        contact = Contact.query.first()
+        if not contact:
+            contact = Contact(
+                phone='+7 (XXX) XXX-XX-XX',
+                email='info@example.com'
+            )
+            db.session.add(contact)
+            db.session.commit()
+        
         return {
             'get_categories': get_categories,
             'get_pending_tickets_count': get_pending_tickets_count,
-            'Contact': Contact
+            'contact': contact  # Передаем экземпляр, а не класс
         }
     
     # Setup login manager

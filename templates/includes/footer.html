@@ -21,7 +21,7 @@
             </div>
             <div class="col-md-4 footer-links">
                 <h5>Контакты</h5>
-                {% set contact = Contact.query.first() %}
+                {# Контакт теперь передается как переменная contact в контекст шаблона #}
                 <ul>
                     <li><i class="fas fa-phone me-2"></i> {{ contact.phone }}</li>
                     <li><i class="fas fa-envelope me-2"></i> {{ contact.email }}</li>
