@@ -88,33 +88,10 @@ with app.app_context():
             'contact': contact  # Передаем экземпляр с гарантированно свежими данными
         }
     
-    # Добавляем функцию-обертку для запросов, чтобы избежать проблем с отсоединенными экземплярами
-    @app.before_request
-    def before_request():
-        # Обновляем сессию перед каждым запросом
-        db.session.expire_all()
-            
     # Setup login manager
     @login_manager.user_loader
     def load_user(user_id):
-        try:
-            # Получаем пользователя через query.filter_by.first() вместо query.get() 
-            # для гарантированного получения нового объекта
-            db.session.expire_all()
-            user = User.query.filter_by(id=int(user_id)).first()
-            
-            # Обеспечиваем сохранение базовых данных для случаев отсоединения экземпляра
-            if user:
-                # Сохраняем базовые данные как атрибуты объекта для доступа даже при отсоединении
-                user._id = user.id
-                user._username = user.username
-                user._email = user.email
-                user._is_admin = user.is_admin
-                
-            return user
-        except Exception as e:
-            print(f"Ошибка при загрузке пользователя: {e}")
-            return None
+        return User.query.get(int(user_id))
     
     # Create all tables
     db.create_all()

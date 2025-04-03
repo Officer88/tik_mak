@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block title %}Избранное - MAGIK TIKET{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">Избранное</h1>
+    
+    {% if events %}
+    <div class="row">
+        {% for event in events %}
+        <div class="col-md-6 col-lg-4 mb-4">
+            {% with is_favorite=true %}
+                {% include 'includes/event_card.html' %}
+            {% endwith %}
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        <i class="fas fa-heart me-2"></i> У вас пока нет избранных мероприятий.
+    </div>
+    <div class="mt-4">
+        <a href="{{ url_for('main.events') }}" class="btn btn-primary">
+            <i class="fas fa-search me-2"></i> Найти мероприятия
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

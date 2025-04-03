@@ -17,28 +17,9 @@ admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 @admin_bp.before_request
 @login_required
 def check_admin():
-    try:
-        # Получаем ID пользователя
-        user_id = int(current_user.get_id())
-        
-        # Сбросим кэш сессии
-        db.session.expire_all()
-        
-        # Получим свежий экземпляр пользователя
-        user = User.query.filter_by(id=user_id).first()
-        
-        if not user:
-            flash('Ошибка при получении данных пользователя', 'danger')
-            return redirect(url_for('main.index'))
-            
-        # Проверяем права администратора
-        if not user.is_admin and request.endpoint != 'admin.login':
-            flash('У вас нет прав доступа к этой странице', 'danger')
-            return redirect(url_for('main.index'))
-    except Exception as e:
-        print(f"Ошибка при проверке прав администратора: {e}")
-        flash('Произошла ошибка при проверке доступа. Пожалуйста, авторизуйтесь снова.', 'danger')
-        return redirect(url_for('auth.login'))
+    if not current_user.is_admin and request.endpoint != 'admin.login':
+        flash('У вас нет прав доступа к этой странице', 'danger')
+        return redirect(url_for('main.index'))
 
 # Главная страница админки
 @admin_bp.route('/')

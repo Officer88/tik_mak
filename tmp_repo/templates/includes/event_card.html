@@ -1,0 +1,55 @@
+<div class="card event-card h-100">
+    <div class="event-img-container">
+        <img src="{{ event.image_url }}" class="event-img" alt="{{ event.title }}">
+        <div class="event-date-badge">
+            {{ event.date.strftime('%d.%m') }} {{ ['ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ', 'ВС'][event.date.weekday()] }}
+        </div>
+    </div>
+    <div class="event-card-body p-2">
+        <h5 class="event-title mb-1">{{ event.title }}</h5>
+        <div class="event-venue small">
+            <i class="fas fa-map-marker-alt me-1"></i>
+            <a href="{{ url_for('main.venue_detail', venue_id=event.venue.id) }}" class="venue-link">{{ event.venue.name }}</a>
+        </div>
+        <div class="event-time small mb-2">
+            <i class="far fa-clock me-1"></i> {{ event.date.strftime('%H:%M') }}
+        </div>
+        
+        <!-- Цена и доставка в одной строке -->
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <div class="event-price fw-bold">
+                от {{ event.base_price|int }} ₽
+            </div>
+            <div class="event-delivery-methods d-flex">
+                {% if 'email' in event.delivery_methods.split(',') %}
+                <span class="delivery-icon me-1" title="Электронный билет">
+                    <i class="fas fa-envelope"></i>
+                </span>
+                {% endif %}
+                {% if 'courier' in event.delivery_methods.split(',') %}
+                <span class="delivery-icon me-1" title="Курьерская доставка">
+                    <i class="fas fa-truck"></i>
+                </span>
+                {% endif %}
+                {% if 'event_day' in event.delivery_methods.split(',') %}
+                <span class="delivery-icon me-1" title="В день мероприятия">
+                    <i class="fas fa-calendar-day"></i>
+                </span>
+                {% endif %}
+                {% if '24h' in event.delivery_methods.split(',') %}
+                <span class="delivery-icon" title="В течение 24 часов">
+                    <i class="fas fa-clock"></i>
+                </span>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Кнопка покупки и избранное рядом -->
+        <div class="d-flex align-items-center">
+            <a href="{{ url_for('main.event_detail', event_id=event.id) }}" class="btn btn-primary btn-sm flex-grow-1 me-1">Купить билет</a>
+            <button type="button" class="favorite-btn btn btn-danger btn-sm {% if is_favorite|default(false) %}active{% endif %}" data-event-id="{{ event.id }}">
+                <i class="{% if is_favorite|default(false) %}text-warning{% else %}text-white{% endif %} fa-heart fas"></i>
+            </button>
+        </div>
+    </div>
+</div>

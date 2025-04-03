@@ -1,0 +1,266 @@
+{% extends 'admin/base.html' %}
+
+{% block title %}Управление категориями - BiletService{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="admin-content-title mb-0">Управление категориями</h1>
+    {% if not add_mode and not edit_mode %}
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
+        <i class="fas fa-plus me-2"></i> Добавить категорию
+    </button>
+    {% endif %}
+</div>
+
+{% if add_mode or edit_mode %}
+<!-- Category Form -->
+<div class="admin-card mb-4">
+    <h4 class="mb-3">{{ 'Добавить категорию' if add_mode else 'Редактировать категорию' }}</h4>
+    <form method="post" action="{% if edit_mode %}{{ url_for('admin.edit_category', category_id=category.id) }}{% else %}{{ url_for('admin.add_category') }}{% endif %}" enctype="multipart/form-data">
+        {{ form.hidden_tag() }}
+
+        <div class="mb-3">
+            <label for="name" class="form-label">Название</label>
+            {{ form.name(class="form-control") }}
+            {% if form.name.errors %}
+            <div class="invalid-feedback d-block">
+                {% for error in form.name.errors %}
+                {{ error }}
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <label for="icon" class="form-label">Иконка Font Awesome</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-icons"></i></span>
+                    {{ form.icon(class="form-control") }}
+                </div>
+                {% if form.icon.errors %}
+                <div class="invalid-feedback d-block">
+                    {% for error in form.icon.errors %}
+                    {{ error }}
+                    {% endfor %}
+                </div>
+                {% endif %}
+                <div class="form-text">Укажите название иконки из Font Awesome (например: fa-music)</div>
+            </div>
+
+            <div class="col-md-6">
+                <label for="icon_image" class="form-label">Загрузить иконку/GIF</label>
+                <div class="upload-zone" id="icon-upload-zone">
+                    <div class="upload-prompt">
+                        <i class="fas fa-upload mb-2"></i>
+                        <p>Перетащите файл сюда или кликните для выбора</p>
+                        <p class="text-muted small">Поддерживаются JPG, PNG, GIF и SVG</p>
+                    </div>
+                    {% if category and category.icon_image_path %}
+                    <img src="{{ category.icon_image_path }}" class="img-preview" alt="Иконка категории">
+                    {% endif %}
+                    {{ form.icon_image(class="form-control", accept=".jpg,.jpeg,.png,.gif,.svg", style="display: none;") }}
+                </div>
+                {% if form.icon_image.errors %}
+                <div class="invalid-feedback d-block">
+                    {% for error in form.icon_image.errors %}
+                    {{ error }}
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="mb-3">
+            <label for="seo_title" class="form-label">SEO Заголовок</label>
+            {{ form.seo_title(class="form-control") }}
+            {% if form.seo_title.errors %}
+            <div class="invalid-feedback d-block">
+                {% for error in form.seo_title.errors %}
+                {{ error }}
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="mb-3">
+            <label for="seo_description" class="form-label">SEO Описание</label>
+            {{ form.seo_description(class="form-control", rows=3) }}
+            {% if form.seo_description.errors %}
+            <div class="invalid-feedback d-block">
+                {% for error in form.seo_description.errors %}
+                {{ error }}
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+
+        <div>
+            <a href="{{ url_for('admin.categories') }}" class="btn btn-secondary me-2">Отмена</a>
+            {{ form.submit(class="btn btn-primary") }}
+        </div>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const uploadZone = document.getElementById('icon-upload-zone');
+    const fileInput = uploadZone.querySelector('input[type="file"]');
+
+    // Обработка клика на зону загрузки
+    uploadZone.addEventListener('click', function() {
+        fileInput.click();
+    });
+
+    // Обработка перетаскивания файлов
+    uploadZone.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        uploadZone.classList.add('highlight');
+    });
+
+    uploadZone.addEventListener('dragleave', function() {
+        uploadZone.classList.remove('highlight');
+    });
+
+    uploadZone.addEventListener('drop', function(e) {
+        e.preventDefault();
+        uploadZone.classList.remove('highlight');
+
+        if (e.dataTransfer.files.length) {
+            fileInput.files = e.dataTransfer.files;
+            updatePreview(e.dataTransfer.files[0]);
+        }
+    });
+
+    // Обработка выбора файла
+    fileInput.addEventListener('change', function() {
+        if (fileInput.files.length) {
+            updatePreview(fileInput.files[0]);
+        }
+    });
+
+    // Функция обновления предпросмотра
+    function updatePreview(file) {
+        const uploadPrompt = uploadZone.querySelector('.upload-prompt');
+
+        // Очищаем предыдущий превью, если он есть
+        const existingPreview = uploadZone.querySelector('.img-preview');
+        if (existingPreview) {
+            existingPreview.remove();
+        }
+
+        // Создаем превью
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = document.createElement('img');
+            img.src = e.target.result;
+            img.className = 'img-preview';
+            img.alt = 'Предпросмотр иконки';
+            uploadZone.appendChild(img);
+            uploadZone.classList.add('has-image');
+        };
+        reader.readAsDataURL(file);
+    }
+});
+</script>
+{% endif %}
+
+<!-- Categories List -->
+<div class="admin-card">
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Иконка</th>
+                    <th>Название</th>
+                    <th>Мероприятия</th>
+                    <th>Действия</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for category in categories %}
+                <tr>
+                    <td>{{ category.id }}</td>
+                    <td>
+                        {% if category.icon_image_path %}
+                            <img src="{{ category.icon_image_path }}" alt="{{ category.name }}" style="max-width: 40px; max-height: 40px;">
+                        {% else %}
+                            <i class="fas {{ category.icon }} fa-2x"></i>
+                        {% endif %}
+                    </td>
+                    <td>{{ category.name }}</td>
+                    <td>{{ category.events_count() }}</td>
+                    <td>
+                        <div class="btn-group">
+                            <a href="{{ url_for('admin.edit_category', category_id=category.id) }}" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <a href="{{ url_for('main.category_events', category_id=category.id) }}" target="_blank" class="btn btn-sm btn-outline-success">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <button type="button" class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteCategoryModal{{ category.id }}">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
+
+                        <!-- Delete Modal -->
+                        <div class="modal fade" id="deleteCategoryModal{{ category.id }}" tabindex="-1" aria-labelledby="deleteCategoryModalLabel{{ category.id }}" aria-hidden="true">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="deleteCategoryModalLabel{{ category.id }}">Подтверждение удаления</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <p>Вы уверены, что хотите удалить категорию "{{ category.name }}"?</p>
+                                        {% if category.events_count() > 0 %}
+                                        <div class="alert alert-warning">
+                                            <i class="fas fa-exclamation-triangle me-2"></i> Внимание! К этой категории привязано {{ category.events_count() }} мероприятий. Удаление невозможно.
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                                        <form action="{{ url_for('admin.delete_category', category_id=category.id) }}" method="post">
+                                            <button type="submit" class="btn btn-danger" {% if category.events_count() > 0 %}disabled{% endif %}>Удалить</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" class="text-center">Категории не найдены.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Add Category Modal -->
+<div class="modal fade" id="addCategoryModal" tabindex="-1" aria-labelledby="addCategoryModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addCategoryModalLabel">Добавить категорию</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Для добавления новой категории нажмите на кнопку ниже:</p>
+                <div class="d-grid">
+                    <a href="{{ url_for('admin.add_category') }}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i> Создать новую категорию
+                    </a>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

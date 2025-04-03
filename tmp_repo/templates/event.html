@@ -1,0 +1,353 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ event.title }} - MAGIK TIKET{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <!-- Event details -->
+        <div class="col-lg-8">
+            <div class="event-header">
+                <h1>{{ event.title }}</h1>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{{ url_for('main.index') }}">Главная</a></li>
+                        <li class="breadcrumb-item"><a href="{{ url_for('main.category_events', category_id=event.category_id) }}">{{ event.category.name }}</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">{{ event.title }}</li>
+                    </ol>
+                </nav>
+            </div>
+            
+            <div class="mb-4">
+                <img src="{{ event.image_url }}" alt="{{ event.title }}" class="event-main-img">
+            </div>
+            
+            <div class="event-description mb-4">
+                <h4>Описание</h4>
+                <p>{{ event.description }}</p>
+            </div>
+            
+            <!-- Tickets section -->
+            <div class="ticket-selection mb-4">
+                <h4>Билеты</h4>
+                
+                {% if tickets %}
+                <div class="row">
+                    {% for ticket in tickets %}
+                    <div class="col-md-6 mb-3">
+                        <div class="ticket-option">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div>
+                                    {% if ticket.section or ticket.row or ticket.seat %}
+                                    <div class="ticket-type">
+                                        {% if ticket.section %}Секция: {{ ticket.section }}{% endif %}
+                                        {% if ticket.row %}Ряд: {{ ticket.row }}{% endif %}
+                                        {% if ticket.seat %}Место: {{ ticket.seat }}{% endif %}
+                                    </div>
+                                    {% else %}
+                                    <div class="ticket-type">Стандартный билет</div>
+                                    {% endif %}
+                                </div>
+                                <div class="ticket-price">{{ ticket.price|int }} ₽</div>
+                            </div>
+                            <form action="{{ url_for('main.add_to_cart', ticket_id=ticket.id) }}" method="post">
+                                <button type="submit" class="btn btn-primary w-100">В корзину</button>
+                            </form>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="alert alert-warning">
+                    К сожалению, билеты на это мероприятие временно отсутствуют.
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- User tickets for sale section -->
+            {% if tickets_for_sale %}
+            <div class="tickets-for-sale mb-4">
+                <h4>Билеты от пользователей</h4>
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i> Эти билеты продаются другими пользователями. MAGIK TIKET не несет ответственности за такие сделки.
+                </div>
+                
+                <div class="row">
+                    {% for ticket in tickets_for_sale %}
+                    <div class="col-md-6 mb-3">
+                        <div class="ticket-option">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div>
+                                    <div class="ticket-type">
+                                        <span class="badge {% if ticket.ticket_type == 'electronic' %}bg-success{% else %}bg-primary{% endif %} me-2">
+                                            {{ 'Электронный' if ticket.ticket_type == 'electronic' else 'Физический' }}
+                                        </span>
+                                        {% if ticket.section %}Секция: {{ ticket.section }}{% endif %}
+                                        {% if ticket.row %}Ряд: {{ ticket.row }}{% endif %}
+                                        {% if ticket.seat %}Место: {{ ticket.seat }}{% endif %}
+                                    </div>
+                                    <small class="text-muted">Начальная цена: {{ ticket.original_price|int }} ₽</small>
+                                </div>
+                                <div class="ticket-price">{{ ticket.selling_price|int }} ₽</div>
+                            </div>
+                            <button type="button" class="btn btn-outline-primary w-100" data-bs-toggle="modal" data-bs-target="#ticketModal{{ ticket.id }}">
+                                Связаться с продавцом
+                            </button>
+                            
+                            <!-- Modal with contact info -->
+                            <div class="modal fade" id="ticketModal{{ ticket.id }}" tabindex="-1" aria-labelledby="ticketModalLabel{{ ticket.id }}" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="ticketModalLabel{{ ticket.id }}">Контактная информация</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <p>Для покупки этого билета свяжитесь с продавцом:</p>
+                                            <div class="alert alert-secondary">
+                                                {{ ticket.contact_info }}
+                                            </div>
+                                            <p class="small text-muted">Обратите внимание, что MAGIK TIKET не участвует в сделках между пользователями. Будьте осторожны при проведении оплаты.</p>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Reviews section -->
+            <div class="reviews-section">
+                <h4>Отзывы</h4>
+                
+                {% if reviews %}
+                <div class="mb-4">
+                    {% for review in reviews %}
+                    <div class="review-card">
+                        <div class="review-header">
+                            <div class="review-author">{{ review.user.username }}</div>
+                            <div class="review-date">{{ review.created_at.strftime('%d.%m.%Y') }}</div>
+                        </div>
+                        <div class="review-rating">
+                            {% for i in range(5) %}
+                            <i class="fas fa-star {% if i < review.rating %}text-warning{% else %}text-muted{% endif %}"></i>
+                            {% endfor %}
+                        </div>
+                        <div class="review-content">
+                            {{ review.content }}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="alert alert-light mb-4">
+                    Пока нет отзывов об этом мероприятии.
+                </div>
+                {% endif %}
+                
+                {% if current_user.is_authenticated %}
+                <div class="card">
+                    <div class="card-header">
+                        Оставить отзыв
+                    </div>
+                    <div class="card-body">
+                        <form action="{{ url_for('main.submit_review', event_id=event.id) }}" method="post">
+                            {{ form.hidden_tag() }}
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Оценка</label>
+                                <div class="rating-inputs">
+                                    {% for subfield in form.rating %}
+                                    <div class="form-check form-check-inline">
+                                        {{ subfield(class="form-check-input") }}
+                                        <label class="form-check-label" for="{{ subfield.id }}">
+                                            {{ subfield.label.text }}
+                                        </label>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="content" class="form-label">Ваш отзыв</label>
+                                {{ form.content(class="form-control", rows=4) }}
+                                {% if form.content.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.content.errors %}
+                                    {{ error }}
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary">Отправить отзыв</button>
+                        </form>
+                    </div>
+                </div>
+                {% else %}
+                <div class="alert alert-info">
+                    <a href="{{ url_for('auth.login', next=url_for('main.event_detail', event_id=event.id)) }}">Войдите</a> или <a href="{{ url_for('auth.register') }}">зарегистрируйтесь</a>, чтобы оставить отзыв.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <div class="event-meta">
+                <div class="event-meta-item">
+                    <div class="event-meta-icon">
+                        <i class="far fa-calendar-alt"></i>
+                    </div>
+                    <div>
+                        <strong>Дата</strong><br>
+                        {{ event.date.strftime('%d.%m.%Y') }}
+                        ({{ ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота', 'Воскресенье'][event.date.weekday()] }})
+                    </div>
+                </div>
+                
+                <div class="event-meta-item">
+                    <div class="event-meta-icon">
+                        <i class="far fa-clock"></i>
+                    </div>
+                    <div>
+                        <strong>Время</strong><br>
+                        {{ event.date.strftime('%H:%M') }}
+                    </div>
+                </div>
+                
+                <div class="event-meta-item">
+                    <div class="event-meta-icon">
+                        <i class="fas fa-map-marker-alt"></i>
+                    </div>
+                    <div>
+                        <strong>Место проведения</strong><br>
+                        <a href="{{ url_for('main.venue_detail', venue_id=venue.id) }}" class="venue-link">{{ venue.name }}</a><br>
+                        {{ venue.address }}, {{ venue.city }}
+                    </div>
+                </div>
+                
+                <div class="event-meta-item">
+                    <div class="event-meta-icon">
+                        <i class="fas fa-tag"></i>
+                    </div>
+                    <div>
+                        <strong>Категория</strong><br>
+                        {{ event.category.name }}
+                    </div>
+                </div>
+                
+                <div class="event-meta-item">
+                    <div class="event-meta-icon">
+                        <i class="fas fa-ruble-sign"></i>
+                    </div>
+                    <div>
+                        <strong>Цена</strong><br>
+                        от {{ event.base_price|int }} ₽
+                        {% if event.max_price %}до {{ event.max_price|int }} ₽{% endif %}
+                    </div>
+                </div>
+                
+                {% if venue.venue_map %}
+                <div class="mt-3">
+                    <button id="venue-map-btn" class="btn btn-outline-primary w-100">
+                        <i class="fas fa-map me-2"></i> Схема зала
+                    </button>
+                </div>
+                {% endif %}
+                
+                <!-- Favorite button -->
+                <div class="mt-3">
+                    <button type="button" class="favorite-btn btn btn-danger w-100 {% if is_favorite %}active{% endif %}" 
+                           data-event-id="{{ event.id }}">
+                        <i class="fas fa-heart me-2 {% if is_favorite %}text-warning{% else %}text-white{% endif %}"></i>
+                        <span class="favorite-text">{% if is_favorite %}Удалить из избранного{% else %}Добавить в избранное{% endif %}</span>
+                    </button>
+                </div>
+                
+                <!-- Sell your ticket button -->
+                <div class="mt-3">
+                    <a href="{{ url_for('main.sell_ticket', event_id=event.id) }}" class="btn btn-outline-primary w-100">
+                        <i class="fas fa-ticket-alt me-2"></i> Отправить билет на рассмотрение
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Delivery methods info -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Способы доставки</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex">
+                            <div class="me-3">
+                                <i class="fas fa-envelope fa-2x text-primary"></i>
+                            </div>
+                            <div>
+                                <h6>Электронный билет</h6>
+                                <p class="mb-0 small">Получите билет моментально на электронную почту</p>
+                            </div>
+                        </li>
+                        <li class="list-group-item d-flex">
+                            <div class="me-3">
+                                <i class="fas fa-truck fa-2x text-primary"></i>
+                            </div>
+                            <div>
+                                <h6>Курьерская доставка</h6>
+                                <p class="mb-0 small">Доставка курьером по указанному адресу</p>
+                            </div>
+                        </li>
+                        <li class="list-group-item d-flex">
+                            <div class="me-3">
+                                <i class="fas fa-calendar-day fa-2x text-primary"></i>
+                            </div>
+                            <div>
+                                <h6>В день мероприятия</h6>
+                                <p class="mb-0 small">Получите билет на месте проведения мероприятия</p>
+                            </div>
+                        </li>
+                        <li class="list-group-item d-flex">
+                            <div class="me-3">
+                                <i class="fas fa-clock fa-2x text-primary"></i>
+                            </div>
+                            <div>
+                                <h6>В течение 24 часов</h6>
+                                <p class="mb-0 small">Получите билет на электронную почту в течение суток</p>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Venue Map Modal -->
+{% if venue.venue_map %}
+<div class="modal fade" id="venue-map-modal" tabindex="-1" aria-labelledby="venueMapModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="venueMapModalLabel">Схема зала - {{ venue.name }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <div id="venue-map">
+                    {{ venue.venue_map|safe }}
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

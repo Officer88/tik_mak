@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>{% block title %}MAGIK TIKET - сервис продажи билетов{% endblock %}</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Header -->
+    <header class="site-header">
+        <!-- Темно-синяя верхняя полоса -->
+        <nav class="navbar navbar-dark">
+            <div class="container">
+                <a class="navbar-brand" href="{{ url_for('main.index') }}">MAGIK TIKET</a>
+            </div>
+        </nav>
+        
+        <!-- Желтая полоса с навигацией и поиском в одну строку (для десктопа) -->
+        <div class="bg-yellow py-2">
+            <div class="container">
+                <div class="row align-items-center">
+                    <!-- Мобильная навигация (кнопка бургер) -->
+                    <div class="d-lg-none col-2">
+                        <button class="navbar-toggler border-0 p-1 border border-dark" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar" aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
+                            <i class="fas fa-bars" style="color: var(--dark-blue); font-size: 1.5rem;"></i>
+                        </button>
+                    </div>
+                    
+                    <!-- Десктопная навигация (слева) -->
+                    <div class="d-none d-lg-flex col-lg-6">
+                        <ul class="nav">
+                            <li class="nav-item">
+                                <a class="nav-link px-2" href="{{ url_for('main.events') }}">ВСЕ МЕРОПРИЯТИЯ</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link px-2" href="{{ url_for('main.category_events', category_id=2) }}">ВЫСТАВКИ</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link px-2" href="{{ url_for('main.category_events', category_id=1) }}">КОНЦЕРТЫ</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link px-2" href="{{ url_for('main.category_events', category_id=3) }}">МЕЖДУНАРОДНЫЕ СОБЫТИЯ</a>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle px-2" href="#" id="moreCategories" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    ЕЩЁ
+                                </a>
+                                <ul class="dropdown-menu" aria-labelledby="moreCategories">
+                                    {% for category in get_categories() %}
+                                    {% if category.name not in ['Выставки', 'Концерты', 'Международные события'] %}
+                                    <li>
+                                        <a class="dropdown-item" href="{{ url_for('main.category_events', category_id=category.id) }}">
+                                            <i class="fas {{ category.icon }} me-2"></i>{{ category.name }}
+                                        </a>
+                                    </li>
+                                    {% endif %}
+                                    {% endfor %}
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <a class="dropdown-item" href="{{ url_for('main.sell_ticket') }}">
+                                            <i class="fas fa-tag me-2"></i>Продать билет
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <!-- Поиск (центр в мобильной версии, справа в десктопной) -->
+                    <div class="col-10 col-lg-4 mb-0">
+                        <form action="{{ url_for('main.events') }}" method="get" class="d-flex">
+                            <div class="input-group">
+                                <input class="form-control" type="search" name="query" placeholder="Поиск мероприятий, артистов, площадок..." aria-label="Search" value="{{ request.args.get('query', '') }}">
+                                <button class="btn btn-dark" type="submit">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <!-- Иконки справа (только для десктопа) -->
+                    <div class="d-none d-lg-block col-lg-2">
+                        <div class="d-flex header-icons justify-content-lg-end">
+                            <a class="nav-link px-2" href="{{ url_for('main.favorites') }}" title="Избранное">
+                                <i class="fas fa-heart"></i>
+                            </a>
+                            {% if current_user.is_authenticated %}
+                            <div class="dropdown">
+                                <a class="nav-link px-2 dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" title="Личный кабинет">
+                                    <i class="fas fa-user"></i>
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                                    <li><span class="dropdown-item-text">{{ current_user.username }}</span></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="{{ url_for('auth.profile') }}">Мой профиль</a></li>
+                                    {% if current_user.is_admin %}
+                                    <li><a class="dropdown-item" href="{{ url_for('admin.dashboard') }}">Панель администратора</a></li>
+                                    {% endif %}
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}">Выйти</a></li>
+                                </ul>
+                            </div>
+                            {% else %}
+                            <div class="dropdown">
+                                <a class="nav-link px-2 dropdown-toggle" href="#" id="loginDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" title="Войти/Регистрация">
+                                    <i class="fas fa-sign-in-alt"></i>
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="loginDropdown">
+                                    <li><a class="dropdown-item" href="{{ url_for('auth.login') }}">Войти</a></li>
+                                    <li><a class="dropdown-item" href="{{ url_for('auth.register') }}">Регистрация</a></li>
+                                </ul>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Мобильное меню (коллапс) -->
+        <div class="collapse navbar-collapse" id="mainNavbar">
+            <div class="container py-2">
+                <ul class="navbar-nav">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="categoriesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-list me-2"></i>Категории
+                        </a>
+                        <ul class="dropdown-menu" aria-labelledby="categoriesDropdown">
+                            <li>
+                                <a class="dropdown-item" href="{{ url_for('main.events') }}">
+                                    <i class="fas fa-calendar-alt me-2"></i>Все мероприятия
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{{ url_for('main.category_events', category_id=2) }}">
+                                    <i class="fas fa-palette me-2"></i>Выставки
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{{ url_for('main.category_events', category_id=1) }}">
+                                    <i class="fas fa-music me-2"></i>Концерты
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{{ url_for('main.category_events', category_id=3) }}">
+                                    <i class="fas fa-globe me-2"></i>Международные события
+                                </a>
+                            </li>
+                            {% for category in get_categories() %}
+                                {% if category.name not in ['Выставки', 'Концерты', 'Международные события'] %}
+                                <li>
+                                    <a class="dropdown-item" href="{{ url_for('main.category_events', category_id=category.id) }}">
+                                        <i class="fas {{ category.icon }} me-2"></i>{{ category.name }}
+                                    </a>
+                                </li>
+                                {% endif %}
+                            {% endfor %}
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('main.sell_ticket') }}">
+                            <i class="fas fa-tag me-2"></i>Продать билет
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('main.favorites') }}">
+                            <i class="fas fa-heart me-2"></i>Избранное
+                        </a>
+                    </li>
+                    {% if current_user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('auth.profile') }}">
+                            <i class="fas fa-user me-2"></i>Мой профиль
+                        </a>
+                    </li>
+                    {% if current_user.is_admin %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('admin.dashboard') }}">
+                            <i class="fas fa-cog me-2"></i>Панель администратора
+                        </a>
+                    </li>
+                    {% endif %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('auth.logout') }}">
+                            <i class="fas fa-sign-out-alt me-2"></i>Выйти
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('auth.login') }}">
+                            <i class="fas fa-sign-in-alt me-2"></i>Войти
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('auth.register') }}">
+                            <i class="fas fa-user-plus me-2"></i>Регистрация
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </header>
+    
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="container mt-3">
+                {% for category, message in messages %}
+                    {% set alert_class = category if category in ['success', 'danger', 'warning', 'info'] else 'info' %}
+                    <div class="alert alert-{{ alert_class }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+    
+    <!-- Main Content -->
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+    
+    <!-- Плавающая корзина -->
+    <a href="{{ url_for('main.view_cart') }}" class="floating-cart">
+        <i class="fas fa-shopping-cart"></i>
+        <span class="cart-badge">{{ session.get('cart', {}).items()|list|length }}</span>
+    </a>
+    
+    <!-- Footer -->
+    <footer class="site-footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-5 footer-links">
+                    <h5>Помощь</h5>
+                    <div class="d-flex flex-wrap gap-3">
+                        <a href="#" class="text-decoration-none">Как купить билет</a>
+                        <a href="#" class="text-decoration-none">Возврат билетов</a>
+                        <a href="#" class="text-decoration-none">Доставка</a>
+                        <a href="#" class="text-decoration-none">FAQ</a>
+                    </div>
+                </div>
+                <div class="col-md-3 footer-links">
+                    <h5>Контакты</h5>
+                    <p class="mb-2"><i class="fas fa-phone me-2"></i> +7 (800) 123-45-67</p>
+                    <p><i class="fas fa-envelope me-2"></i> info@magiktiket.com</p>
+                </div>
+                <div class="col-md-4 footer-links text-md-end">
+                    <h5>Мы в соцсетях</h5>
+                    <div class="social-icons d-flex justify-content-md-end">
+                        <a href="#" class="me-3"><i class="fab fa-vk fa-lg"></i></a>
+                        <a href="#" class="me-3"><i class="fab fa-telegram fa-lg"></i></a>
+                        <a href="#" class="me-3"><i class="fab fa-whatsapp fa-lg"></i></a>
+                        <a href="#"><i class="fab fa-instagram fa-lg"></i></a>
+                    </div>
+                </div>
+            </div>
+            <hr class="mt-3 mb-3">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <p class="mb-md-0">&copy; 2025 MAGIK TIKET. Все права защищены.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <a href="#" class="text-white me-3">Политика конфиденциальности</a>
+                    <a href="#" class="text-white">Пользовательское соглашение</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+    
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Toast Container for Notifications -->
+    <div id="toast-container" class="toast-container position-fixed bottom-0 end-0 p-3"></div>
+    
+    <!-- Custom JavaScript -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

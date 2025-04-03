@@ -1,0 +1,256 @@
+{% extends 'base.html' %}
+
+{% block title %}Личный кабинет{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h1 class="mb-4">Личный кабинет</h1>
+    
+    <div class="row">
+        <div class="col-md-3">
+            <div class="card mb-4">
+                <div class="card-body text-center">
+                    <i class="fas fa-user-circle fa-5x mb-3 text-muted"></i>
+                    <h5 class="card-title">{{ current_user.username }}</h5>
+                    <p class="card-text text-muted">{{ current_user.email }}</p>
+                </div>
+            </div>
+            
+            <div class="list-group mb-4">
+                <a href="#orders" class="list-group-item list-group-item-action active" data-bs-toggle="list">Мои заказы</a>
+                <a href="#tickets" class="list-group-item list-group-item-action" data-bs-toggle="list">Мои билеты на продаже</a>
+                <a href="#notifications" class="list-group-item list-group-item-action" data-bs-toggle="list">Настройки уведомлений</a>
+                <a href="{{ url_for('favorites') }}" class="list-group-item list-group-item-action">Избранное</a>
+                <a href="{{ url_for('sell_ticket') }}" class="list-group-item list-group-item-action">Продать билет</a>
+            </div>
+        </div>
+        
+        <div class="col-md-9">
+            <div class="tab-content">
+                <!-- Orders Tab -->
+                <div class="tab-pane fade show active" id="orders">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">История заказов</h5>
+                        </div>
+                        <div class="card-body">
+                            {% if orders %}
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>№ заказа</th>
+                                                <th>Дата</th>
+                                                <th>Сумма</th>
+                                                <th>Статус</th>
+                                                <th>Доставка</th>
+                                                <th>Билеты</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for order in orders %}
+                                                <tr>
+                                                    <td>{{ order.id }}</td>
+                                                    <td>{{ order.order_date.strftime('%d.%m.%Y %H:%M') }}</td>
+                                                    <td>{{ order.total_amount|format_price }}</td>
+                                                    <td>
+                                                        <span class="badge {% if order.status == 'completed' %}bg-success{% elif order.status == 'pending' %}bg-warning{% else %}bg-danger{% endif %}">
+                                                            {% if order.status == 'completed' %}
+                                                                Выполнен
+                                                            {% elif order.status == 'pending' %}
+                                                                В обработке
+                                                            {% else %}
+                                                                Отменен
+                                                            {% endif %}
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        {% if order.delivery_method == 'email' %}
+                                                            На email
+                                                        {% elif order.delivery_method == 'courier' %}
+                                                            Курьером
+                                                        {% elif order.delivery_method == 'event_day' %}
+                                                            В день мероприятия
+                                                        {% elif order.delivery_method == '24h_email' %}
+                                                            В течение 24ч на email
+                                                        {% endif %}
+                                                    </td>
+                                                    <td>
+                                                        <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="collapse" data-bs-target="#tickets-{{ order.id }}">
+                                                            Показать ({{ order.tickets|length }})
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                                <tr class="collapse" id="tickets-{{ order.id }}">
+                                                    <td colspan="6">
+                                                        <div class="p-3">
+                                                            {% for ticket in order.tickets %}
+                                                                <div class="mb-2 p-2 border rounded">
+                                                                    <div class="d-flex justify-content-between align-items-center">
+                                                                        <div>
+                                                                            <h6 class="mb-1">{{ ticket.event.title }}</h6>
+                                                                            <div class="small text-muted">
+                                                                                {{ ticket.event.date.strftime('%d.%m.%Y %H:%M') }}, {{ ticket.event.venue.name }}
+                                                                            </div>
+                                                                            <div class="small">
+                                                                                {% if ticket.section or ticket.row or ticket.seat %}
+                                                                                    {% if ticket.section %}Секция: {{ ticket.section }}{% endif %}
+                                                                                    {% if ticket.row %}Ряд: {{ ticket.row }}{% endif %}
+                                                                                    {% if ticket.seat %}Место: {{ ticket.seat }}{% endif %}
+                                                                                {% else %}
+                                                                                    Без определенного места
+                                                                                {% endif %}
+                                                                            </div>
+                                                                        </div>
+                                                                        <div class="fs-5 fw-bold">{{ ticket.price|format_price }}</div>
+                                                                    </div>
+                                                                </div>
+                                                            {% endfor %}
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            {% else %}
+                                <div class="alert alert-info">
+                                    У вас пока нет заказов. <a href="{{ url_for('events') }}" class="alert-link">Перейти к мероприятиям</a>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Tickets for Sale Tab -->
+                <div class="tab-pane fade" id="tickets">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Мои билеты на продаже</h5>
+                        </div>
+                        <div class="card-body">
+                            {% if tickets_for_sale %}
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th>Мероприятие</th>
+                                                <th>Дата</th>
+                                                <th>Площадка</th>
+                                                <th>Место</th>
+                                                <th>Цена</th>
+                                                <th>Тип</th>
+                                                <th>Статус</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for ticket in tickets_for_sale %}
+                                                <tr>
+                                                    <td>{{ ticket.event_title }}</td>
+                                                    <td>{{ ticket.event_date.strftime('%d.%m.%Y %H:%M') }}</td>
+                                                    <td>{{ ticket.venue }}, {{ ticket.city }}</td>
+                                                    <td>
+                                                        {% if ticket.section or ticket.row or ticket.seat %}
+                                                            {% if ticket.section %}Секция: {{ ticket.section }}{% endif %}
+                                                            {% if ticket.row %}Ряд: {{ ticket.row }}{% endif %}
+                                                            {% if ticket.seat %}Место: {{ ticket.seat }}{% endif %}
+                                                        {% else %}
+                                                            Без определенного места
+                                                        {% endif %}
+                                                    </td>
+                                                    <td>{{ ticket.asking_price|format_price }}</td>
+                                                    <td>
+                                                        {% if ticket.ticket_type == 'electronic' %}
+                                                            Электронный
+                                                        {% else %}
+                                                            Физический
+                                                        {% endif %}
+                                                    </td>
+                                                    <td>
+                                                        <span class="badge {% if ticket.is_sold %}bg-success{% else %}bg-primary{% endif %}">
+                                                            {% if ticket.is_sold %}
+                                                                Продан
+                                                            {% else %}
+                                                                В продаже
+                                                            {% endif %}
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            {% else %}
+                                <div class="alert alert-info">
+                                    У вас пока нет билетов на продаже. <a href="{{ url_for('sell_ticket') }}" class="alert-link">Разместить билет</a>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Notification Settings Tab -->
+                <div class="tab-pane fade" id="notifications">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Настройки уведомлений</h5>
+                        </div>
+                        <div class="card-body">
+                            <form method="POST" action="{{ url_for('notification_settings') }}">
+                                {{ notification_form.hidden_tag() }}
+                                
+                                <div class="mb-3">
+                                    <div class="form-check form-switch">
+                                        {{ notification_form.email_enabled(class="form-check-input") }}
+                                        {{ notification_form.email_enabled.label(class="form-check-label") }}
+                                    </div>
+                                    <small class="text-muted">Вы будете получать уведомления о статусе заказов, мероприятиях и специальных предложениях.</small>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <div class="form-check form-switch">
+                                        {{ notification_form.sms_enabled(class="form-check-input") }}
+                                        {{ notification_form.sms_enabled.label(class="form-check-label") }}
+                                    </div>
+                                    <small class="text-muted">Вы будете получать SMS-уведомления о важных событиях (например, подтверждение заказа).</small>
+                                </div>
+                                
+                                <div class="mb-3" id="phone-number-field" {% if not notification_form.sms_enabled.data %}style="display: none;"{% endif %}>
+                                    {{ notification_form.phone_number.label(class="form-label") }}
+                                    {{ notification_form.phone_number(class="form-control") }}
+                                    {% if notification_form.phone_number.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in notification_form.phone_number.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                    <small class="text-muted">Введите номер в международном формате, например: +79123456789</small>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    {{ notification_form.submit(class="btn btn-primary") }}
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Показывать/скрывать поле номера телефона в зависимости от состояния чекбокса SMS
+    document.addEventListener('DOMContentLoaded', function() {
+        const smsCheckbox = document.querySelector('#sms_enabled');
+        const phoneField = document.querySelector('#phone-number-field');
+        
+        if (smsCheckbox && phoneField) {
+            smsCheckbox.addEventListener('change', function() {
+                phoneField.style.display = this.checked ? 'block' : 'none';
+            });
+        }
+    });
+</script>
+{% endblock %}

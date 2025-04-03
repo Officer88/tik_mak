@@ -1,0 +1,57 @@
+<footer class="site-footer">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-4 footer-links">
+                <h5>О компании</h5>
+                <ul>
+                    <li><a href="#">О нас</a></li>
+                    <li><a href="#">Контакты</a></li>
+                    <li><a href="#">Вакансии</a></li>
+                    <li><a href="#">Партнерам</a></li>
+                </ul>
+            </div>
+            <div class="col-md-4 footer-links">
+                <h5>Помощь</h5>
+                <ul>
+                    <li><a href="#">Как купить билет</a></li>
+                    <li><a href="#">Возврат билетов</a></li>
+                    <li><a href="#">Доставка</a></li>
+                    <li><a href="#">Часто задаваемые вопросы</a></li>
+                </ul>
+            </div>
+            <div class="col-md-4 footer-links">
+                <h5>Контакты</h5>
+                {# Контакт теперь передается как переменная contact в контекст шаблона #}
+                <ul>
+                    <li><i class="fas fa-phone me-2"></i> {{ contact.phone }}</li>
+                    <li><i class="fas fa-envelope me-2"></i> {{ contact.email }}</li>
+                    <li><i class="fas fa-map-marker-alt me-2"></i> Москва, ул. Примерная, 123</li>
+                </ul>
+                <div class="social-icons mt-3">
+                    {% if contact.vk %}
+                    <a href="{{ contact.vk }}" class="me-3" target="_blank"><i class="fab fa-vk fa-lg"></i></a>
+                    {% endif %}
+                    {% if contact.telegram %}
+                    <a href="{{ contact.telegram }}" class="me-3" target="_blank"><i class="fab fa-telegram fa-lg"></i></a>
+                    {% endif %}
+                    {% if contact.whatsapp %}
+                    <a href="https://wa.me/{{ contact.whatsapp }}" class="me-3" target="_blank"><i class="fab fa-whatsapp fa-lg"></i></a>
+                    {% endif %}
+                    {% if contact.instagram %}
+                    <a href="{{ contact.instagram }}" target="_blank"><i class="fab fa-instagram fa-lg"></i></a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <hr class="mt-4 mb-4">
+        <div class="row">
+            <div class="col-md-6">
+                <p class="mb-0">&copy; 2023 BiletService. Все права защищены.</p>
+            </div>
+            <div class="col-md-6 text-md-end">
+                <a href="#" class="text-white me-3">Политика конфиденциальности</a>
+                <a href="#" class="text-white">Пользовательское соглашение</a>
+            </div>
+        </div>
+    </div>
+</footer>

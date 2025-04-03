@@ -1,0 +1,173 @@
+{% extends 'base.html' %}
+
+{% block title %}Мероприятия{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Мероприятия</h1>
+    </div>
+    
+    <!-- Search and filter form -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form id="search-form" method="get" action="{{ url_for('events') }}">
+                <div class="row align-items-end">
+                    <div class="col-md-8">
+                        <div class="input-group">
+                            <input type="text" name="q" class="form-control" placeholder="Поиск по названию" value="{{ search_query or '' }}">
+                            <button class="btn btn-primary" type="submit">
+                                <i class="fas fa-search"></i>
+                            </button>
+                            <button id="filter-toggle" type="button" class="btn btn-outline-primary ms-2">
+                                <i class="fas fa-filter me-1"></i> Фильтры
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Advanced filters (initially hidden) -->
+                <div id="filter-container" class="row mt-3 {{ 'd-none' if not request.args.get('category') and not request.args.get('venue') }}">
+                    <div class="col-md-3 mb-2">
+                        {{ form.category.label(class="form-label") }}
+                        {{ form.category(class="form-select") }}
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        {{ form.venue.label(class="form-label") }}
+                        {{ form.venue(class="form-select") }}
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <label class="form-label">С даты</label>
+                        <input type="date" name="date_from" class="form-control datepicker" value="{{ request.args.get('date_from', '') }}">
+                    </div>
+                    <div class="col-md-3 mb-2">
+                        <label class="form-label">По дату</label>
+                        <input type="date" name="date_to" class="form-control datepicker" value="{{ request.args.get('date_to', '') }}">
+                    </div>
+                    <div class="col-12 mt-2">
+                        <button type="submit" class="btn btn-primary">Применить фильтры</button>
+                        <a href="{{ url_for('events') }}" class="btn btn-outline-secondary">Сбросить</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Category filters (quick access) -->
+    <div class="mb-4">
+        <div class="d-flex flex-wrap gap-2">
+            <a href="{{ url_for('events') }}" class="btn {% if not request.args.get('category') %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                Все категории
+            </a>
+            {% for category in categories %}
+                <a href="{{ url_for('events', category=category.id) }}" 
+                   class="btn {% if request.args.get('category')|int == category.id %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                    <i class="fas {{ category.icon }} me-1"></i> {{ category.name }}
+                </a>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <!-- Events grid -->
+    <div class="row event-row">
+        {% for event in events.items %}
+            <div class="col-6 col-md-6 col-lg-4">
+                <div class="event-card">
+                    <div class="event-image" style="background-image: url('{{ event.image_url }}');">
+                        <div class="event-date">
+                            <span class="day-month">{{ event.date|format_date }}</span>
+                        </div>
+                    </div>
+                    <div class="event-info">
+                        <h3 class="event-title">{{ event.title }}</h3>
+                        <div class="event-venue">
+                            <i class="fas fa-map-marker-alt me-1"></i> {{ event.venue.name }}
+                        </div>
+                        <div class="event-price">
+                            <i class="fas fa-ticket-alt me-1"></i> {{ event.price_range }}
+                        </div>
+                    </div>
+                    <div class="card-actions">
+                        <button class="favorite-btn" data-event-id="{{ event.id }}"
+                                data-require-login="{{ 'true' if not current_user.is_authenticated else 'false' }}">
+                            <i class="{% if current_user.is_authenticated and event in current_user.favorites %}fas{% else %}far{% endif %} fa-heart"></i>
+                        </button>
+                        <a href="{{ url_for('event_detail', event_id=event.id) }}" class="btn btn-primary">Купить билет</a>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <div class="col-12">
+                <div class="alert alert-info">
+                    По вашему запросу ничего не найдено. Попробуйте изменить параметры поиска.
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Pagination -->
+    {% if events.pages > 1 %}
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center mt-4">
+                {% if events.has_prev %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('events', page=events.prev_num, **request.args) }}" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link" aria-hidden="true">&laquo;</span>
+                    </li>
+                {% endif %}
+                
+                {% for page in range(1, events.pages + 1) %}
+                    <li class="page-item {{ 'active' if page == events.page else '' }}">
+                        <a class="page-link" href="{{ url_for('events', page=page, **request.args) }}">{{ page }}</a>
+                    </li>
+                {% endfor %}
+                
+                {% if events.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('events', page=events.next_num, **request.args) }}" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link" aria-hidden="true">&raquo;</span>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<!-- Flatpickr for date picker -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ru.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialize date picker
+        flatpickr(".datepicker", {
+            dateFormat: "Y-m-d",
+            locale: "ru"
+        });
+        
+        // Filter toggle functionality
+        const filterToggle = document.getElementById('filter-toggle');
+        const filterContainer = document.getElementById('filter-container');
+        
+        filterToggle.addEventListener('click', function() {
+            filterContainer.classList.toggle('d-none');
+            if (!filterContainer.classList.contains('d-none')) {
+                // Scroll to filter container
+                filterContainer.scrollIntoView({ behavior: 'smooth' });
+            }
+        });
+    });
+</script>
+{% endblock %}

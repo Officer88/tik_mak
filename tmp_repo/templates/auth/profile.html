@@ -1,0 +1,248 @@
+{% extends 'base.html' %}
+
+{% block title %}Мой профиль - BiletService{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-3">
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Меню профиля</h5>
+                </div>
+                <div class="list-group list-group-flush">
+                    <a href="#profile-info" class="list-group-item list-group-item-action active" data-bs-toggle="list">
+                        <i class="fas fa-user me-2"></i> Личные данные
+                    </a>
+                    <a href="#order-history" class="list-group-item list-group-item-action" data-bs-toggle="list">
+                        <i class="fas fa-history me-2"></i> История заказов
+                    </a>
+                    <a href="{{ url_for('main.favorites') }}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-heart me-2"></i> Избранное
+                    </a>
+                    <a href="{{ url_for('main.sell_ticket') }}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-ticket-alt me-2"></i> Продать билет
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-9">
+            <div class="tab-content">
+                <!-- Profile Information -->
+                <div class="tab-pane fade show active" id="profile-info">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4 class="mb-0">Мой профиль</h4>
+                        </div>
+                        <div class="card-body">
+                            <form method="post" action="{{ url_for('auth.profile') }}">
+                                {{ form.hidden_tag() }}
+                                
+                                <div class="mb-3">
+                                    <label for="username" class="form-label">Имя пользователя</label>
+                                    {{ form.username(class="form-control") }}
+                                    {% if form.username.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.username.errors %}
+                                        {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="email" class="form-label">Email</label>
+                                    {{ form.email(class="form-control") }}
+                                    {% if form.email.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.email.errors %}
+                                        {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <h5 class="mt-4 mb-3">Изменить пароль</h5>
+                                
+                                <div class="mb-3">
+                                    <label for="current_password" class="form-label">Текущий пароль</label>
+                                    {{ form.current_password(class="form-control") }}
+                                    {% if form.current_password.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.current_password.errors %}
+                                        {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                    <div class="form-text">Введите текущий пароль, если хотите его изменить.</div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="new_password" class="form-label">Новый пароль</label>
+                                    {{ form.new_password(class="form-control") }}
+                                    {% if form.new_password.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.new_password.errors %}
+                                        {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <label for="new_password2" class="form-label">Подтверждение нового пароля</label>
+                                    {{ form.new_password2(class="form-control") }}
+                                    {% if form.new_password2.errors %}
+                                    <div class="invalid-feedback d-block">
+                                        {% for error in form.new_password2.errors %}
+                                        {{ error }}
+                                        {% endfor %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div>
+                                    {{ form.submit(class="btn btn-primary") }}
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Order History -->
+                <div class="tab-pane fade" id="order-history">
+                    <div class="card">
+                        <div class="card-header">
+                            <h4 class="mb-0">История заказов</h4>
+                        </div>
+                        <div class="card-body">
+                            {% if orders %}
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>№ заказа</th>
+                                            <th>Дата</th>
+                                            <th>Сумма</th>
+                                            <th>Статус</th>
+                                            <th>Способ доставки</th>
+                                            <th>Действия</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for order in orders %}
+                                        <tr>
+                                            <td>{{ order.id }}</td>
+                                            <td>{{ order.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
+                                            <td>{{ order.total_amount|int }} ₽</td>
+                                            <td>
+                                                <span class="badge {% if order.status == 'completed' %}bg-success{% elif order.status == 'pending' %}bg-warning{% else %}bg-danger{% endif %}">
+                                                    {{ {'completed': 'Выполнен', 'pending': 'В обработке', 'cancelled': 'Отменен'}.get(order.status, order.status) }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                {{ {'email': 'Электронная почта', 'courier': 'Курьер', 'event_day': 'В день мероприятия', '24h': 'В течение 24 часов'}.get(order.delivery_method, order.delivery_method) }}
+                                            </td>
+                                            <td>
+                                                <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#orderModal{{ order.id }}">
+                                                    Подробности
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <!-- Order Details Modals -->
+                            {% for order in orders %}
+                            <div class="modal fade" id="orderModal{{ order.id }}" tabindex="-1" aria-labelledby="orderModalLabel{{ order.id }}" aria-hidden="true">
+                                <div class="modal-dialog modal-lg">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title" id="orderModalLabel{{ order.id }}">Заказ #{{ order.id }}</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <div class="row mb-3">
+                                                <div class="col-md-6">
+                                                    <p><strong>Дата:</strong> {{ order.created_at.strftime('%d.%m.%Y %H:%M') }}</p>
+                                                    <p><strong>Статус:</strong> 
+                                                        <span class="badge {% if order.status == 'completed' %}bg-success{% elif order.status == 'pending' %}bg-warning{% else %}bg-danger{% endif %}">
+                                                            {{ {'completed': 'Выполнен', 'pending': 'В обработке', 'cancelled': 'Отменен'}.get(order.status, order.status) }}
+                                                        </span>
+                                                    </p>
+                                                    <p><strong>Способ доставки:</strong> 
+                                                        {{ {'email': 'Электронная почта', 'courier': 'Курьер', 'event_day': 'В день мероприятия', '24h': 'В течение 24 часов'}.get(order.delivery_method, order.delivery_method) }}
+                                                    </p>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <p><strong>Имя:</strong> {{ order.contact_name }}</p>
+                                                    <p><strong>Email:</strong> {{ order.contact_email }}</p>
+                                                    <p><strong>Телефон:</strong> {{ order.contact_phone }}</p>
+                                                    {% if order.address %}
+                                                    <p><strong>Адрес:</strong> {{ order.address }}</p>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                            
+                                            <h6 class="mb-3">Билеты в заказе:</h6>
+                                            <div class="table-responsive">
+                                                <table class="table table-bordered">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>Мероприятие</th>
+                                                            <th>Дата</th>
+                                                            <th>Место</th>
+                                                            <th>Цена</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        {% for item in order.items %}
+                                                        <tr>
+                                                            <td>{{ item.ticket.event.title }}</td>
+                                                            <td>{{ item.ticket.event.date.strftime('%d.%m.%Y %H:%M') }}</td>
+                                                            <td>
+                                                                {% if item.ticket.section or item.ticket.row or item.ticket.seat %}
+                                                                {% if item.ticket.section %}Секция: {{ item.ticket.section }}<br>{% endif %}
+                                                                {% if item.ticket.row %}Ряд: {{ item.ticket.row }}<br>{% endif %}
+                                                                {% if item.ticket.seat %}Место: {{ item.ticket.seat }}{% endif %}
+                                                                {% else %}
+                                                                Стандартный билет
+                                                                {% endif %}
+                                                            </td>
+                                                            <td>{{ item.price|int }} ₽</td>
+                                                        </tr>
+                                                        {% endfor %}
+                                                    </tbody>
+                                                    <tfoot>
+                                                        <tr>
+                                                            <th colspan="3" class="text-end">Итого:</th>
+                                                            <th>{{ order.total_amount|int }} ₽</th>
+                                                        </tr>
+                                                    </tfoot>
+                                                </table>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                            
+                            {% else %}
+                            <div class="alert alert-info">
+                                У вас пока нет заказов.
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

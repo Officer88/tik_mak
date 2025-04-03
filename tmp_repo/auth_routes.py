@@ -80,79 +80,60 @@ def register():
 @auth_bp.route('/profile', methods=['GET', 'POST'])
 @login_required
 def profile():
-    # Обновим сессию, чтобы избежать проблем с отсоединенными экземплярами
-    try:
-        # Сначала попробуем использовать безопасные свойства
-        user_id = int(current_user.get_id())
-        
-        # Сбросим кэш сессии
-        db.session.expire_all()
-        
-        # Получим свежий экземпляр пользователя
-        user = User.query.filter_by(id=user_id).first()
-        
-        if not user:
-            flash('Ошибка при получении данных профиля', 'danger')
-            return redirect(url_for('main.index'))
-    except Exception as e:
-        print(f"Ошибка при получении пользователя: {e}")
-        flash('Ошибка при получении данных профиля: повторите попытку позже', 'danger')
-        return redirect(url_for('main.index'))
-    
     form = ProfileForm()
     
     if request.method == 'GET':
         # Pre-fill form with user data
-        form.username.data = user.username
-        form.email.data = user.email
+        form.username.data = current_user.username
+        form.email.data = current_user.email
     
     if form.validate_on_submit():
         # Check if username changed and exists
-        if form.username.data != user.username:
+        if form.username.data != current_user.username:
             existing_user = User.query.filter_by(username=form.username.data).first()
-            if existing_user and existing_user.id != user.id:
+            if existing_user:
                 flash('Это имя пользователя уже занято', 'danger')
                 return redirect(url_for('auth.profile'))
         
         # Check if email changed and exists
-        if form.email.data != user.email:
+        if form.email.data != current_user.email:
             existing_email = User.query.filter_by(email=form.email.data).first()
-            if existing_email and existing_email.id != user.id:
+            if existing_email:
                 flash('Этот email уже зарегистрирован', 'danger')
                 return redirect(url_for('auth.profile'))
         
         # Verify current password if provided
         if form.current_password.data:
-            if not user.check_password(form.current_password.data):
+            if not current_user.check_password(form.current_password.data):
                 flash('Неверный текущий пароль', 'danger')
                 return redirect(url_for('auth.profile'))
             
             # Change password if requested
             if form.new_password.data:
-                user.set_password(form.new_password.data)
+                current_user.set_password(form.new_password.data)
         
         # Update user data
-        user.username = form.username.data
-        user.email = form.email.data
+        current_user.username = form.username.data
+        current_user.email = form.email.data
         
         db.session.commit()
         flash('Профиль успешно обновлен', 'success')
         return redirect(url_for('auth.profile'))
     
     # Get user orders
-    orders = Order.query.filter_by(user_id=user.id).order_by(Order.created_at.desc()).all()
+    orders = Order.query.filter_by(user_id=current_user.id).order_by(Order.created_at.desc()).all()
     
     # Get user tickets for sale
-    tickets_for_sale = TicketForSale.query.filter_by(user_id=user.id).order_by(TicketForSale.created_at.desc()).all()
+    tickets_for_sale = TicketForSale.query.filter_by(user_id=current_user.id).order_by(TicketForSale.created_at.desc()).all()
     
     # Get notification settings form with data
     notification_form = NotificationSettingForm()
-    notification_settings = NotificationSetting.query.filter_by(user_id=user.id).first()
+    notification_settings = NotificationSetting.query.filter_by(user_id=current_user.id).first()
     
     # Create notification settings if they don't exist
     if not notification_settings:
         notification_settings = NotificationSetting(
-            user_id=user.id,
+            user_id=current_user.id,
             email_enabled=True,
             sms_enabled=False
         )
@@ -172,55 +153,37 @@ def profile():
 @auth_bp.route('/notification-settings', methods=['POST'])
 @login_required
 def notification_settings():
-    try:
-        # Получаем ID пользователя из безопасного хранилища
-        user_id = int(current_user.get_id())
+    form = NotificationSettingForm()
+    
+    if form.validate_on_submit():
+        # Get or create notification settings
+        settings = NotificationSetting.query.filter_by(user_id=current_user.id).first()
+        if not settings:
+            settings = NotificationSetting(user_id=current_user.id)
+            db.session.add(settings)
         
-        # Сбросим кэш сессии
-        db.session.expire_all()
+        # Update settings
+        settings.email_enabled = form.email_enabled.data
+        settings.sms_enabled = form.sms_enabled.data
         
-        # Получим свежий экземпляр пользователя
-        user = User.query.filter_by(id=user_id).first()
+        # If SMS enabled, phone number is required
+        if settings.sms_enabled and not form.phone_number.data:
+            flash('Для получения SMS-уведомлений необходимо указать номер телефона', 'danger')
+            return redirect(url_for('auth.profile'))
         
-        if not user:
-            flash('Ошибка при получении данных пользователя', 'danger')
-            return redirect(url_for('main.index'))
-            
-        form = NotificationSettingForm()
+        settings.phone_number = form.phone_number.data
+        db.session.commit()
         
-        if form.validate_on_submit():
-            # Get or create notification settings
-            settings = NotificationSetting.query.filter_by(user_id=user.id).first()
-            if not settings:
-                settings = NotificationSetting(user_id=user.id)
-                db.session.add(settings)
-            
-            # Update settings
-            settings.email_enabled = form.email_enabled.data
-            settings.sms_enabled = form.sms_enabled.data
-            
-            # If SMS enabled, phone number is required
-            if settings.sms_enabled and not form.phone_number.data:
-                flash('Для получения SMS-уведомлений необходимо указать номер телефона', 'danger')
-                return redirect(url_for('auth.profile'))
-            
-            settings.phone_number = form.phone_number.data
-            db.session.commit()
-            
-            # Проверяем учетные данные Twilio, если включены SMS
-            if settings.sms_enabled:
-                from send_message import TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_PHONE_NUMBER
-                if not all([TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_PHONE_NUMBER]):
-                    flash('SMS-уведомления настроены, но учетные данные Twilio отсутствуют. Обратитесь к администратору.', 'warning')
-            
-            flash('Настройки уведомлений успешно сохранены', 'success')
-        else:
-            for field, errors in form.errors.items():
-                for error in errors:
-                    flash(f'{getattr(form, field).label.text}: {error}', 'danger')
-                    
-    except Exception as e:
-        print(f"Ошибка при сохранении настроек уведомлений: {e}")
-        flash('Произошла ошибка при сохранении настроек. Пожалуйста, попробуйте еще раз.', 'danger')
+        # Проверяем учетные данные Twilio, если включены SMS
+        if settings.sms_enabled:
+            from send_message import TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_PHONE_NUMBER
+            if not all([TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_PHONE_NUMBER]):
+                flash('SMS-уведомления настроены, но учетные данные Twilio отсутствуют. Обратитесь к администратору.', 'warning')
+        
+        flash('Настройки уведомлений успешно сохранены', 'success')
+    else:
+        for field, errors in form.errors.items():
+            for error in errors:
+                flash(f'{getattr(form, field).label.text}: {error}', 'danger')
     
     return redirect(url_for('auth.profile'))

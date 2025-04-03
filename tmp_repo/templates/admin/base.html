@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>{% block title %}Панель администратора - MAGIK TIKET{% endblock %}</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Admin Header -->
+    <nav class="navbar navbar-dark navbar-expand-lg" style="background-color: var(--dark-blue);">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{{ url_for('admin.dashboard') }}">MAGIK TIKET | Админ</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#adminNavbar" aria-controls="adminNavbar" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="adminNavbar">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('main.index') }}" target="_blank">
+                            <i class="fas fa-external-link-alt me-1"></i> Перейти на сайт
+                        </a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-user me-1"></i> 
+                            {% if admin_username is defined %}
+                                {{ admin_username }}
+                            {% else %}
+                                Администратор
+                            {% endif %}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                            <li><a class="dropdown-item" href="{{ url_for('auth.profile') }}">Мой профиль</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}">Выйти</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-3 col-lg-2 admin-sidebar">
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'admin.dashboard' %}active{% endif %}" href="{{ url_for('admin.dashboard') }}">
+                            <i class="fas fa-tachometer-alt"></i> Главная
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint in ['admin.events', 'admin.add_event', 'admin.edit_event'] %}active{% endif %}" href="{{ url_for('admin.events') }}">
+                            <i class="fas fa-calendar-alt"></i> Мероприятия
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint in ['admin.categories', 'admin.add_category', 'admin.edit_category'] %}active{% endif %}" href="{{ url_for('admin.categories') }}">
+                            <i class="fas fa-tags"></i> Категории
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint in ['admin.venues', 'admin.add_venue', 'admin.edit_venue'] %}active{% endif %}" href="{{ url_for('admin.venues') }}">
+                            <i class="fas fa-map-marker-alt"></i> Площадки
+                        </a>
+                    </li>
+
+                    <!-- Пункт "Пользователи" временно удален -->
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'admin.reviews' %}active{% endif %}" href="{{ url_for('admin.reviews') }}">
+                            <i class="fas fa-star me-2"></i>Отзывы
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'admin.tickets_for_sale' %}active{% endif %}" href="{{ url_for('admin.tickets_for_sale') }}">
+                            <i class="fas fa-ticket-alt me-2"></i>Билеты на продажу
+                            {% set pending_tickets = get_pending_tickets_count() %}
+                            {% if pending_tickets > 0 %}
+                            <span class="badge bg-danger rounded-pill ms-1">{{ pending_tickets }}</span>
+                            {% endif %}
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('admin.notifications') }}">
+                            <i class="fas fa-bell me-2"></i>Уведомления
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint in ['admin.sliders', 'admin.add_slide', 'admin.edit_slide'] %}active{% endif %}" href="{{ url_for('admin.sliders') }}">
+                            <i class="fas fa-images"></i> Слайдеры
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.endpoint == 'admin.contacts' %}active{% endif %}" href="{{ url_for('admin.contacts') }}">
+                            <i class="fas fa-address-book"></i> Контакты
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-md-9 col-lg-10 admin-content">
+                <!-- Flash Messages -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            {% set alert_class = category if category in ['success', 'danger', 'warning', 'info'] else 'info' %}
+                            <div class="alert alert-{{ alert_class }} alert-dismissible fade show" role="alert">
+                                {{ message }}
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                <!-- Page Content -->
+                {% block content %}{% endblock %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Custom JavaScript -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

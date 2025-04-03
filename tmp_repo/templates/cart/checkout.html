@@ -1,0 +1,220 @@
+{% extends 'base.html' %}
+
+{% block title %}Оформление заказа - BiletService{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="mb-4">Оформление заказа</h1>
+    
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Checkout form -->
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Информация для заказа</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="{{ url_for('main.checkout') }}">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="mb-3">
+                            <label for="full_name" class="form-label">ФИО</label>
+                            {{ form.full_name(class="form-control") }}
+                            {% if form.full_name.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.full_name.errors %}
+                                {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="email" class="form-label">Email</label>
+                                {{ form.email(class="form-control") }}
+                                {% if form.email.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.email.errors %}
+                                    {{ error }}
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                                <div class="form-text">На этот адрес будет отправлено подтверждение заказа</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="phone" class="form-label">Телефон</label>
+                                {{ form.phone(class="form-control") }}
+                                {% if form.phone.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {% for error in form.phone.errors %}
+                                    {{ error }}
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <h5 class="mb-3">Способ доставки</h5>
+                        
+                        <div class="mb-4">
+                            {% for subfield in form.delivery_method %}
+                            <div class="form-check mb-2">
+                                {{ subfield(class="form-check-input") }}
+                                <label class="form-check-label" for="{{ subfield.id }}">
+                                    {{ subfield.label.text }}
+                                </label>
+                            </div>
+                            {% endfor %}
+                            
+                            {% if form.delivery_method.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.delivery_method.errors %}
+                                {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div id="address-field" class="mb-4 d-none">
+                            <label for="address" class="form-label">Адрес доставки</label>
+                            {{ form.address(class="form-control", rows=3) }}
+                            {% if form.address.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.address.errors %}
+                                {{ error }}
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-check mb-4">
+                            <input class="form-check-input" type="checkbox" value="" id="terms" required>
+                            <label class="form-check-label" for="terms">
+                                Я согласен с <a href="#" data-bs-toggle="modal" data-bs-target="#termsModal">условиями использования</a> и <a href="#" data-bs-toggle="modal" data-bs-target="#privacyModal">политикой конфиденциальности</a>
+                            </label>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary btn-lg">Оформить заказ</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <!-- Order summary -->
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Ваш заказ</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        {% for item in items %}
+                        <div class="d-flex justify-content-between mb-2">
+                            <div>
+                                <div class="fw-bold">{{ item.event.title }}</div>
+                                <div class="small text-muted">
+                                    {{ item.event.date.strftime('%d.%m.%Y %H:%M') }}
+                                </div>
+                                {% if item.ticket.section or item.ticket.row or item.ticket.seat %}
+                                <div class="small text-muted">
+                                    {% if item.ticket.section %}Секция: {{ item.ticket.section }}{% endif %}
+                                    {% if item.ticket.row %} | Ряд: {{ item.ticket.row }}{% endif %}
+                                    {% if item.ticket.seat %} | Место: {{ item.ticket.seat }}{% endif %}
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div class="fw-bold">{{ item.ticket.price|int }} ₽</div>
+                        </div>
+                        {% if not loop.last %}<hr>{% endif %}
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="d-flex justify-content-between fw-bold mb-3">
+                        <div>Итого:</div>
+                        <div>{{ total|int }} ₽</div>
+                    </div>
+                    
+                    <div class="alert alert-info small">
+                        <i class="fas fa-info-circle me-2"></i> 
+                        После оформления заказа вы будете перенаправлены на страницу оплаты.
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Payment methods -->
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Способы оплаты</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex mb-3">
+                        <i class="fab fa-cc-visa me-2 fa-2x"></i>
+                        <i class="fab fa-cc-mastercard me-2 fa-2x"></i>
+                        <i class="fab fa-cc-jcb me-2 fa-2x"></i>
+                        <i class="fab fa-cc-amex fa-2x"></i>
+                    </div>
+                    <div class="small text-muted">
+                        Все платежи обрабатываются безопасно. Ваши платежные данные не хранятся на нашем сервере.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Terms Modal -->
+<div class="modal fade" id="termsModal" tabindex="-1" aria-labelledby="termsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="termsModalLabel">Условия использования</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <h6>1. Общие положения</h6>
+                <p>Настоящие Условия использования (далее — «Условия») регулируют отношения между ООО «БилетСервис» (далее — «BiletService») и пользователем сервиса (далее — «Пользователь»).</p>
+                
+                <h6>2. Покупка билетов</h6>
+                <p>2.1. BiletService является посредником между организаторами мероприятий и Пользователями.</p>
+                <p>2.2. Все билеты являются действительными и дают право на посещение указанного мероприятия в указанные дату и время.</p>
+                <p>2.3. BiletService не несет ответственности за отмену или перенос мероприятия организатором.</p>
+                
+                <h6>3. Возврат билетов</h6>
+                <p>3.1. Возврат билетов осуществляется в соответствии с законодательством РФ и правилами, установленными организатором мероприятия.</p>
+                <p>3.2. Для возврата билета необходимо обратиться в службу поддержки BiletService не позднее чем за 3 дня до проведения мероприятия.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Privacy Modal -->
+<div class="modal fade" id="privacyModal" tabindex="-1" aria-labelledby="privacyModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="privacyModalLabel">Политика конфиденциальности</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <h6>1. Сбор информации</h6>
+                <p>1.1. BiletService собирает и обрабатывает персональные данные Пользователей для обеспечения функционирования сервиса, включая, но не ограничиваясь: имя, email, номер телефона, адрес доставки.</p>
+                
+                <h6>2. Использование информации</h6>
+                <p>2.1. Информация используется для обработки заказов, доставки билетов, информирования о статусе заказа и изменениях в мероприятии.</p>
+                <p>2.2. При согласии Пользователя, информация может использоваться для отправки новостей и рекламных предложений.</p>
+                
+                <h6>3. Защита информации</h6>
+                <p>3.1. BiletService принимает все необходимые меры для защиты персональных данных Пользователей.</p>
+                <p>3.2. BiletService не передает персональные данные третьим лицам, за исключением случаев, необходимых для исполнения заказа или предусмотренных законодательством РФ.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

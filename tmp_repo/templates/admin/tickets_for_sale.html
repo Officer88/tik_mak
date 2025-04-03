@@ -1,0 +1,73 @@
+
+{% extends 'admin/base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="admin-content-title mb-0">Предложенные билеты</h1>
+</div>
+
+<div class="admin-card">
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Мероприятие</th>
+                    <th>Тип билета</th>
+                    <th>Место</th>
+                    <th>Цена продажи</th>
+                    <th>Контакт</th>
+                    <th>Дата предложения</th>
+                    <th>Действия</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ticket in tickets %}
+                <tr>
+                    <td>{{ ticket.event_name }}</td>
+                    <td>
+                        {% if ticket.ticket_type == 'electronic' %}
+                            Электронный
+                        {% else %}
+                            Физический
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if ticket.section %}
+                            Секция {{ ticket.section }}, 
+                            Ряд {{ ticket.row }}, 
+                            Место {{ ticket.seat }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>{{ ticket.selling_price|round|int }} ₽</td>
+                    <td>{{ ticket.contact_info }}</td>
+                    <td>{{ ticket.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
+                    <td>
+                        <span class="badge {% if ticket.status == 'pending' %}bg-warning{% elif ticket.status == 'confirmed' %}bg-success{% elif ticket.status == 'rejected' %}bg-danger{% elif ticket.status == 'sold' %}bg-info{% endif %} text-white mb-2">
+                            {% if ticket.status == 'pending' %}Ожидает{% elif ticket.status == 'confirmed' %}Подтвержден{% elif ticket.status == 'rejected' %}Отклонен{% elif ticket.status == 'sold' %}Продан{% endif %}
+                        </span>
+                        <div class="btn-group mt-1">
+                            {% if ticket.status == 'pending' %}
+                                <form method="post" action="{{ url_for('admin.approve_ticket_for_sale', ticket_id=ticket.id) }}" class="d-inline me-1">
+                                    <button type="submit" class="btn btn-sm btn-success">Подтвердить</button>
+                                </form>
+                                <form method="post" action="{{ url_for('admin.reject_ticket_for_sale', ticket_id=ticket.id) }}" class="d-inline">
+                                    <button type="submit" class="btn btn-sm btn-danger">Отклонить</button>
+                                </form>
+                            {% elif ticket.status == 'confirmed' %}
+                                <button type="button" class="btn btn-sm btn-info" disabled>Отметить как проданный</button>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" class="text-center">Нет предложенных билетов</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

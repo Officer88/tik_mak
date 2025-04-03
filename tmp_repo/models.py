@@ -2,7 +2,6 @@ from datetime import datetime
 from app import db
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
-import logging
 
 # User model
 class User(UserMixin, db.Model):
@@ -12,12 +11,6 @@ class User(UserMixin, db.Model):
     password_hash = db.Column(db.String(256), nullable=False)
     registered_on = db.Column(db.DateTime, default=datetime.utcnow)
     is_admin = db.Column(db.Boolean, default=False)
-    
-    # Сохраненные копии данных для использования вне сессии
-    _username = None
-    _email = None
-    _is_admin = None
-    _id = None
     
     # Relationships
     orders = db.relationship('Order', backref='user', lazy='dynamic')
@@ -30,42 +23,6 @@ class User(UserMixin, db.Model):
     
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
-    
-    # Переопределяем геттеры для работы с отсоединенными экземплярами
-    def get_id(self):
-        """Возвращает идентификатор пользователя для Flask-Login"""
-        try:
-            return str(self._id if self._id is not None else self.id)
-        except Exception as e:
-            logging.error(f"Ошибка при получении ID пользователя: {e}")
-            return str(self._id) if self._id is not None else "0"
-    
-    @property
-    def safe_username(self):
-        """Безопасное получение имени пользователя"""
-        try:
-            return self._username if self._username is not None else self.username
-        except Exception as e:
-            logging.error(f"Ошибка при получении имени пользователя: {e}")
-            return self._username if self._username is not None else "Пользователь"
-    
-    @property
-    def safe_email(self):
-        """Безопасное получение email пользователя"""
-        try:
-            return self._email if self._email is not None else self.email
-        except Exception as e:
-            logging.error(f"Ошибка при получении email пользователя: {e}")
-            return self._email if self._email is not None else "unknown@example.com"
-    
-    @property
-    def safe_is_admin(self):
-        """Безопасное получение статуса администратора"""
-        try:
-            return self._is_admin if self._is_admin is not None else self.is_admin
-        except Exception as e:
-            logging.error(f"Ошибка при получении статуса администратора: {e}")
-            return self._is_admin if self._is_admin is not None else False
     
     def __repr__(self):
         return f'<User {self.username}>'
