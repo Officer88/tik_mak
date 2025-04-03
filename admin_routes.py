@@ -682,8 +682,7 @@ def sliders():
         sold_tickets = db.session.query(Ticket).filter_by(is_available=False).count()
         total_tickets = available_tickets + sold_tickets
 
-            return render_template('admin/dashboard.html',
-                             total_events=total_events,
+        return render_template('admin/dashboard.html',
                              upcoming_events=upcoming_events,
                              total_users=total_users,
                              total_orders=total_orders,
@@ -694,21 +693,6 @@ def sliders():
                              total_tickets=total_tickets,
                              sold_tickets=sold_tickets,
                              available_tickets=available_tickets)
-
-    except Exception as e:
-        print(f"Ошибка при получении статистики: {e}")
-        return render_template('admin/dashboard.html',
-                             total_events=0,
-                             upcoming_events=0,
-                             total_users=0,
-                             total_orders=0,
-                             pending_tickets=0,
-                             confirmed_tickets=0,
-                             rejected_tickets=0,
-                             sold_tickets_resale=0,
-                             total_tickets=0,
-                             sold_tickets=0,
-                             available_tickets=0)
 
     except Exception as e:
         print(f"Ошибка при получении статистики: {e}")
