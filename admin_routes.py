@@ -600,7 +600,9 @@ def add_slide():
         flash('Слайд успешно добавлен', 'success')
         return redirect(url_for('admin.sliders'))
 
-    return render_template('admin/sliders.html', form=form, add_mode=True)
+    # Получаем все слайды для отображения в таблице
+    slides = Slide.query.order_by(Slide.order).all()
+    return render_template('admin/sliders.html', form=form, slides=slides, add_mode=True)
 
 @admin_bp.route('/sliders/edit/<int:slide_id>', methods=['GET', 'POST'])
 @login_required
@@ -647,7 +649,9 @@ def edit_slide(slide_id):
         flash('Слайд успешно обновлен', 'success')
         return redirect(url_for('admin.sliders'))
 
-    return render_template('admin/sliders.html', form=form, slide=slide, add_mode=False)
+    # Получаем все слайды для отображения в таблице
+    slides = Slide.query.order_by(Slide.order).all()
+    return render_template('admin/sliders.html', form=form, slide=slide, slides=slides, add_mode=False)
 
 @admin_bp.route('/sliders/delete/<int:slide_id>', methods=['POST'])
 def delete_slide(slide_id):
