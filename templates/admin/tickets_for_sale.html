@@ -44,15 +44,23 @@
                     <td>{{ ticket.contact_info }}</td>
                     <td>{{ ticket.created_at.strftime('%d.%m.%Y %H:%M') }}</td>
                     <td>
-                        <form method="post" action="{{ url_for('admin.toggle_ticket_sold', ticket_id=ticket.id) }}" class="d-inline">
-                            <button type="submit" class="btn btn-sm {% if ticket.is_sold %}btn-warning{% else %}btn-success{% endif %}">
-                                {% if ticket.is_sold %}
-                                    Снять с продажи
-                                {% else %}
-                                    Отметить как проданный
-                                {% endif %}
-                            </button>
-                        </form>
+                        <span class="badge {% if ticket.status == 'pending' %}bg-warning{% elif ticket.status == 'confirmed' %}bg-success{% elif ticket.status == 'rejected' %}bg-danger{% elif ticket.status == 'sold' %}bg-info{% endif %} text-white mb-2">
+                            {% if ticket.status == 'pending' %}Ожидает{% elif ticket.status == 'confirmed' %}Подтвержден{% elif ticket.status == 'rejected' %}Отклонен{% elif ticket.status == 'sold' %}Продан{% endif %}
+                        </span>
+                        <div class="btn-group mt-1">
+                            {% if ticket.status == 'pending' %}
+                                <form method="post" action="{{ url_for('admin.confirm_ticket', ticket_id=ticket.id) }}" class="d-inline me-1">
+                                    <button type="submit" class="btn btn-sm btn-success">Подтвердить</button>
+                                </form>
+                                <form method="post" action="{{ url_for('admin.reject_ticket', ticket_id=ticket.id) }}" class="d-inline">
+                                    <button type="submit" class="btn btn-sm btn-danger">Отклонить</button>
+                                </form>
+                            {% elif ticket.status == 'confirmed' %}
+                                <form method="post" action="{{ url_for('admin.mark_ticket_sold', ticket_id=ticket.id) }}" class="d-inline">
+                                    <button type="submit" class="btn btn-sm btn-info">Отметить как проданный</button>
+                                </form>
+                            {% endif %}
+                        </div>
                     </td>
                 </tr>
                 {% else %}

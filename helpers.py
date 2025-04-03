@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from flask import current_app
 from app import db
-from models import Event, Category
+from models import Event, Category, TicketForSale
 
 def format_date(date):
     """Format date for display in Russian style"""
@@ -58,3 +58,11 @@ def clean_old_events():
     
     db.session.commit()
     return len(old_events)
+
+def get_pending_tickets_count():
+    """Получение количества билетов, ожидающих подтверждения"""
+    try:
+        return TicketForSale.query.filter_by(status='pending').count()
+    except Exception as e:
+        current_app.logger.error(f"Ошибка при получении количества ожидающих билетов: {e}")
+        return 0

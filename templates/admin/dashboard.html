@@ -34,6 +34,44 @@
 </div>
 
 <div class="row">
+    <!-- Tickets for Sale Statistics -->
+    <div class="col-md-12 mb-4">
+        <div class="admin-card">
+            <h4 class="admin-card-title">Статистика предложенных билетов</h4>
+            <div class="row mb-3">
+                <div class="col-md-3">
+                    <div class="text-center">
+                        <div class="fs-4 fw-bold text-warning">{{ pending_tickets }}</div>
+                        <div class="small text-muted">Ожидают проверки</div>
+                        {% if pending_tickets > 0 %}
+                        <a href="{{ url_for('admin.tickets_for_sale') }}" class="btn btn-sm btn-warning mt-2">Проверить</a>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="text-center">
+                        <div class="fs-4 fw-bold text-success">{{ confirmed_tickets }}</div>
+                        <div class="small text-muted">Подтверждены</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="text-center">
+                        <div class="fs-4 fw-bold text-danger">{{ rejected_tickets }}</div>
+                        <div class="small text-muted">Отклонены</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="text-center">
+                        <div class="fs-4 fw-bold text-info">{{ sold_tickets_resale }}</div>
+                        <div class="small text-muted">Проданы</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
     <!-- Tickets Statistics -->
     <div class="col-lg-6 mb-4">
         <div class="admin-card">

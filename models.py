@@ -202,7 +202,7 @@ class TicketForSale(db.Model):
     selling_price = db.Column(db.Float, nullable=False)
     contact_info = db.Column(db.String(256), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    is_sold = db.Column(db.Boolean, default=False)
+    status = db.Column(db.String(32), default='pending')  # pending, confirmed, rejected, sold
     
     def __repr__(self):
         return f'<TicketForSale {self.id} for Event {self.event_name}>'

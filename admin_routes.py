@@ -44,6 +44,12 @@ def dashboard():
     # Recent users
     recent_users = User.query.order_by(User.registered_on.desc()).limit(5).all()
     
+    # Статистика по предложенным билетам
+    pending_tickets = TicketForSale.query.filter_by(status='pending').count()
+    confirmed_tickets = TicketForSale.query.filter_by(status='confirmed').count()
+    rejected_tickets = TicketForSale.query.filter_by(status='rejected').count()
+    sold_tickets_resale = TicketForSale.query.filter_by(status='sold').count()
+    
     return render_template(
         'admin/dashboard.html',
         total_events=total_events,
@@ -56,7 +62,11 @@ def dashboard():
         available_tickets=available_tickets,
         sold_tickets=sold_tickets,
         recent_orders=recent_orders,
-        recent_users=recent_users
+        recent_users=recent_users,
+        pending_tickets=pending_tickets,
+        confirmed_tickets=confirmed_tickets,
+        rejected_tickets=rejected_tickets,
+        sold_tickets_resale=sold_tickets_resale
     )
 
 # Events management routes
@@ -702,16 +712,37 @@ def tickets_for_sale():
     tickets = TicketForSale.query.order_by(TicketForSale.created_at.desc()).all()
     return render_template('admin/tickets_for_sale.html', tickets=tickets)
 
-@admin_bp.route('/tickets-for-sale/toggle/<int:ticket_id>', methods=['POST'])
+@admin_bp.route('/tickets-for-sale/confirm/<int:ticket_id>', methods=['POST'])
 @login_required
 @admin_required
-def toggle_ticket_sold(ticket_id):
+def confirm_ticket(ticket_id):
     ticket = TicketForSale.query.get_or_404(ticket_id)
-    ticket.is_sold = not ticket.is_sold
+    ticket.status = 'confirmed'
     db.session.commit()
     
-    status = 'продан' if ticket.is_sold else 'доступен для продажи'
-    flash(f'Статус билета изменен на "{status}"', 'success')
+    flash(f'Билет подтвержден и доступен для продажи', 'success')
+    return redirect(url_for('admin.tickets_for_sale'))
+
+@admin_bp.route('/tickets-for-sale/reject/<int:ticket_id>', methods=['POST'])
+@login_required
+@admin_required
+def reject_ticket(ticket_id):
+    ticket = TicketForSale.query.get_or_404(ticket_id)
+    ticket.status = 'rejected'
+    db.session.commit()
+    
+    flash(f'Билет отклонен', 'warning')
+    return redirect(url_for('admin.tickets_for_sale'))
+
+@admin_bp.route('/tickets-for-sale/sold/<int:ticket_id>', methods=['POST'])
+@login_required
+@admin_required
+def mark_ticket_sold(ticket_id):
+    ticket = TicketForSale.query.get_or_404(ticket_id)
+    ticket.status = 'sold'
+    db.session.commit()
+    
+    flash(f'Билет отмечен как проданный', 'success')
     return redirect(url_for('admin.tickets_for_sale'))
 
 # Notifications management

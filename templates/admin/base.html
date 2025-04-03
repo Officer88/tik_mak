@@ -91,8 +91,12 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('admin.tickets_for_sale') }}">
+                        <a class="nav-link {% if request.endpoint == 'admin.tickets_for_sale' %}active{% endif %}" href="{{ url_for('admin.tickets_for_sale') }}">
                             <i class="fas fa-ticket-alt me-2"></i>Предложенные билеты
+                            {% set pending_tickets = get_pending_tickets_count() %}
+                            {% if pending_tickets > 0 %}
+                            <span class="badge bg-danger rounded-pill ms-1">{{ pending_tickets }}</span>
+                            {% endif %}
                         </a>
                     </li>
                     <li class="nav-item">

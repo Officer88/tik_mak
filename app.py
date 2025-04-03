@@ -54,12 +54,13 @@ with app.app_context():
     app.register_blueprint(admin_bp, url_prefix='/admin')
     
     # Register context processors
-    from helpers import get_categories
+    from helpers import get_categories, get_pending_tickets_count
     
     @app.context_processor
     def utility_processor():
         return {
-            'get_categories': get_categories
+            'get_categories': get_categories,
+            'get_pending_tickets_count': get_pending_tickets_count
         }
     
     # Setup login manager
