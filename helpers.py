@@ -47,7 +47,7 @@ class CategoryDTO:
         self.seo_title = category.seo_title
         self.seo_description = category.seo_description
         self._events_count = None
-        
+
         # Подсчитываем количество событий при создании DTO
         try:
             from models import Event
@@ -59,9 +59,9 @@ class CategoryDTO:
         except Exception as e:
             print(f"Ошибка при подсчете событий для категории: {e}")
             self._events_count = 0
-            
+
     def events(self):
-        return type('EventCounter', (), {'count': lambda _: self._events_count})()
+        return {'count': lambda: self._events_count}
 
 class EventDTO:
     """Класс передачи данных для событий"""
@@ -85,7 +85,7 @@ class EventDTO:
         self.seo_title = event.seo_title
         self.seo_description = event.seo_description
         self.delivery_methods = event.delivery_methods
-        
+
         # Получаем связанную площадку для предотвращения detached instance
         if hasattr(event, 'venue') and event.venue:
             try:
@@ -96,7 +96,7 @@ class EventDTO:
                 self.venue = None
         else:
             self.venue = None
-        
+
         # Получаем связанную категорию для предотвращения detached instance
         if hasattr(event, 'category') and event.category:
             try:
@@ -130,7 +130,7 @@ class ReviewDTO:
         self.content = review.content
         self.created_at = review.created_at
         self.is_approved = review.is_approved
-        
+
         # Получаем связанные данные
         if hasattr(review, 'user') and review.user:
             try:
@@ -139,7 +139,7 @@ class ReviewDTO:
                 self.user = None
         else:
             self.user = None
-            
+
         if hasattr(review, 'event') and review.event:
             try:
                 self.event = EventDTO(review.event)
@@ -170,7 +170,7 @@ class OrderDTO:
         self.contact_email = order.contact_email
         self.contact_phone = order.contact_phone
         self.address = order.address
-        
+
         # Связанные данные
         if hasattr(order, 'user') and order.user:
             try:
@@ -179,7 +179,7 @@ class OrderDTO:
                 self.user = None
         else:
             self.user = None
-        
+
         # Элементы заказа
         self.items = []
         if hasattr(order, 'items'):
@@ -196,7 +196,7 @@ class OrderItemDTO:
         self.order_id = item.order_id
         self.ticket_id = item.ticket_id
         self.price = item.price
-        
+
         # Связанный билет
         if hasattr(item, 'ticket') and item.ticket:
             try:
@@ -217,7 +217,7 @@ class TicketDTO:
         self.price = ticket.price
         self.is_available = ticket.is_available
         self.created_at = ticket.created_at
-        
+
         # Связанное событие
         if hasattr(ticket, 'event') and ticket.event:
             try:
@@ -244,7 +244,7 @@ class TicketForSaleDTO:
         self.contact_info = ticket.contact_info
         self.created_at = ticket.created_at
         self.status = ticket.status
-        
+
         # Связанные данные
         if hasattr(ticket, 'user') and ticket.user:
             try:
@@ -253,7 +253,7 @@ class TicketForSaleDTO:
                 self.user = None
         else:
             self.user = None
-            
+
         if hasattr(ticket, 'event') and ticket.event:
             try:
                 self.event = EventDTO(ticket.event)
@@ -274,35 +274,35 @@ def format_date(date):
     """Format date for display in Russian style"""
     if not date:
         return ""
-    
+
     months = [
         'января', 'февраля', 'марта', 'апреля', 'мая', 'июня',
         'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'
     ]
-    
+
     weekdays = ['ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ', 'ВС']
-    
+
     return f"{date.day} {months[date.month-1]}, {weekdays[date.weekday()]}"
 
 def format_time(date):
     """Format time for display"""
     if not date:
         return ""
-    
+
     return date.strftime("%H:%M")
 
 def format_price(price):
     """Format price for display in Russian rubles"""
     if not price:
         return "0 ₽"
-    
+
     return f"{int(price)} ₽"
 
 def get_event_card_date(event):
     """Format date for event card as DD.MM WD"""
     if not event.date:
         return ""
-    
+
     weekdays = ['ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ', 'ВС']
     return f"{event.date.day:02d}.{event.date.month:02d} {weekdays[event.date.weekday()]}"
 
@@ -314,7 +314,7 @@ def get_categories():
     # Закрываем текущую сессию для обновления данных
     db.session.expire_all()
     db.session.close()
-    
+
     try:
         # Получаем категории напрямую из базы
         categories = db.session.query(Category).order_by(Category.name).all()
@@ -328,11 +328,11 @@ def clean_old_events():
     """Clean up events that are past their date immediately"""
     cutoff_date = datetime.now()
     old_events = Event.query.filter(Event.date < cutoff_date).all()
-    
+
     for event in old_events:
         # Помечаем событие как неактивное вместо удаления
         event.is_active = False
-    
+
     db.session.commit()
     return len(old_events)
 
@@ -353,11 +353,11 @@ def get_contact():
     # Закрываем текущую сессию и запрашиваем свежие данные
     db.session.expire_all()
     db.session.close()
-    
+
     # Получаем все контакты напрямую из базы
     contacts = db.session.query(Contact).all()
     contact = contacts[0] if contacts else None
-    
+
     # Если запись не найдена, создаем новую
     if not contact:
         contact = Contact(
@@ -366,7 +366,7 @@ def get_contact():
         )
         db.session.add(contact)
         db.session.commit()
-    
+
     return contact
 
 
@@ -376,7 +376,7 @@ def get_current_user_info():
     избегая проблем с детачментом сессии.
     """
     from flask_login import current_user
-    
+
     # Проверяем, аутентифицирован ли пользователь
     if not current_user.is_authenticated:
         return {
@@ -384,16 +384,16 @@ def get_current_user_info():
             'is_authenticated': False,
             'is_admin': False
         }
-    
+
     # Закрываем текущую сессию для обновления данных
     db.session.expire_all()
     db.session.close()
-    
+
     try:
         # Получаем свежие данные пользователя
         from models import User
         user = db.session.query(User).filter_by(id=current_user.id).first()
-        
+
         if user:
             return {
                 'username': user.username,
@@ -424,7 +424,7 @@ def get_popular_events():
     # Обновляем сессию
     db.session.expire_all()
     db.session.close()
-    
+
     try:
         # Получаем популярные события
         events = db.session.query(Event).filter_by(
@@ -444,7 +444,7 @@ def get_featured_events():
     # Обновляем сессию
     db.session.expire_all()
     db.session.close()
-    
+
     try:
         # Получаем фичеринговые события
         events = db.session.query(Event).filter_by(
@@ -465,7 +465,7 @@ def get_active_slides():
     # Закрываем текущую сессию и запрашиваем свежие данные
     db.session.expire_all()
     db.session.close()
-    
+
     # Получаем слайды напрямую из базы и создаем независимые копии
     try:
         # Получаем слайды

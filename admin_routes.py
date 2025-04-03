@@ -28,6 +28,39 @@ def dashboard():
     db.session.expire_all()
     db.session.close()
     
+    try:
+        # Подсчет статистики с новой сессией
+        event_count = db.session.query(Event).count()
+        venue_count = db.session.query(Venue).count()
+        category_count = db.session.query(Category).count()
+        review_count = db.session.query(Review).count()
+        
+        # Последние заказы
+        recent_orders = db.session.query(Order).order_by(Order.created_at.desc()).limit(5).all()
+        recent_order_dtos = [OrderDTO(order) for order in recent_orders]
+        
+        # Билеты на продажу
+        pending_tickets = db.session.query(TicketForSale).filter_by(status='pending').count()
+        
+        # События на этой неделе
+        next_week = datetime.now() + timedelta(days=7)
+        upcoming_events = db.session.query(Event).filter(
+            Event.date >= datetime.now(),
+            Event.date <= next_week
+        ).count()
+        
+        # Статистика заказов
+        total_orders = db.session.query(Order).count()
+        completed_orders = db.session.query(Order).filter_by(status='completed').count()
+        pending_orders = db.session.query(Order).filter_by(status='pending').count()
+        
+        # Получаем информацию о пользователе
+        user_info = get_current_user_info()
+        
+    except Exception as e:
+        print(f"Ошибка при получении статистики: {e}")
+        return render_template('admin/dashboard.html', error="Ошибка при загрузке данных")
+    
     # Счетчики для дашборда - использование db.session для свежих данных
     event_count = db.session.query(Event).count()
     venue_count = db.session.query(Venue).count()
@@ -79,8 +112,13 @@ def dashboard():
 # Управление событиями
 @admin_bp.route('/events')
 def events():
+    # Обновляем сессию и получаем события через DTO
+    db.session.expire_all()
+    db.session.close()
+    
     events = Event.query.order_by(Event.date.desc()).all()
-    return render_template('admin/events.html', events=events)
+    event_dtos = [EventDTO(event) for event in events]
+    return render_template('admin/events.html', events=event_dtos)
 
 # Добавление события
 @admin_bp.route('/events/add', methods=['GET', 'POST'])
