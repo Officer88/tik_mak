@@ -20,8 +20,8 @@
                 <a href="#orders" class="list-group-item list-group-item-action active" data-bs-toggle="list">Мои заказы</a>
                 <a href="#tickets" class="list-group-item list-group-item-action" data-bs-toggle="list">Мои билеты на продаже</a>
                 <a href="#notifications" class="list-group-item list-group-item-action" data-bs-toggle="list">Настройки уведомлений</a>
-                <a href="{{ url_for('favorites') }}" class="list-group-item list-group-item-action">Избранное</a>
-                <a href="{{ url_for('sell_ticket') }}" class="list-group-item list-group-item-action">Продать билет</a>
+                <a href="{{ url_for('main.favorites') }}" class="list-group-item list-group-item-action">Избранное</a>
+                <a href="{{ url_for('main.sell_ticket') }}" class="list-group-item list-group-item-action">Продать билет</a>
             </div>
         </div>
         
@@ -118,7 +118,7 @@
                                 </div>
                             {% else %}
                                 <div class="alert alert-info">
-                                    У вас пока нет заказов. <a href="{{ url_for('events') }}" class="alert-link">Перейти к мероприятиям</a>
+                                    У вас пока нет заказов. <a href="{{ url_for('main.events') }}" class="alert-link">Перейти к мероприятиям</a>
                                 </div>
                             {% endif %}
                         </div>
@@ -185,7 +185,7 @@
                                 </div>
                             {% else %}
                                 <div class="alert alert-info">
-                                    У вас пока нет билетов на продаже. <a href="{{ url_for('sell_ticket') }}" class="alert-link">Разместить билет</a>
+                                    У вас пока нет билетов на продаже. <a href="{{ url_for('main.sell_ticket') }}" class="alert-link">Разместить билет</a>
                                 </div>
                             {% endif %}
                         </div>

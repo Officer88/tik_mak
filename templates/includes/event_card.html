@@ -52,26 +52,49 @@
                 от {{ event.base_price|default(0)|int }} ₽
             </div>
             <div class="event-delivery-methods d-flex">
-                {% if event.delivery_methods %}
-                    {% if 'email' in event.delivery_methods.split(',') %}
+                {% if event.delivery_methods_list %}
+                    {% if 'email' in event.delivery_methods_list %}
                     <span class="delivery-icon me-1" title="Электронный билет">
                         <i class="fas fa-envelope"></i>
                     </span>
                     {% endif %}
-                    {% if 'courier' in event.delivery_methods.split(',') %}
+                    {% if 'courier' in event.delivery_methods_list %}
                     <span class="delivery-icon me-1" title="Курьерская доставка">
                         <i class="fas fa-truck"></i>
                     </span>
                     {% endif %}
-                    {% if 'event_day' in event.delivery_methods.split(',') %}
+                    {% if 'event_day' in event.delivery_methods_list %}
                     <span class="delivery-icon me-1" title="В день мероприятия">
                         <i class="fas fa-calendar-day"></i>
                     </span>
                     {% endif %}
-                    {% if '24h' in event.delivery_methods.split(',') %}
+                    {% if '24h' in event.delivery_methods_list %}
                     <span class="delivery-icon" title="В течение 24 часов">
                         <i class="fas fa-clock"></i>
                     </span>
+                    {% endif %}
+                {% else %}
+                    {% if event.delivery_methods %}
+                        {% if 'email' in event.delivery_methods.split(',') %}
+                        <span class="delivery-icon me-1" title="Электронный билет">
+                            <i class="fas fa-envelope"></i>
+                        </span>
+                        {% endif %}
+                        {% if 'courier' in event.delivery_methods.split(',') %}
+                        <span class="delivery-icon me-1" title="Курьерская доставка">
+                            <i class="fas fa-truck"></i>
+                        </span>
+                        {% endif %}
+                        {% if 'event_day' in event.delivery_methods.split(',') %}
+                        <span class="delivery-icon me-1" title="В день мероприятия">
+                            <i class="fas fa-calendar-day"></i>
+                        </span>
+                        {% endif %}
+                        {% if '24h' in event.delivery_methods.split(',') %}
+                        <span class="delivery-icon" title="В течение 24 часов">
+                            <i class="fas fa-clock"></i>
+                        </span>
+                        {% endif %}
                     {% endif %}
                 {% endif %}
             </div>

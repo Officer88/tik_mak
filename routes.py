@@ -346,14 +346,20 @@ def remove_from_favorites(event_id):
 def venue_detail(venue_id):
     venue = Venue.query.get_or_404(venue_id)
     
+    # Создаем DTO для предотвращения detached instance errors
+    venue_dto = VenueDTO(venue)
+    
     # Получаем предстоящие мероприятия на этой площадке
-    events = Event.query.filter(
+    events_query = Event.query.filter(
         Event.venue_id == venue_id,
         Event.date >= datetime.now(),
         Event.is_active == True
     ).order_by(Event.date).all()
     
-    return render_template('venue.html', venue=venue, events=events)
+    # Преобразуем события в DTO для предотвращения detached instance errors
+    events_dto = [EventDTO(event) for event in events_query]
+    
+    return render_template('venue.html', venue=venue_dto, events=events_dto)
 
 # View favorites route
 @main_bp.route('/favorites')

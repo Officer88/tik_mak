@@ -87,6 +87,12 @@ class EventDTO:
         self.seo_title = event.seo_title
         self.seo_description = event.seo_description
         self.delivery_methods = event.delivery_methods
+        
+        # Разбиваем строку delivery_methods на список для шаблона
+        if self.delivery_methods:
+            self.delivery_methods_list = self.delivery_methods.split(',')
+        else:
+            self.delivery_methods_list = []
 
         if hasattr(event, 'venue') and event.venue:
             try:
