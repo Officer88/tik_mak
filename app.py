@@ -1,16 +1,21 @@
 
 import os
 import logging
+import sys
 from datetime import datetime
 
-from flask import Flask
+from flask import Flask, request
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import DeclarativeBase
 from flask_login import LoginManager
 from flask_migrate import Migrate
 
-# Configure logging
-logging.basicConfig(level=logging.DEBUG)
+# Configure logging with enhanced format and handlers
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+)
+logger = logging.getLogger(__name__)
 
 # Base class for our models
 class Base(DeclarativeBase):
@@ -68,8 +73,14 @@ with app.app_context():
     app.register_blueprint(auth_bp, url_prefix='/auth')
     app.register_blueprint(admin_bp, url_prefix='/admin')
     
-    # Временно отключаем регистрацию фильтров, пока не решим проблему
-    print("Запуск приложения без пользовательских фильтров Jinja2")
+    # Регистрируем пользовательские фильтры Jinja2
+    try:
+        from filters import register_filters
+        register_filters(app)
+        logger.info("Пользовательские фильтры Jinja2 успешно зарегистрированы")
+    except Exception as e:
+        logger.error(f"Ошибка при регистрации пользовательских фильтров: {e}", exc_info=True)
+        print("Запуск приложения без пользовательских фильтров Jinja2")
     
     # Создаем директории для загрузок
     ensure_upload_dirs()
@@ -94,8 +105,12 @@ with app.app_context():
     # Добавляем функцию-обертку для запросов, чтобы избежать проблем с отсоединенными экземплярами
     @app.before_request
     def before_request():
-        # Обновляем сессию перед каждым запросом
-        db.session.expire_all()
+        # Обновляем сессию перед каждым запросом и логируем запрос для диагностики
+        try:
+            db.session.expire_all()
+            logger.debug(f"Обработка запроса: {request.endpoint} - метод: {request.method}")
+        except Exception as e:
+            logger.error(f"Ошибка при обработке запроса: {e}", exc_info=True)
             
     # Setup login manager
     @login_manager.user_loader
@@ -113,10 +128,13 @@ with app.app_context():
                 user._username = user.username
                 user._email = user.email
                 user._is_admin = user.is_admin
+                logger.info(f"Пользователь {user.id} ({user.username}) успешно загружен")
+            else:
+                logger.warning(f"Пользователь с ID {user_id} не найден")
                 
             return user
         except Exception as e:
-            print(f"Ошибка при загрузке пользователя: {e}")
+            logger.error(f"Критическая ошибка при загрузке пользователя {user_id}: {e}", exc_info=True)
             return None
     
     # Create all tables

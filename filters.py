@@ -60,7 +60,16 @@ def register_filters(app):
         
         Использование в шаблоне: {% if current_user|is_admin %}
         """
-        return safe_user_attr_filter(user, 'is_admin')
+        try:
+            # Проверяем через safe_is_admin свойство напрямую, если оно есть
+            if hasattr(user, 'safe_is_admin'):
+                return user.safe_is_admin
+                
+            # Иначе используем общий метод
+            return safe_user_attr_filter(user, 'is_admin')
+        except Exception as e:
+            logger.error(f"Ошибка при проверке прав администратора: {e}")
+            return False
         
     @app.template_filter('user_name')
     def user_name_filter(user):
@@ -69,4 +78,13 @@ def register_filters(app):
         
         Использование в шаблоне: {{ current_user|user_name }}
         """
-        return safe_user_attr_filter(user, 'username')
+        try:
+            # Проверяем через safe_username свойство напрямую, если оно есть
+            if hasattr(user, 'safe_username'):
+                return user.safe_username
+                
+            # Иначе используем общий метод
+            return safe_user_attr_filter(user, 'username')
+        except Exception as e:
+            logger.error(f"Ошибка при получении имени пользователя: {e}")
+            return "Пользователь"

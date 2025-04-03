@@ -46,28 +46,46 @@ class User(UserMixin, db.Model):
     def safe_username(self):
         """Безопасное получение имени пользователя"""
         try:
-            return self._username if self._username is not None else self.username
+            # Сначала пробуем получить кешированное значение, если оно есть
+            if hasattr(self, '_username') and self._username is not None:
+                return self._username
+                
+            # Затем пробуем получить атрибут напрямую через сессию
+            return self.username
         except Exception as e:
             logging.error(f"Ошибка при получении имени пользователя: {e}")
-            return self._username if self._username is not None else "Пользователь"
+            # Резервное значение
+            return "Пользователь"
     
     @property
     def safe_email(self):
         """Безопасное получение email пользователя"""
         try:
-            return self._email if self._email is not None else self.email
+            # Сначала пробуем получить кешированное значение, если оно есть
+            if hasattr(self, '_email') and self._email is not None:
+                return self._email
+                
+            # Затем пробуем получить атрибут напрямую через сессию
+            return self.email
         except Exception as e:
             logging.error(f"Ошибка при получении email пользователя: {e}")
-            return self._email if self._email is not None else "unknown@example.com"
+            # Резервное значение
+            return "unknown@example.com"
     
     @property
     def safe_is_admin(self):
         """Безопасное получение статуса администратора"""
         try:
-            return self._is_admin if self._is_admin is not None else self.is_admin
+            # Сначала пробуем получить кешированное значение, если оно есть
+            if hasattr(self, '_is_admin') and self._is_admin is not None:
+                return self._is_admin
+                
+            # Затем пробуем получить атрибут напрямую через сессию
+            return self.is_admin
         except Exception as e:
             logging.error(f"Ошибка при получении статуса администратора: {e}")
-            return self._is_admin if self._is_admin is not None else False
+            # Резервное значение - False для безопасности
+            return False
     
     def __repr__(self):
         return f'<User {self.username}>'

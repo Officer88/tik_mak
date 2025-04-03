@@ -1,45 +1,69 @@
 <div class="card event-card h-100">
     <div class="event-img-container">
-        <img src="{{ event.image_url }}" class="event-img" alt="{{ event.title }}">
+        <img src="{{ event.image_url|default('') }}" class="event-img" alt="{{ event.title|default('Мероприятие') }}">
         <div class="event-date-badge">
-            {{ event.date.strftime('%d.%m') }} {{ ['ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ', 'ВС'][event.date.weekday()] }}
+            {% if event.date %}
+                {{ event.date.strftime('%d.%m') }} 
+                {{ ['ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ', 'ВС'][event.date.weekday()] }}
+            {% else %}
+                Дата уточняется
+            {% endif %}
         </div>
     </div>
     <div class="event-card-body p-2">
-        <h5 class="event-title mb-1">{{ event.title }}</h5>
-        <div class="event-venue small">
-            <i class="fas fa-map-marker-alt me-1"></i>
-            <a href="{{ url_for('main.venue_detail', venue_id=event.venue.id) }}" class="venue-link">{{ event.venue.name }}</a>
-        </div>
+        <h5 class="event-title mb-1">{{ event.title|default('Мероприятие') }}</h5>
+        {% if event.venue %}
+            <div class="event-venue small">
+                <i class="fas fa-map-marker-alt me-1"></i>
+                {% if event.venue.id %}
+                <a href="{{ url_for('main.venue_detail', venue_id=event.venue.id) }}" class="venue-link">
+                    {{ event.venue.name|default('Площадка') }}
+                </a>
+                {% else %}
+                    {{ event.venue.name|default('Площадка') }}
+                {% endif %}
+            </div>
+        {% else %}
+            <div class="event-venue small">
+                <i class="fas fa-map-marker-alt me-1"></i> Уточняется
+            </div>
+        {% endif %}
         <div class="event-time small mb-2">
-            <i class="far fa-clock me-1"></i> {{ event.date.strftime('%H:%M') }}
+            <i class="far fa-clock me-1"></i> 
+            {% if event.date %}
+                {{ event.date.strftime('%H:%M') }}
+            {% else %}
+                Время уточняется
+            {% endif %}
         </div>
         
         <!-- Цена и доставка в одной строке -->
         <div class="d-flex justify-content-between align-items-center mb-2">
             <div class="event-price fw-bold">
-                от {{ event.base_price|int }} ₽
+                от {{ event.base_price|default(0)|int }} ₽
             </div>
             <div class="event-delivery-methods d-flex">
-                {% if 'email' in event.delivery_methods.split(',') %}
-                <span class="delivery-icon me-1" title="Электронный билет">
-                    <i class="fas fa-envelope"></i>
-                </span>
-                {% endif %}
-                {% if 'courier' in event.delivery_methods.split(',') %}
-                <span class="delivery-icon me-1" title="Курьерская доставка">
-                    <i class="fas fa-truck"></i>
-                </span>
-                {% endif %}
-                {% if 'event_day' in event.delivery_methods.split(',') %}
-                <span class="delivery-icon me-1" title="В день мероприятия">
-                    <i class="fas fa-calendar-day"></i>
-                </span>
-                {% endif %}
-                {% if '24h' in event.delivery_methods.split(',') %}
-                <span class="delivery-icon" title="В течение 24 часов">
-                    <i class="fas fa-clock"></i>
-                </span>
+                {% if event.delivery_methods %}
+                    {% if 'email' in event.delivery_methods.split(',') %}
+                    <span class="delivery-icon me-1" title="Электронный билет">
+                        <i class="fas fa-envelope"></i>
+                    </span>
+                    {% endif %}
+                    {% if 'courier' in event.delivery_methods.split(',') %}
+                    <span class="delivery-icon me-1" title="Курьерская доставка">
+                        <i class="fas fa-truck"></i>
+                    </span>
+                    {% endif %}
+                    {% if 'event_day' in event.delivery_methods.split(',') %}
+                    <span class="delivery-icon me-1" title="В день мероприятия">
+                        <i class="fas fa-calendar-day"></i>
+                    </span>
+                    {% endif %}
+                    {% if '24h' in event.delivery_methods.split(',') %}
+                    <span class="delivery-icon" title="В течение 24 часов">
+                        <i class="fas fa-clock"></i>
+                    </span>
+                    {% endif %}
                 {% endif %}
             </div>
         </div>

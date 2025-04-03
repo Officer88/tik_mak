@@ -96,18 +96,6 @@ def index():
 # Events catalog route
 @main_bp.route('/events')
 def events():
-    form = EventSearchForm()
-    
-    # Populate category select field
-    form.category.choices = [(0, 'Все категории')] + [
-        (c.id, c.name) for c in Category.query.order_by(Category.name).all()
-    ]
-    
-    # Populate venue select field
-    form.venue.choices = [(0, 'Все площадки')] + [
-        (v.id, v.name) for v in Venue.query.order_by(Venue.name).all()
-    ]
-    
     # Get filter parameters
     query = request.args.get('query', '')
     category_id = request.args.get('category', type=int)
@@ -117,6 +105,32 @@ def events():
     price_min = request.args.get('price_min', type=float)
     price_max = request.args.get('price_max', type=float)
     page = request.args.get('page', 1, type=int)
+    
+    # Get all categories as dictionaries
+    categories = []
+    try:
+        category_records = Category.query.order_by(Category.name).all()
+        for cat in category_records:
+            categories.append({
+                'id': cat.id,
+                'name': cat.name
+            })
+    except Exception as e:
+        import logging
+        logging.error(f"Ошибка при получении категорий: {e}")
+    
+    # Get all venues as dictionaries
+    venues = []
+    try:
+        venue_records = Venue.query.order_by(Venue.name).all()
+        for venue in venue_records:
+            venues.append({
+                'id': venue.id,
+                'name': venue.name
+            })
+    except Exception as e:
+        import logging
+        logging.error(f"Ошибка при получении площадок: {e}")
     
     # Build the query
     query_obj = Event.query.filter(Event.is_active == True)
@@ -153,20 +167,64 @@ def events():
     # Order by date
     query_obj = query_obj.order_by(Event.date)
     
-    # Paginate results
-    events = query_obj.paginate(page=page, per_page=12, error_out=False)
+    # Обновляем сессию перед запросом
+    db.session.expire_all()
     
-    # Получаем категории через helper-функцию (исправляет detached instance error)
-    categories = get_categories()
+    # Выполняем запрос и считаем общее количество событий
+    event_count = 0
+    try:
+        event_count = query_obj.count()
+    except Exception as e:
+        import logging
+        logging.error(f"Ошибка при подсчете событий: {e}")
+    
+    # Рассчитываем пагинацию
+    per_page = 12
+    total_pages = (event_count + per_page - 1) // per_page if event_count > 0 else 0
+    
+    # Проверяем валидность номера страницы
+    if page < 1 or (total_pages > 0 and page > total_pages):
+        page = 1
+    
+    # Получаем события для текущей страницы
+    events_for_page = []
+    try:
+        paginated_events = query_obj.limit(per_page).offset((page - 1) * per_page).all()
+        
+        # Безопасно извлекаем данные из событий
+        for event in paginated_events:
+            event_data = {
+                'id': event.id,
+                'title': event.title,
+                'image_url': event.image_url,
+                'base_price': event.base_price,
+                'delivery_methods': event.delivery_methods,
+                'date': event.date,
+                'venue': None
+            }
+            
+            # Если есть площадка, добавляем данные о ней
+            if event.venue:
+                event_data['venue'] = {
+                    'id': event.venue.id,
+                    'name': event.venue.name
+                }
+            
+            events_for_page.append(event_data)
+    except Exception as e:
+        import logging
+        logging.error(f"Ошибка при получении событий для страницы: {e}")
     
     return render_template(
         'catalog.html',
-        events=events,
+        event_list=events_for_page,
         categories=categories,
-        form=form,
+        venues=venues,
         query=query,
         category_id=category_id,
-        venue_id=venue_id
+        venue_id=venue_id,
+        current_page=page,
+        total_pages=total_pages
     )
 
 # Event details route

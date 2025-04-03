@@ -34,9 +34,9 @@
                             <label for="venue" class="form-label">Площадка</label>
                             <select class="form-select" id="venue" name="venue">
                                 <option value="0">Все площадки</option>
-                                {% for venue_choice in form.venue.choices[1:] %}
-                                <option value="{{ venue_choice[0] }}" {% if venue_id == venue_choice[0] %}selected{% endif %}>
-                                    {{ venue_choice[1] }}
+                                {% for venue_choice in venues %}
+                                <option value="{{ venue_choice.id }}" {% if venue_id == venue_choice.id %}selected{% endif %}>
+                                    {{ venue_choice.name }}
                                 </option>
                                 {% endfor %}
                             </select>
@@ -81,10 +81,18 @@
                 <ul class="mb-0">
                     {% if query %}<li>Поиск: {{ query }}</li>{% endif %}
                     {% if category_id and category_id > 0 %}
-                    <li>Категория: {{ categories|selectattr('id', 'eq', category_id)|map(attribute='name')|first }}</li>
+                    <li>Категория: 
+                        {% for cat in categories %}
+                            {% if cat.id == category_id %}{{ cat.name }}{% endif %}
+                        {% endfor %}
+                    </li>
                     {% endif %}
                     {% if venue_id and venue_id > 0 %}
-                    <li>Площадка: {{ form.venue.choices|selectattr('0', 'eq', venue_id)|map(attribute='1')|first }}</li>
+                    <li>Площадка: 
+                        {% for venue in venues %}
+                            {% if venue.id == venue_id %}{{ venue.name }}{% endif %}
+                        {% endfor %}
+                    </li>
                     {% endif %}
                     {% if request.args.get('date_from') %}<li>Дата с: {{ request.args.get('date_from') }}</li>{% endif %}
                     {% if request.args.get('date_to') %}<li>Дата по: {{ request.args.get('date_to') }}</li>{% endif %}
@@ -97,26 +105,28 @@
             
             <!-- Events grid -->
             <div class="row">
-                {% for event in events.items %}
-                <div class="col-md-6 col-lg-4 mb-4">
-                    {% include 'includes/event_card.html' %}
-                </div>
+                {% if event_list and event_list|length > 0 %}
+                    {% for event in event_list %}
+                    <div class="col-md-6 col-lg-4 mb-4">
+                        {% include 'includes/event_card.html' %}
+                    </div>
+                    {% endfor %}
                 {% else %}
                 <div class="col-12">
                     <div class="alert alert-info">
                         По вашему запросу ничего не найдено. Попробуйте изменить критерии поиска.
                     </div>
                 </div>
-                {% endfor %}
+                {% endif %}
             </div>
             
             <!-- Pagination -->
-            {% if events.pages > 1 %}
+            {% if total_pages > 1 %}
             <nav aria-label="Page navigation">
                 <ul class="pagination justify-content-center">
-                    {% if events.has_prev %}
+                    {% if current_page > 1 %}
                     <li class="page-item">
-                        <a class="page-link" href="{{ url_for('main.events', page=events.prev_num, query=query, category=category_id, venue=venue_id, date_from=request.args.get('date_from'), date_to=request.args.get('date_to'), price_min=request.args.get('price_min'), price_max=request.args.get('price_max')) }}">
+                        <a class="page-link" href="{{ url_for('main.events', page=current_page-1, query=query, category=category_id, venue=venue_id, date_from=request.args.get('date_from'), date_to=request.args.get('date_to'), price_min=request.args.get('price_min'), price_max=request.args.get('price_max')) }}">
                             Предыдущая
                         </a>
                     </li>
@@ -126,29 +136,23 @@
                     </li>
                     {% endif %}
                     
-                    {% for page_num in events.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
-                        {% if page_num %}
-                            {% if page_num == events.page %}
-                            <li class="page-item active">
-                                <span class="page-link">{{ page_num }}</span>
-                            </li>
-                            {% else %}
-                            <li class="page-item">
-                                <a class="page-link" href="{{ url_for('main.events', page=page_num, query=query, category=category_id, venue=venue_id, date_from=request.args.get('date_from'), date_to=request.args.get('date_to'), price_min=request.args.get('price_min'), price_max=request.args.get('price_max')) }}">
-                                    {{ page_num }}
-                                </a>
-                            </li>
-                            {% endif %}
+                    {% for page_num in range(1, total_pages + 1) %}
+                        {% if page_num == current_page %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ page_num }}</span>
+                        </li>
                         {% else %}
-                        <li class="page-item disabled">
-                            <span class="page-link">...</span>
+                        <li class="page-item">
+                            <a class="page-link" href="{{ url_for('main.events', page=page_num, query=query, category=category_id, venue=venue_id, date_from=request.args.get('date_from'), date_to=request.args.get('date_to'), price_min=request.args.get('price_min'), price_max=request.args.get('price_max')) }}">
+                                {{ page_num }}
+                            </a>
                         </li>
                         {% endif %}
                     {% endfor %}
                     
-                    {% if events.has_next %}
+                    {% if current_page < total_pages %}
                     <li class="page-item">
-                        <a class="page-link" href="{{ url_for('main.events', page=events.next_num, query=query, category=category_id, venue=venue_id, date_from=request.args.get('date_from'), date_to=request.args.get('date_to'), price_min=request.args.get('price_min'), price_max=request.args.get('price_max')) }}">
+                        <a class="page-link" href="{{ url_for('main.events', page=current_page+1, query=query, category=category_id, venue=venue_id, date_from=request.args.get('date_from'), date_to=request.args.get('date_to'), price_min=request.args.get('price_min'), price_max=request.args.get('price_max')) }}">
                             Следующая
                         </a>
                     </li>
