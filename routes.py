@@ -70,15 +70,13 @@ def index():
     # Получаем активные слайды через helper-функцию
     slides = get_active_slides()
     
-    # Получаем популярные площадки через новую сессию 
-    db.session.expire_all()
-    db.session.close()
-    
+    # Получаем популярные площадки
     try:
-        venue_records = Venue.query.order_by(
-            db.func.random()
-        ).limit(8).all()
-        venues = [VenueDTO(venue) for venue in venue_records]
+        with db.session.begin():
+            venue_records = db.session.query(Venue).order_by(
+                db.func.random()
+            ).limit(8).all()
+            venues = [VenueDTO(venue) for venue in venue_records]
     except Exception as e:
         print(f"Ошибка при получении площадок: {e}")
         venues = []

@@ -9,6 +9,33 @@ from models import Event, Category, TicketForSale, Contact, Venue, Slide, Review
 class VenueDTO:
     """Класс передачи данных для площадок"""
     def __init__(self, venue):
+        self.id = venue.id
+        self.name = venue.name
+        self.address = venue.address
+        self.city = venue.city
+        self.venue_map = venue.venue_map
+        self.logo_url = venue.logo_url
+        self.logo_path = venue.logo_path
+        self.scheme_url = venue.scheme_url
+        self.scheme_path = venue.scheme_path
+        self.description = venue.description
+        self._events_count = None
+        
+        # Подсчитываем количество событий сразу при создании DTO
+        try:
+            from models import Event
+            from datetime import datetime
+            self._events_count = Event.query.filter(
+                Event.venue_id == venue.id,
+                Event.date >= datetime.now(),
+                Event.is_active == True
+            ).count()
+        except Exception as e:
+            print(f"Error counting events: {e}")
+            self._events_count = 0
+
+    def events(self):
+        return {'count': lambda: self._events_count}lf, venue):
         # Копируем только необходимые атрибуты
         self.id = venue.id
         self.name = venue.name
