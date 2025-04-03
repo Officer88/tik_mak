@@ -752,15 +752,11 @@ def delete_ticket_for_sale(ticket_id):
 # Управление контактной информацией
 @admin_bp.route('/contacts', methods=['GET', 'POST'])
 def contacts():
-    # Получаем или создаем запись с контактной информацией
-    contact = Contact.query.first()
-    if not contact:
-        contact = Contact(
-            phone='+7 (XXX) XXX-XX-XX',
-            email='info@example.com'
-        )
-        db.session.add(contact)
-        db.session.commit()
+    # Импортируем функцию для получения актуальных контактов
+    from helpers import get_contact
+    
+    # Получаем контактную информацию с принудительным обновлением данных
+    contact = get_contact()
     
     form = ContactForm(obj=contact)
     
@@ -772,16 +768,17 @@ def contacts():
         contact.vk = form.vk.data
         contact.instagram = form.instagram.data
         
-        # Сохраняем изменения и принудительно обновляем объект
+        # Сохраняем изменения
         db.session.commit()
         
-        # Очищаем сессию, чтобы гарантировать свежие данные при следующем запросе
+        # Закрываем сессию и сбрасываем все кэши
+        db.session.expire_all()
         db.session.close()
         
         flash('Контактная информация обновлена', 'success')
         return redirect(url_for('admin.contacts'))
     
-    return render_template('admin/contacts.html', form=form)
+    return render_template('admin/contacts.html', form=form, contact=contact)
 
 # Настройки уведомлений
 @admin_bp.route('/notifications', methods=['GET', 'POST'])

@@ -27,7 +27,7 @@ def get_cart_session_id():
 @main_bp.route('/')
 def index():
     # Очистка старых событий (деактивация)
-    from helpers import clean_old_events
+    from helpers import clean_old_events, get_active_slides
     clean_old_events()
     
     # Get categories for display
@@ -66,8 +66,8 @@ def index():
         ).order_by(Event.date).limit(4 - len(upcoming_events)).all()
         upcoming_events.extend(additional_events)
     
-    # Get active slides
-    slides = Slide.query.filter_by(is_active=True).order_by(Slide.order).all()
+    # Get active slides - используем специальную функцию с обновлением сессии
+    slides = get_active_slides()
     
     # Get popular venues (limited to 8)
     venues = Venue.query.order_by(

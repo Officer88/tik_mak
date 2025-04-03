@@ -76,26 +76,16 @@ with app.app_context():
     
     @app.context_processor
     def utility_processor():
-        # Добавляем .all() чтобы принудительно выполнить запрос заново, избегая кэширования SQLAlchemy
-        # И затем берем первый элемент, если он есть
-        contacts = Contact.query.all()
-        contact = contacts[0] if contacts else None
+        # Импортируем функцию из helpers.py
+        from helpers import get_contact
         
-        if not contact:
-            contact = Contact(
-                phone='+7 (XXX) XXX-XX-XX',
-                email='info@example.com'
-            )
-            db.session.add(contact)
-            db.session.commit()
-        
-        # Запрашиваем объект снова, чтобы точно получить свежие данные
-        db.session.refresh(contact)
+        # Использование специальной функции для получения всегда свежих данных
+        contact = get_contact()
         
         return {
             'get_categories': get_categories,
             'get_pending_tickets_count': get_pending_tickets_count,
-            'contact': contact  # Передаем экземпляр, а не класс
+            'contact': contact  # Передаем экземпляр с гарантированно свежими данными
         }
     
     # Setup login manager

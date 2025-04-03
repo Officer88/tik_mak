@@ -3,7 +3,7 @@ from flask import current_app, abort
 from flask_login import current_user
 from functools import wraps
 from app import db
-from models import Event, Category, TicketForSale
+from models import Event, Category, TicketForSale, Contact
 
 def admin_required(f):
     @wraps(f)
@@ -76,3 +76,64 @@ def get_pending_tickets_count():
     except Exception as e:
         current_app.logger.error(f"Ошибка при получении количества ожидающих билетов: {e}")
         return 0
+
+
+def get_contact():
+    """
+    Получает актуальную контактную информацию, принудительно обновляя данные
+    и избегая проблем с кэшированием SQLAlchemy.
+    """
+    # Закрываем текущую сессию и запрашиваем свежие данные
+    db.session.expire_all()
+    db.session.close()
+    
+    # Получаем все контакты напрямую из базы
+    contacts = db.session.query(Contact).all()
+    contact = contacts[0] if contacts else None
+    
+    # Если запись не найдена, создаем новую
+    if not contact:
+        contact = Contact(
+            phone='+7 (XXX) XXX-XX-XX',
+            email='info@example.com'
+        )
+        db.session.add(contact)
+        db.session.commit()
+    
+    return contact
+
+
+def get_active_slides():
+    """
+    Получает активные слайды, принудительно обновляя данные
+    и избегая проблем с кэшированием SQLAlchemy.
+    Создает полные детаченные копии объектов для шаблонов.
+    """
+    from models import Slide
+    
+    class SlideDTO:
+        """Класс передачи данных для слайдов, не привязанный к сессии"""
+        def __init__(self, slide):
+            # Копируем все атрибуты из оригинального объекта
+            self.id = slide.id
+            self.title = slide.title
+            self.subtitle = slide.subtitle
+            self.image_url = slide.image_url
+            self.button_text = slide.button_text
+            self.button_url = slide.button_url
+            self.order = slide.order
+            self.is_active = slide.is_active
+            self.created_at = slide.created_at
+    
+    # Закрываем текущую сессию и запрашиваем свежие данные
+    db.session.expire_all()
+    db.session.close()
+    
+    # Получаем слайды напрямую из базы
+    slides = db.session.query(Slide).filter_by(is_active=True).order_by(Slide.order).all()
+    
+    # Создаем полные независимые копии объектов
+    slide_dtos = [SlideDTO(slide) for slide in slides]
+    
+    # Возвращаем объекты, которые не зависят от сессии
+    return slide_dtos
