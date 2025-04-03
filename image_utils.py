@@ -30,16 +30,32 @@ def process_image(source, max_size=(240, 320), file_obj=None, destination=None):
     - Path to saved image relative to static folder
     """
     try:
-        # SVG обрабатываем отдельно - просто копируем без преобразования
-        if file_obj and file_obj.filename.lower().endswith('.svg'):
-            logger.info(f"Обнаружен SVG-файл: {file_obj.filename}")
+        # Специальные форматы обрабатываем отдельно - просто копируем без преобразования
+        if file_obj and (file_obj.filename.lower().endswith('.svg') or 
+                         file_obj.filename.lower().endswith('.gif') or 
+                         'photoviewer.fileassoc.tiff' in file_obj.filename.lower()):
+            
+            file_type = 'SVG' if file_obj.filename.lower().endswith('.svg') else 'GIF'
+            if 'photoviewer.fileassoc.tiff' in file_obj.filename.lower():
+                file_type = 'TIFF-GIF'
+                
+            logger.info(f"Обнаружен файл специального формата ({file_type}): {file_obj.filename}")
+            
             if destination:
                 save_path = destination
             else:
                 save_dir = 'static/uploads/events'
                 os.makedirs(save_dir, exist_ok=True)
                 
-                base, ext = os.path.splitext(file_obj.filename)
+                # Для PhotoViewer.FileAssoc.Tiff (.gif) устанавливаем правильное расширение
+                if 'photoviewer.fileassoc.tiff' in file_obj.filename.lower():
+                    base = f"gif_{uuid.uuid4().hex}"
+                    ext = '.gif'
+                else:
+                    base, ext = os.path.splitext(file_obj.filename)
+                    if not ext:
+                        ext = '.gif' if file_type == 'GIF' else '.svg'
+                
                 timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
                 unique_id = str(uuid.uuid4())[:8]
                 save_path = os.path.join(save_dir, f"{base}_{timestamp}_{unique_id}{ext}")
@@ -51,15 +67,17 @@ def process_image(source, max_size=(240, 320), file_obj=None, destination=None):
             save_dir = os.path.dirname(save_path)
             os.makedirs(save_dir, exist_ok=True)
             
-            # Сохраняем как есть
-            file_obj.save(save_path)
+            # Сохраняем файл напрямую через открытие и запись в бинарном режиме
+            with open(save_path, 'wb') as f:
+                file_obj.seek(0)
+                f.write(file_obj.read())
             
             # Возвращаем относительный путь для базы данных
             rel_path = save_path
             if save_path.startswith('static/'):
                 rel_path = save_path[7:]  # Удаляем 'static/' из пути
             
-            logger.info(f"SVG-файл сохранен как: {save_path}")
+            logger.info(f"Файл специального формата ({file_type}) сохранен как: {save_path}")
             return rel_path
         
         if file_obj:
@@ -91,6 +109,13 @@ def process_image(source, max_size=(240, 320), file_obj=None, destination=None):
         
         # Проверка, является ли файл GIF-анимацией
         is_animated_gif = False
+        
+        # Проверка на особый формат имени файла PhotoViewer.FileAssoc.Tiff (.gif)
+        if filename and '.gif' in filename.lower():
+            logger.info(f"Обнаружен файл с расширением .gif в имени: {filename}")
+            is_animated_gif = True
+        
+        # Проверка формата изображения
         if hasattr(img, 'format') and img.format == 'GIF':
             if hasattr(img, 'is_animated') and img.is_animated:
                 is_animated_gif = True
