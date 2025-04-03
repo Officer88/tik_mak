@@ -736,14 +736,31 @@ body {
     }
     
     .event-card {
-        margin: 0;
+        margin: 0 auto;
         width: 100%;
-        max-width: none;
+        max-width: 100%;
     }
     
     .container {
         padding-left: 5px;
         padding-right: 5px;
+    }
+    
+    .event-img-container {
+        height: 160px;
+    }
+    
+    .event-card-body {
+        padding: 0.5rem;
+    }
+    
+    .event-title {
+        font-size: 0.85rem;
+        height: 2rem;
+    }
+    
+    .event-venue, .event-time, .event-price {
+        font-size: 0.75rem;
     }
 }
 
