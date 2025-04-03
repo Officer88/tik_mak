@@ -87,8 +87,8 @@
                         <a href="{{ url_for('main.venue_detail', venue_id=venue.id) }}" class="text-decoration-none">
                             <div class="venue-card">
                                 <div class="venue-logo-container">
-                                    {% if venue.logo_url %}
-                                        <img src="{{ venue.logo_url }}" alt="{{ venue.name }}" class="venue-logo">
+                                    {% if venue.logo %}
+                                        <img src="{{ venue.logo }}" alt="{{ venue.name }}" class="venue-logo">
                                     {% else %}
                                         <div class="venue-logo-placeholder">
                                             <i class="fas fa-map-marker-alt"></i>

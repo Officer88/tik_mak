@@ -19,6 +19,9 @@ class VenueDTO:
         self.scheme_url = venue.scheme_url
         self.scheme_path = venue.scheme_path
         self.description = venue.description
+        
+        # Создаем универсальное свойство для логотипа
+        self.logo = self.logo_path if self.logo_path else self.logo_url
 
         # Подсчитываем количество событий сразу при создании DTO
         try:
