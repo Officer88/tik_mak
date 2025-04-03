@@ -777,7 +777,7 @@ def delete_slide(slide_id):
 @admin_bp.route('/reviews')
 def reviews():
     # Обновляем сессию перед запросом для избежания detached instance
-        db.session.expire_all()
+    db.session.expire_all()
     db.session.close()
 
     try:
