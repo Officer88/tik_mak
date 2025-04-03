@@ -2,7 +2,7 @@ from flask_wtf import FlaskForm
 from flask_wtf.file import FileField, FileAllowed
 from wtforms import StringField, PasswordField, BooleanField, SubmitField, TextAreaField, SelectField
 from wtforms import IntegerField, FloatField, DateTimeField, HiddenField, RadioField, SelectMultipleField
-from wtforms.validators import DataRequired, Email, EqualTo, Length, Optional, NumberRange, ValidationError
+from wtforms.validators import DataRequired, Email, EqualTo, Length, Optional, NumberRange, ValidationError, Regexp
 from datetime import datetime
 
 # Authentication Forms
@@ -176,4 +176,9 @@ class SellTicketForm(FlaskForm):
     submit = SubmitField('Отправить билет на рассмотрение')
 class NotificationSettingForm(FlaskForm):
     email_enabled = BooleanField('Отправлять уведомления на email')
+    sms_enabled = BooleanField('Отправлять SMS уведомления')
+    phone_number = StringField('Номер телефона для SMS (в формате +79XXXXXXXXX)', 
+                             validators=[Optional(), Length(max=32), 
+                                       Regexp(r'^\+?[0-9]{10,15}$', 
+                                             message='Введите корректный номер телефона в формате +79XXXXXXXXX')])
     submit = SubmitField('Сохранить')

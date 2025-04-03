@@ -239,6 +239,8 @@ class NotificationSetting(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     email_enabled = db.Column(db.Boolean, default=True)
+    sms_enabled = db.Column(db.Boolean, default=False)
+    phone_number = db.Column(db.String(32), nullable=True)  # Номер телефона для SMS-уведомлений
     
     # Связь с пользователем
     user = db.relationship('User', backref=db.backref('notification_settings', lazy=True))

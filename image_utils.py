@@ -1,13 +1,12 @@
 
 from PIL import Image
 from io import BytesIO
-import requests
-from urllib.parse import urlparse
 import os
 from datetime import datetime
 import uuid
 import shutil
 import logging
+from werkzeug.utils import secure_filename
 
 # Настройка логирования
 logging.basicConfig(level=logging.DEBUG)
@@ -96,106 +95,76 @@ def save_special_format_file(file_obj, destination=None, folder_type='events'):
         logger.error(f"Ошибка при сохранении специального формата: {str(e)}")
         return None
 
-def process_image(source, max_size=(240, 320), file_obj=None, destination=None):
+def process_image(file_obj, max_size=(240, 320), folder_type='events'):
     """
-    Process image from URL or file object:
-    1. Download image (if URL) or use file object
-    2. Resize while maintaining aspect ratio without cropping
-    3. Save with optimized quality
+    Обрабатывает изображение, загруженное с ПК:
+    1. Проверяет тип файла и применяет специальную обработку для SVG, GIF
+    2. Изменяет размер с сохранением пропорций
+    3. Сохраняет с оптимизацией
     
     Parameters:
-    - source: URL string or filename
-    - max_size: Recommended size for event card images (width, height)
-    - file_obj: Optional file object from upload
-    - destination: Optional full path where to save the file
+    - file_obj: Файловый объект из формы (обязательный)
+    - max_size: Рекомендуемый размер (ширина, высота)
+    - folder_type: Тип папки (events, categories, venues, slides, venues/schemes)
     
     Returns:
-    - Path to saved image relative to static folder
+    - Путь к файлу относительно статической директории
     """
     try:
-        # Специальные форматы обрабатываем через специальную функцию
-        if file_obj and (file_obj.filename.lower().endswith('.svg') or 
-                         file_obj.filename.lower().endswith('.gif') or 
-                         'photoviewer.fileassoc.tiff' in file_obj.filename.lower()):
-            
-            logger.info(f"Обнаружен файл специального формата в process_image: {file_obj.filename}")
-            
-            # Используем функцию save_special_format_file для специальных форматов
-            folder_type = 'events'  # По умолчанию папка events
-            
-            # Определяем папку из пути назначения, если он задан
-            if destination:
-                if '/categories/' in destination:
-                    folder_type = 'categories'
-                elif '/venues/schemes/' in destination:
-                    folder_type = 'venues/schemes'
-                elif '/venues/' in destination:
-                    folder_type = 'venues'
-                elif '/slides/' in destination:
-                    folder_type = 'slides'
-            
-            # Используем специальную функцию сохранения
-            return save_special_format_file(file_obj, destination, folder_type)
-        
-        if file_obj:
-            # Use uploaded file
-            logger.info(f"Открываем загруженный файл: {file_obj.filename}")
-            try:
-                img = Image.open(file_obj)
-                filename = file_obj.filename
-            except Exception as e:
-                logger.error(f"Ошибка при открытии файла: {str(e)}")
-                raise e
-        elif source:
-            # Parse URL to get filename
-            parsed_url = urlparse(source)
-            filename = os.path.basename(parsed_url.path)
-            
-            # Download image
-            response = requests.get(source)
-            img = Image.open(BytesIO(response.content))
-        else:
-            logger.error("Не предоставлен ни источник, ни файл")
+        if not file_obj:
+            logger.error("Файл не передан")
             return None
         
-        # Убедимся, что у нас есть расширение файла
-        if not filename or '.' not in filename:
-            # Если нет имени или расширения, используем временное имя с расширением .jpg
-            filename = f"image_{uuid.uuid4().hex}.jpg"
-            logger.info(f"Имя файла не задано или без расширения. Новое имя: {filename}")
+        # Проверяем имя файла
+        original_filename = secure_filename(file_obj.filename)
+        if not original_filename:
+            logger.error("Пустое имя файла")
+            return None
         
-        # Проверка, является ли файл GIF-анимацией
+        logger.info(f"Обработка файла: {original_filename}, тип папки: {folder_type}")
+        
+        # Проверка на специальные форматы файлов (SVG, GIF)
+        if original_filename.lower().endswith('.svg') or original_filename.lower().endswith('.gif') or 'photoviewer.fileassoc.tiff' in original_filename.lower():
+            # Используем функцию сохранения специальных форматов
+            return save_special_format_file(file_obj, folder_type=folder_type)
+        
+        # Открываем изображение с помощью PIL
+        try:
+            # Сбрасываем указатель файла в начало
+            file_obj.seek(0)
+            img = Image.open(file_obj)
+        except Exception as e:
+            logger.error(f"Ошибка при открытии файла: {str(e)}")
+            return None
+            
+        # Проверка на GIF-анимацию
         is_animated_gif = False
-        
-        # Проверка на особый формат имени файла PhotoViewer.FileAssoc.Tiff (.gif)
-        if filename and '.gif' in filename.lower():
-            logger.info(f"Обнаружен файл с расширением .gif в имени: {filename}")
-            is_animated_gif = True
-        
-        # Проверка формата изображения
         if hasattr(img, 'format') and img.format == 'GIF':
             if hasattr(img, 'is_animated') and img.is_animated:
-                is_animated_gif = True
                 logger.info("Обнаружен анимированный GIF")
+                is_animated_gif = True
+                # Для GIF-анимаций используем специальную обработку
+                file_obj.seek(0)
+                return save_special_format_file(file_obj, folder_type=folder_type)
         
-        logger.info(f"Формат изображения: {getattr(img, 'format', 'неизвестно')}, размер: {img.size}, режим: {img.mode}")
+        # Логируем информацию об изображении
+        logger.info(f"Формат: {getattr(img, 'format', 'неизвестно')}, размер: {img.size}, режим: {img.mode}")
         
-        # Если это не анимированный GIF, конвертируем в RGB при необходимости
-        if not is_animated_gif and img.mode in ('RGBA', 'P'):
-            logger.info(f"Конвертируем изображение из режима {img.mode} в RGB")
+        # Если у нас RGBA или другой формат с прозрачностью, и это не GIF - конвертируем в RGB
+        if img.mode in ('RGBA', 'P') and not is_animated_gif:
             try:
                 img = img.convert('RGB')
+                logger.info(f"Изображение конвертировано из {img.mode} в RGB")
             except Exception as e:
                 logger.error(f"Ошибка при конвертации в RGB: {str(e)}")
         
         # Получаем оригинальные размеры
         width, height = img.size
         
-        # Рассчитываем соотношение сторон
+        # Рассчитываем новые размеры с сохранением пропорций
         aspect_ratio = width / height
-        
-        # Рассчитываем новые размеры с сохранением соотношения сторон
         target_width, target_height = max_size
+        
         if width > height:
             # Ландшафтное изображение
             new_width = min(width, target_width)
@@ -205,102 +174,84 @@ def process_image(source, max_size=(240, 320), file_obj=None, destination=None):
             new_height = min(height, target_height)
             new_width = int(new_height * aspect_ratio)
         
-        logger.info(f"Изменение размера из {img.size} в ({new_width}, {new_height})")
+        # Убеждаемся, что размеры положительные
+        new_width = max(new_width, 1)
+        new_height = max(new_height, 1)
         
-        # Если это не анимированный GIF, изменяем размер
-        resized_img = None
-        if not is_animated_gif:
-            # Изменяем размер изображения, используя высококачественную интерполяцию
-            try:
-                resized_img = img.resize((new_width, new_height), Image.Resampling.LANCZOS)
-            except Exception as e:
-                logger.error(f"Ошибка при изменении размера: {str(e)}")
-                resized_img = img  # Используем оригинал в случае ошибки
-        else:
-            resized_img = img  # Для анимированных GIF используем оригинал
+        logger.info(f"Изменение размера: {img.size} -> ({new_width}, {new_height})")
         
-        # Определяем путь для сохранения
-        if destination:
-            save_path = destination
-        else:
-            save_dir = 'static/uploads/events'
-            os.makedirs(save_dir, exist_ok=True)
-            
-            # Генерируем уникальное имя файла с временной меткой и UUID
-            base, ext = os.path.splitext(filename)
-            ext = ext.lower()  # Приводим расширение к нижнему регистру
-            
-            # Проверяем, что у нас действительно есть расширение
-            if not ext:
-                # По умолчанию используем .jpg
-                ext = '.jpg'
-            
-            # Сохраняем формат для GIF-файлов
-            if is_animated_gif and ext != '.gif':
-                ext = '.gif'
-            
-            timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
-            unique_id = str(uuid.uuid4())[:8]
-            save_path = os.path.join(save_dir, f"{base}_{timestamp}_{unique_id}{ext}")
+        # Изменяем размер
+        try:
+            resized_img = img.resize((new_width, new_height), Image.Resampling.LANCZOS)
+        except Exception as e:
+            logger.error(f"Ошибка при изменении размера: {str(e)}")
+            resized_img = img  # При ошибке используем оригинал
         
-        # Проверяем, существует ли папка для сохранения
-        save_dir = os.path.dirname(save_path)
+        # Создаем директорию для сохранения, если её нет
+        save_dir = os.path.join('static', 'uploads', folder_type)
         os.makedirs(save_dir, exist_ok=True)
         
-        logger.info(f"Сохраняем изображение в: {save_path}")
+        # Формируем уникальное имя файла
+        base_name, ext = os.path.splitext(original_filename)
+        if not ext:
+            ext = '.jpg'  # Если расширение не определено, используем .jpg
         
-        # Сохраняем с оптимизацией
+        ext = ext.lower()  # Приводим расширение к нижнему регистру
+        unique_id = uuid.uuid4().hex
+        timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
+        
+        # Создаем финальное имя файла
+        unique_filename = f"{unique_id}_{timestamp}_{base_name}{ext}"
+        save_path = os.path.join(save_dir, unique_filename)
+        
+        # Сохраняем файл
         try:
-            if is_animated_gif:
-                # Для GIF-анимаций сохраняем как есть
-                img.save(save_path, save_all=True)
-                logger.info("Сохранен анимированный GIF")
-            elif resized_img.mode == 'RGBA':
-                # Для изображений с прозрачностью сохраняем как PNG
-                resized_img.save(save_path, optimize=True)
-                logger.info("Сохранено изображение с прозрачностью (PNG)")
-            elif save_path.lower().endswith('.png'):
-                resized_img.save(save_path, optimize=True)
+            if ext.lower() == '.png':
+                resized_img.save(save_path, format='PNG', optimize=True)
                 logger.info("Сохранено как PNG")
-            elif save_path.lower().endswith(('.jpg', '.jpeg')):
-                resized_img.save(save_path, optimize=True, quality=85)
+            elif ext.lower() in ('.jpg', '.jpeg'):
+                resized_img.save(save_path, format='JPEG', optimize=True, quality=90)
                 logger.info("Сохранено как JPEG")
             else:
                 # Для других форматов пробуем использовать расширение
-                ext = os.path.splitext(save_path)[1]
-                format_name = ext[1:].upper() if ext else 'JPEG'  # убираем точку и переводим в верхний регистр
-                
+                format_name = ext[1:].upper() if ext.startswith('.') else ext.upper()
                 resized_img.save(save_path, format=format_name, optimize=True)
                 logger.info(f"Сохранено в формате {format_name}")
         except Exception as e:
-            logger.error(f"Ошибка при сохранении изображения: {str(e)}")
-            # Если формат не поддерживается, сохраняем как JPEG
+            logger.error(f"Ошибка при сохранении: {str(e)}")
+            # При ошибке пробуем сохранить как JPEG
             try:
-                if not save_path.lower().endswith('.jpg'):
-                    new_save_path = f"{os.path.splitext(save_path)[0]}.jpg"
-                else:
-                    new_save_path = save_path
-                
-                if resized_img.mode == 'RGBA':
+                new_save_path = f"{os.path.splitext(save_path)[0]}.jpg"
+                if resized_img.mode != 'RGB':
                     resized_img = resized_img.convert('RGB')
-                
-                resized_img.save(new_save_path, format='JPEG', optimize=True, quality=85)
+                resized_img.save(new_save_path, format='JPEG', optimize=True, quality=90)
                 save_path = new_save_path
-                logger.info(f"Сохранено в формате JPEG после обработки ошибки: {new_save_path}")
+                logger.info("Сохранено как JPEG после обработки ошибки")
             except Exception as e2:
-                logger.error(f"Критическая ошибка при сохранении в JPEG: {str(e2)}")
-                # В крайнем случае возвращаем None
+                logger.error(f"Критическая ошибка при сохранении: {str(e2)}")
                 return None
         
-        # Возвращаем относительный путь для базы данных
-        rel_path = save_path
+        # Возвращаем путь без префикса 'static/'
         if save_path.startswith('static/'):
-            rel_path = save_path[7:]  # Удаляем 'static/' из пути
-        
-        logger.info(f"Возвращаем путь к изображению: {rel_path}")
+            rel_path = save_path[7:]
+        else:
+            rel_path = save_path
+            
+        logger.info(f"Файл успешно сохранён по пути: {rel_path}")
         return rel_path
-    
+        
     except Exception as e:
         logger.error(f"Необработанная ошибка в process_image: {str(e)}")
-        # В случае любой ошибки возвращаем None
         return None
+
+
+def save_image(file_obj, folder_type='events', max_size=(240, 320)):
+    """
+    Универсальная функция для сохранения изображений, 
+    которая заменяет все старые методы загрузки.
+    """
+    if not file_obj or not hasattr(file_obj, 'filename') or not file_obj.filename:
+        logger.error("Некорректный файловый объект")
+        return None
+        
+    return process_image(file_obj, max_size, folder_type)

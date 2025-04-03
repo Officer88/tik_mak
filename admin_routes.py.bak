@@ -91,7 +91,7 @@ def add_event():
     
     if request.method == 'POST' and form.validate_on_submit():
         try:
-            from image_utils import save_image
+            from image_utils import process_image
             import os
             from werkzeug.utils import secure_filename
             import uuid
@@ -105,9 +105,9 @@ def add_event():
                     # Обрабатываем загруженный файл через нашу функцию process_image
                     # Рекомендуемый размер для карточки события: 400x300
                     image_url = process_image('', max_size=(400, 300), file_obj=image_file)
-                elif False:
-                    # Загрузка по URL удалена
-                    pass
+                elif image_url:
+                    # Обрабатываем изображение по URL
+                    image_url = process_image(image_url, max_size=(400, 300))
                 
                 # Если нет ни URL, ни файла - используем значение по умолчанию
                 if not image_url:
@@ -194,7 +194,7 @@ def edit_event(event_id):
     
     if request.method == 'POST' and form.validate_on_submit():
         try:
-            from image_utils import save_image
+            from image_utils import process_image
             import os
             from werkzeug.utils import secure_filename
             import uuid
@@ -302,7 +302,7 @@ def add_category():
                 import os
                 from werkzeug.utils import secure_filename
                 import uuid
-                from image_utils import save_image
+                from image_utils import process_image
                 
                 # Создаем директорию для загрузок категорий, если она не существует
                 upload_folder = os.path.join('static', 'uploads', 'categories')
@@ -386,7 +386,7 @@ def edit_category(category_id):
             import os
             from werkzeug.utils import secure_filename
             import uuid
-            from image_utils import save_image
+            from image_utils import process_image
             
             # Создаем директорию для загрузок категорий, если она не существует
             upload_folder = os.path.join('static', 'uploads', 'categories')
@@ -474,7 +474,7 @@ def add_venue():
             import os
             from werkzeug.utils import secure_filename
             import uuid
-            from image_utils import save_image
+            from image_utils import process_image
             
             # Создаем директорию для загрузок площадок, если она не существует
             upload_folder = os.path.join('static', 'uploads', 'venues')
@@ -500,7 +500,7 @@ def add_venue():
             import os
             from werkzeug.utils import secure_filename
             import uuid
-            from image_utils import save_image
+            from image_utils import process_image
             
             # Создаем директорию для загрузок схем, если она не существует
             upload_folder = os.path.join('static', 'uploads', 'venues', 'schemes')
@@ -574,7 +574,7 @@ def edit_venue(venue_id):
             import os
             from werkzeug.utils import secure_filename
             import uuid
-            from image_utils import save_image
+            from image_utils import process_image
             
             # Создаем директорию для загрузок площадок, если она не существует
             upload_folder = os.path.join('static', 'uploads', 'venues')
@@ -600,7 +600,7 @@ def edit_venue(venue_id):
             import os
             from werkzeug.utils import secure_filename
             import uuid
-            from image_utils import save_image
+            from image_utils import process_image
             
             # Создаем директорию для загрузок схем, если она не существует
             upload_folder = os.path.join('static', 'uploads', 'venues', 'schemes')
@@ -813,7 +813,7 @@ def add_slide():
             import os
             from werkzeug.utils import secure_filename
             import uuid
-            from image_utils import save_image
+            from image_utils import process_image
             
             # Создаем директорию для загрузок слайдеров, если она не существует
             upload_folder = os.path.join('static', 'uploads', 'slides')
@@ -874,7 +874,7 @@ def edit_slide(slide_id):
             import os
             from werkzeug.utils import secure_filename
             import uuid
-            from image_utils import save_image
+            from image_utils import process_image
             
             # Создаем директорию для загрузок слайдеров, если она не существует
             upload_folder = os.path.join('static', 'uploads', 'slides')

@@ -19,6 +19,7 @@
             <div class="list-group mb-4">
                 <a href="#orders" class="list-group-item list-group-item-action active" data-bs-toggle="list">Мои заказы</a>
                 <a href="#tickets" class="list-group-item list-group-item-action" data-bs-toggle="list">Мои билеты на продаже</a>
+                <a href="#notifications" class="list-group-item list-group-item-action" data-bs-toggle="list">Настройки уведомлений</a>
                 <a href="{{ url_for('favorites') }}" class="list-group-item list-group-item-action">Избранное</a>
                 <a href="{{ url_for('sell_ticket') }}" class="list-group-item list-group-item-action">Продать билет</a>
             </div>
@@ -187,8 +188,69 @@
                         </div>
                     </div>
                 </div>
+                
+                <!-- Notification Settings Tab -->
+                <div class="tab-pane fade" id="notifications">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Настройки уведомлений</h5>
+                        </div>
+                        <div class="card-body">
+                            <form method="POST" action="{{ url_for('notification_settings') }}">
+                                {{ notification_form.hidden_tag() }}
+                                
+                                <div class="mb-3">
+                                    <div class="form-check form-switch">
+                                        {{ notification_form.email_enabled(class="form-check-input") }}
+                                        {{ notification_form.email_enabled.label(class="form-check-label") }}
+                                    </div>
+                                    <small class="text-muted">Вы будете получать уведомления о статусе заказов, мероприятиях и специальных предложениях.</small>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <div class="form-check form-switch">
+                                        {{ notification_form.sms_enabled(class="form-check-input") }}
+                                        {{ notification_form.sms_enabled.label(class="form-check-label") }}
+                                    </div>
+                                    <small class="text-muted">Вы будете получать SMS-уведомления о важных событиях (например, подтверждение заказа).</small>
+                                </div>
+                                
+                                <div class="mb-3" id="phone-number-field" {% if not notification_form.sms_enabled.data %}style="display: none;"{% endif %}>
+                                    {{ notification_form.phone_number.label(class="form-label") }}
+                                    {{ notification_form.phone_number(class="form-control") }}
+                                    {% if notification_form.phone_number.errors %}
+                                        <div class="invalid-feedback d-block">
+                                            {% for error in notification_form.phone_number.errors %}
+                                                {{ error }}
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                    <small class="text-muted">Введите номер в международном формате, например: +79123456789</small>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    {{ notification_form.submit(class="btn btn-primary") }}
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+    // Показывать/скрывать поле номера телефона в зависимости от состояния чекбокса SMS
+    document.addEventListener('DOMContentLoaded', function() {
+        const smsCheckbox = document.querySelector('#sms_enabled');
+        const phoneField = document.querySelector('#phone-number-field');
+        
+        if (smsCheckbox && phoneField) {
+            smsCheckbox.addEventListener('change', function() {
+                phoneField.style.display = this.checked ? 'block' : 'none';
+            });
+        }
+    });
+</script>
 {% endblock %}
