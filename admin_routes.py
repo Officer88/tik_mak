@@ -669,16 +669,51 @@ def sliders():
     db.session.close()
 
     try:
-        # Получаем слайды и используем DTO для предотвращения detached instance
-        slide_records = db.session.query(Slide).order_by(Slide.order).all()
-        slides = [SlideDTO(slide) for slide in slide_records]
+        # Статистика по предложенным билетам
+        pending_tickets = db.session.query(TicketForSale).filter_by(status='pending').count()
+        confirmed_tickets = db.session.query(TicketForSale).filter_by(status='confirmed').count()
+        rejected_tickets = db.session.query(TicketForSale).filter_by(status='rejected').count()
+        sold_tickets_resale = db.session.query(TicketForSale).filter_by(status='sold').count()
+
+        # Получение общей статистики
+        total_events = Event.query.count()
+        upcoming_events = Event.query.filter(Event.date >= datetime.now()).count()
+        total_users = User.query.count()
+        total_orders = Order.query.count()
+
+        # Статистика по билетам
+        tickets_data = db.session.query(Ticket).all()
+        total_tickets = len(tickets_data)
+        sold_tickets = len([t for t in tickets_data if not t.is_available])
+        available_tickets = total_tickets - sold_tickets
+
+        return render_template('admin/dashboard.html',
+                             total_events=total_events,
+                             upcoming_events=upcoming_events,
+                             total_users=total_users,
+                             total_orders=total_orders,
+                             pending_tickets=pending_tickets,
+                             confirmed_tickets=confirmed_tickets,
+                             rejected_tickets=rejected_tickets,
+                             sold_tickets_resale=sold_tickets_resale,
+                             total_tickets=total_tickets,
+                             sold_tickets=sold_tickets,
+                             available_tickets=available_tickets)
+
     except Exception as e:
-        print(f"Ошибка при получении слайдов: {e}")
-        slides = []
-
-    form = SlideForm()
-
-    return render_template('admin/sliders.html', slides=slides, form=form, add_mode=False)
+        print(f"Ошибка при получении статистики: {e}")
+        return render_template('admin/dashboard.html',
+                             total_events=0,
+                             upcoming_events=0,
+                             total_users=0,
+                             total_orders=0,
+                             pending_tickets=0,
+                             confirmed_tickets=0,
+                             rejected_tickets=0,
+                             sold_tickets_resale=0,
+                             total_tickets=0,
+                             sold_tickets=0,
+                             available_tickets=0)
 
 # Добавление слайда
 @admin_bp.route('/sliders/add', methods=['GET', 'POST'])
