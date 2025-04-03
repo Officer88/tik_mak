@@ -75,11 +75,7 @@
                             <i class="fas fa-map-marker-alt"></i> Площадки
                         </a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link {% if request.endpoint == 'admin.tickets' %}active{% endif %}" href="{{ url_for('admin.tickets') }}">
-                            <i class="fas fa-ticket-alt"></i> Билеты
-                        </a>
-                    </li>
+
                     <li class="nav-item">
                         <a class="nav-link {% if request.endpoint == 'admin.users' %}active{% endif %}" href="{{ url_for('admin.users') }}">
                             <i class="fas fa-users"></i> Пользователи
@@ -92,7 +88,7 @@
                     </li>
                     <li class="nav-item">
                         <a class="nav-link {% if request.endpoint == 'admin.tickets_for_sale' %}active{% endif %}" href="{{ url_for('admin.tickets_for_sale') }}">
-                            <i class="fas fa-ticket-alt me-2"></i>Предложенные билеты
+                            <i class="fas fa-ticket-alt me-2"></i>Билеты на продажу
                             {% set pending_tickets = get_pending_tickets_count() %}
                             {% if pending_tickets > 0 %}
                             <span class="badge bg-danger rounded-pill ms-1">{{ pending_tickets }}</span>
