@@ -57,7 +57,7 @@ def ensure_upload_dirs():
 # Initialize app context
 with app.app_context():
     # Import models to ensure they're registered with SQLAlchemy
-    from models import User, Event, Category, Venue, Ticket, Order, OrderItem, Favorite, Review, Slide, TicketForSale
+    from models import User, Event, Category, Venue, Ticket, Order, OrderItem, Favorite, Review, Slide, TicketForSale, Contact
     
     # Import and register blueprints
     from routes import main_bp
@@ -78,7 +78,8 @@ with app.app_context():
     def utility_processor():
         return {
             'get_categories': get_categories,
-            'get_pending_tickets_count': get_pending_tickets_count
+            'get_pending_tickets_count': get_pending_tickets_count,
+            'Contact': Contact
         }
     
     # Setup login manager
