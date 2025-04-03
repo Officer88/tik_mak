@@ -43,6 +43,14 @@ def dashboard():
         Event.date <= next_week
     ).count()
     
+    # Данные для графика заказов
+    total_orders = Order.query.count()
+    completed_orders = Order.query.filter_by(status='completed').count()
+    pending_orders = Order.query.filter_by(status='pending').count()
+    
+    # Исправление переменной для dashboard.html
+    total_events = event_count
+    
     return render_template(
         'admin/dashboard.html', 
         event_count=event_count,
@@ -51,7 +59,11 @@ def dashboard():
         review_count=review_count,
         recent_orders=recent_orders,
         pending_tickets=pending_tickets,
-        upcoming_events=upcoming_events
+        upcoming_events=upcoming_events,
+        total_orders=total_orders,
+        completed_orders=completed_orders,
+        pending_orders=pending_orders,
+        total_events=total_events
     )
 
 # Управление событиями
