@@ -118,7 +118,9 @@ class VenueForm(FlaskForm):
     city = StringField('Город', validators=[DataRequired(), Length(max=64)])
     description = TextAreaField('Описание площадки', validators=[Optional()])
     logo_url = StringField('URL логотипа', validators=[Optional(), Length(max=256)])
+    logo_file = FileField('Загрузить логотип', validators=[Optional(), FileAllowed(['jpg', 'jpeg', 'png', 'gif'], 'Только изображения!')])
     scheme_url = StringField('URL схемы площадки', validators=[Optional(), Length(max=256)])
+    scheme_file = FileField('Загрузить схему зала', validators=[Optional(), FileAllowed(['jpg', 'jpeg', 'png', 'gif', 'svg'], 'Только изображения и SVG!')])
     venue_map = TextAreaField('Схема зала (SVG)', validators=[Optional()])
     submit = SubmitField('Сохранить')
 

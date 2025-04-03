@@ -16,7 +16,7 @@
 <!-- Slide Form -->
 <div class="admin-card mb-4">
     <h4 class="mb-3">{{ 'Добавить слайд' if add_mode else 'Редактировать слайд' }}</h4>
-    <form method="post" action="{% if edit_mode %}{{ url_for('admin.edit_slide', slide_id=slide.id) }}{% else %}{{ url_for('admin.add_slide') }}{% endif %}">
+    <form method="post" action="{% if edit_mode %}{{ url_for('admin.edit_slide', slide_id=slide.id) }}{% else %}{{ url_for('admin.add_slide') }}{% endif %}" enctype="multipart/form-data">
         {{ form.hidden_tag() }}
         
         <div class="mb-3">
@@ -54,6 +54,29 @@
             </div>
             {% endif %}
             <div class="form-text">URL изображения для слайда. Рекомендуемый размер 1600x400px.</div>
+        </div>
+        
+        <div class="mb-3">
+            <label for="image" class="form-label">Загрузить изображение</label>
+            <div class="upload-zone" id="slide-upload-zone">
+                <div class="upload-prompt">
+                    <i class="fas fa-upload mb-2"></i>
+                    <p>Перетащите файл сюда или кликните для выбора</p>
+                    <p class="text-muted small">Поддерживаются JPG, PNG, GIF</p>
+                </div>
+                {% if slide and slide.image_url and slide.image_url.startswith('/static/uploads/') %}
+                <img src="{{ slide.image_url }}" class="img-preview" alt="Превью слайда">
+                {% endif %}
+                {{ form.image(class="form-control", accept=".jpg,.jpeg,.png,.gif", style="display: none;") }}
+            </div>
+            {% if form.image.errors %}
+            <div class="invalid-feedback d-block">
+                {% for error in form.image.errors %}
+                {{ error }}
+                {% endfor %}
+            </div>
+            {% endif %}
+            <div class="form-text">Загрузите изображение вместо указания URL. Если загружено изображение, URL будет проигнорирован.</div>
         </div>
         
         <div class="row">
@@ -216,6 +239,70 @@
 </div>
 
 <!-- Slide Preview Modal -->
+{% if add_mode or edit_mode %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const uploadZone = document.getElementById('slide-upload-zone');
+    const fileInput = uploadZone.querySelector('input[type="file"]');
+    
+    // Обработка клика на зону загрузки
+    uploadZone.addEventListener('click', function() {
+        fileInput.click();
+    });
+    
+    // Обработка перетаскивания файлов
+    uploadZone.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        uploadZone.classList.add('highlight');
+    });
+    
+    uploadZone.addEventListener('dragleave', function() {
+        uploadZone.classList.remove('highlight');
+    });
+    
+    uploadZone.addEventListener('drop', function(e) {
+        e.preventDefault();
+        uploadZone.classList.remove('highlight');
+        
+        if (e.dataTransfer.files.length) {
+            fileInput.files = e.dataTransfer.files;
+            updatePreview(e.dataTransfer.files[0]);
+        }
+    });
+    
+    // Обработка выбора файла
+    fileInput.addEventListener('change', function() {
+        if (fileInput.files.length) {
+            updatePreview(fileInput.files[0]);
+        }
+    });
+    
+    // Функция обновления предпросмотра
+    function updatePreview(file) {
+        const uploadPrompt = uploadZone.querySelector('.upload-prompt');
+        
+        // Очищаем предыдущий превью, если он есть
+        const existingPreview = uploadZone.querySelector('.img-preview');
+        if (existingPreview) {
+            existingPreview.remove();
+        }
+        
+        // Создаем превью
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = document.createElement('img');
+            img.src = e.target.result;
+            img.className = 'img-preview';
+            img.alt = 'Предпросмотр слайда';
+            uploadZone.appendChild(img);
+            uploadZone.classList.add('has-image');
+        };
+        reader.readAsDataURL(file);
+    }
+});
+</script>
+{% endif %}
+
 {% if edit_mode and slide %}
 <div class="modal fade" id="previewModal" tabindex="-1" aria-labelledby="previewModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-xl">

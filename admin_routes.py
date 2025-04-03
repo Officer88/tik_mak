@@ -297,6 +297,32 @@ def add_category():
                 seo_description=form.seo_description.data
             )
             
+            # Обработка загруженного изображения
+            if form.icon_image.data:
+                import os
+                from werkzeug.utils import secure_filename
+                import uuid
+                from image_utils import process_image
+                
+                # Создаем директорию для загрузок категорий, если она не существует
+                upload_folder = os.path.join('static', 'uploads', 'categories')
+                os.makedirs(upload_folder, exist_ok=True)
+                
+                # Генерируем уникальное имя файла
+                filename = secure_filename(form.icon_image.data.filename)
+                unique_filename = f"{uuid.uuid4().hex}_{filename}"
+                
+                # Сохраняем и обрабатываем изображение
+                saved_path = process_image(
+                    source=None,
+                    max_size=(100, 100),  # Размер иконки категории
+                    file_obj=form.icon_image.data,
+                    destination=os.path.join(upload_folder, unique_filename)
+                )
+                
+                if saved_path:
+                    category.icon_image_path = '/' + saved_path
+            
             db.session.add(category)
             db.session.commit()
             
@@ -341,6 +367,32 @@ def edit_category(category_id):
         category.icon = form.icon.data
         category.seo_title = form.seo_title.data
         category.seo_description = form.seo_description.data
+        
+        # Обработка загруженного изображения
+        if form.icon_image.data:
+            import os
+            from werkzeug.utils import secure_filename
+            import uuid
+            from image_utils import process_image
+            
+            # Создаем директорию для загрузок категорий, если она не существует
+            upload_folder = os.path.join('static', 'uploads', 'categories')
+            os.makedirs(upload_folder, exist_ok=True)
+            
+            # Генерируем уникальное имя файла
+            filename = secure_filename(form.icon_image.data.filename)
+            unique_filename = f"{uuid.uuid4().hex}_{filename}"
+            
+            # Сохраняем и обрабатываем изображение
+            saved_path = process_image(
+                source=None,
+                max_size=(100, 100),  # Размер иконки категории
+                file_obj=form.icon_image.data,
+                destination=os.path.join(upload_folder, unique_filename)
+            )
+            
+            if saved_path:
+                category.icon_image_path = '/' + saved_path
         
         db.session.commit()
         
@@ -391,6 +443,64 @@ def add_venue():
             venue_map=form.venue_map.data
         )
         
+        # Обработка загруженного логотипа
+        if form.logo_file.data:
+            import os
+            from werkzeug.utils import secure_filename
+            import uuid
+            from image_utils import process_image
+            
+            # Создаем директорию для загрузок площадок, если она не существует
+            upload_folder = os.path.join('static', 'uploads', 'venues')
+            os.makedirs(upload_folder, exist_ok=True)
+            
+            # Генерируем уникальное имя файла
+            filename = secure_filename(form.logo_file.data.filename)
+            unique_filename = f"{uuid.uuid4().hex}_{filename}"
+            
+            # Сохраняем и обрабатываем изображение
+            saved_path = process_image(
+                source=None,
+                max_size=(200, 200),  # Размер логотипа площадки
+                file_obj=form.logo_file.data,
+                destination=os.path.join(upload_folder, unique_filename)
+            )
+            
+            if saved_path:
+                venue.logo_path = '/' + saved_path
+        
+        # Обработка загруженной схемы зала
+        if form.scheme_file.data:
+            import os
+            from werkzeug.utils import secure_filename
+            import uuid
+            from image_utils import process_image
+            
+            # Создаем директорию для загрузок схем, если она не существует
+            upload_folder = os.path.join('static', 'uploads', 'venues', 'schemes')
+            os.makedirs(upload_folder, exist_ok=True)
+            
+            # Генерируем уникальное имя файла
+            filename = secure_filename(form.scheme_file.data.filename)
+            unique_filename = f"{uuid.uuid4().hex}_{filename}"
+            
+            # Для SVG-файлов просто сохраняем без обработки
+            if filename.lower().endswith('.svg'):
+                full_path = os.path.join(upload_folder, unique_filename)
+                form.scheme_file.data.save(full_path)
+                venue.scheme_path = f'/static/uploads/venues/schemes/{unique_filename}'
+            else:
+                # Для изображений обрабатываем через process_image
+                saved_path = process_image(
+                    source=None,
+                    max_size=(800, 800),  # Размер схемы зала
+                    file_obj=form.scheme_file.data,
+                    destination=os.path.join(upload_folder, unique_filename)
+                )
+                
+                if saved_path:
+                    venue.scheme_path = '/' + saved_path
+        
         db.session.add(venue)
         db.session.commit()
         
@@ -425,6 +535,64 @@ def edit_venue(venue_id):
         venue.logo_url = form.logo_url.data
         venue.scheme_url = form.scheme_url.data
         venue.venue_map = form.venue_map.data
+        
+        # Обработка загруженного логотипа
+        if form.logo_file.data:
+            import os
+            from werkzeug.utils import secure_filename
+            import uuid
+            from image_utils import process_image
+            
+            # Создаем директорию для загрузок площадок, если она не существует
+            upload_folder = os.path.join('static', 'uploads', 'venues')
+            os.makedirs(upload_folder, exist_ok=True)
+            
+            # Генерируем уникальное имя файла
+            filename = secure_filename(form.logo_file.data.filename)
+            unique_filename = f"{uuid.uuid4().hex}_{filename}"
+            
+            # Сохраняем и обрабатываем изображение
+            saved_path = process_image(
+                source=None,
+                max_size=(200, 200),  # Размер логотипа площадки
+                file_obj=form.logo_file.data,
+                destination=os.path.join(upload_folder, unique_filename)
+            )
+            
+            if saved_path:
+                venue.logo_path = '/' + saved_path
+        
+        # Обработка загруженной схемы зала
+        if form.scheme_file.data:
+            import os
+            from werkzeug.utils import secure_filename
+            import uuid
+            from image_utils import process_image
+            
+            # Создаем директорию для загрузок схем, если она не существует
+            upload_folder = os.path.join('static', 'uploads', 'venues', 'schemes')
+            os.makedirs(upload_folder, exist_ok=True)
+            
+            # Генерируем уникальное имя файла
+            filename = secure_filename(form.scheme_file.data.filename)
+            unique_filename = f"{uuid.uuid4().hex}_{filename}"
+            
+            # Для SVG-файлов просто сохраняем без обработки
+            if filename.lower().endswith('.svg'):
+                full_path = os.path.join(upload_folder, unique_filename)
+                form.scheme_file.data.save(full_path)
+                venue.scheme_path = f'/static/uploads/venues/schemes/{unique_filename}'
+            else:
+                # Для изображений обрабатываем через process_image
+                saved_path = process_image(
+                    source=None,
+                    max_size=(800, 800),  # Размер схемы зала
+                    file_obj=form.scheme_file.data,
+                    destination=os.path.join(upload_folder, unique_filename)
+                )
+                
+                if saved_path:
+                    venue.scheme_path = '/' + saved_path
         
         db.session.commit()
         
@@ -600,6 +768,32 @@ def add_slide():
             is_active=form.is_active.data
         )
         
+        # Обработка загруженного изображения
+        if form.image.data:
+            import os
+            from werkzeug.utils import secure_filename
+            import uuid
+            from image_utils import process_image
+            
+            # Создаем директорию для загрузок слайдеров, если она не существует
+            upload_folder = os.path.join('static', 'uploads', 'slides')
+            os.makedirs(upload_folder, exist_ok=True)
+            
+            # Генерируем уникальное имя файла
+            filename = secure_filename(form.image.data.filename)
+            unique_filename = f"{uuid.uuid4().hex}_{filename}"
+            
+            # Сохраняем и обрабатываем изображение
+            saved_path = process_image(
+                source=None,
+                max_size=(1200, 600),  # Размер слайдера
+                file_obj=form.image.data,
+                destination=os.path.join(upload_folder, unique_filename)
+            )
+            
+            if saved_path:
+                slide.image_url = '/' + saved_path
+        
         db.session.add(slide)
         db.session.commit()
         
@@ -634,6 +828,32 @@ def edit_slide(slide_id):
         slide.button_url = form.button_url.data
         slide.order = form.order.data
         slide.is_active = form.is_active.data
+        
+        # Обработка загруженного изображения
+        if form.image.data:
+            import os
+            from werkzeug.utils import secure_filename
+            import uuid
+            from image_utils import process_image
+            
+            # Создаем директорию для загрузок слайдеров, если она не существует
+            upload_folder = os.path.join('static', 'uploads', 'slides')
+            os.makedirs(upload_folder, exist_ok=True)
+            
+            # Генерируем уникальное имя файла
+            filename = secure_filename(form.image.data.filename)
+            unique_filename = f"{uuid.uuid4().hex}_{filename}"
+            
+            # Сохраняем и обрабатываем изображение
+            saved_path = process_image(
+                source=None,
+                max_size=(1200, 600),  # Размер слайдера
+                file_obj=form.image.data,
+                destination=os.path.join(upload_folder, unique_filename)
+            )
+            
+            if saved_path:
+                slide.image_url = '/' + saved_path
         
         db.session.commit()
         

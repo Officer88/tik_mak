@@ -7,7 +7,7 @@ import os
 from datetime import datetime
 import uuid
 
-def process_image(source, max_size=(240, 320), file_obj=None):
+def process_image(source, max_size=(240, 320), file_obj=None, destination=None):
     """
     Process image from URL or file object:
     1. Download image (if URL) or use file object
@@ -18,6 +18,7 @@ def process_image(source, max_size=(240, 320), file_obj=None):
     - source: URL string or filename
     - max_size: Recommended size for event card images (width, height)
     - file_obj: Optional file object from upload
+    - destination: Optional full path where to save the file
     
     Returns:
     - Path to saved image relative to static folder
@@ -26,7 +27,7 @@ def process_image(source, max_size=(240, 320), file_obj=None):
         # Use uploaded file
         img = Image.open(file_obj)
         filename = file_obj.filename
-    else:
+    elif source:
         # Parse URL to get filename
         parsed_url = urlparse(source)
         filename = os.path.basename(parsed_url.path)
@@ -34,43 +35,67 @@ def process_image(source, max_size=(240, 320), file_obj=None):
         # Download image
         response = requests.get(source)
         img = Image.open(BytesIO(response.content))
+    else:
+        return None
     
-    # Convert to RGB if necessary
-    if img.mode in ('RGBA', 'P'):
+    # Проверка, является ли файл GIF-анимацией
+    is_animated_gif = False
+    if hasattr(img, 'is_animated') and img.is_animated:
+        is_animated_gif = True
+    
+    # Если это не анимированный GIF, конвертируем в RGB при необходимости
+    if not is_animated_gif and img.mode in ('RGBA', 'P'):
         img = img.convert('RGB')
     
-    # Get original dimensions
+    # Получаем оригинальные размеры
     width, height = img.size
     
-    # Calculate aspect ratio
+    # Рассчитываем соотношение сторон
     aspect_ratio = width / height
     
-    # Calculate new dimensions while preserving aspect ratio
+    # Рассчитываем новые размеры с сохранением соотношения сторон
     target_width, target_height = max_size
     if width > height:
-        # Landscape image
+        # Ландшафтное изображение
         new_width = min(width, target_width)
         new_height = int(new_width / aspect_ratio)
     else:
-        # Portrait or square image
+        # Портретное или квадратное изображение
         new_height = min(height, target_height)
         new_width = int(new_height * aspect_ratio)
     
-    # Resize image using high-quality resampling
-    img = img.resize((new_width, new_height), Image.Resampling.LANCZOS)
+    # Если это не анимированный GIF, изменяем размер
+    if not is_animated_gif:
+        # Изменяем размер изображения, используя высококачественную интерполяцию
+        img = img.resize((new_width, new_height), Image.Resampling.LANCZOS)
     
-    # Save path
-    save_dir = 'static/uploads/events'
+    # Определяем путь для сохранения
+    if destination:
+        save_path = destination
+    else:
+        save_dir = 'static/uploads/events'
+        os.makedirs(save_dir, exist_ok=True)
+        
+        # Генерируем уникальное имя файла с временной меткой и UUID
+        base, ext = os.path.splitext(filename)
+        timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
+        unique_id = str(uuid.uuid4())[:8]
+        save_path = os.path.join(save_dir, f"{base}_{timestamp}_{unique_id}{ext}")
+    
+    # Проверяем, существует ли папка для сохранения
+    save_dir = os.path.dirname(save_path)
     os.makedirs(save_dir, exist_ok=True)
     
-    # Generate unique filename with timestamp and UUID to avoid overwriting
-    base, ext = os.path.splitext(filename)
-    timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
-    unique_id = str(uuid.uuid4())[:8]
-    save_path = os.path.join(save_dir, f"{base}_{timestamp}_{unique_id}{ext}")
+    # Сохраняем с оптимизацией
+    if is_animated_gif:
+        # Для GIF-анимаций сохраняем как есть
+        img.save(save_path)
+    else:
+        img.save(save_path, optimize=True, quality=85)
     
-    # Save with optimization
-    img.save(save_path, optimize=True, quality=85)
+    # Возвращаем относительный путь для базы данных
+    rel_path = save_path
+    if save_path.startswith('static/'):
+        rel_path = save_path[7:]  # Удаляем 'static/' из пути
     
-    # Return relative path for database
-    return f'/static/uploads/events/{os.path.basename(save_path)}'
+    return rel_path

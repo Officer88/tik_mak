@@ -16,7 +16,7 @@
 <!-- Category Form -->
 <div class="admin-card mb-4">
     <h4 class="mb-3">{{ 'Добавить категорию' if add_mode else 'Редактировать категорию' }}</h4>
-    <form method="post" action="{% if edit_mode %}{{ url_for('admin.edit_category', category_id=category.id) }}{% else %}{{ url_for('admin.add_category') }}{% endif %}">
+    <form method="post" action="{% if edit_mode %}{{ url_for('admin.edit_category', category_id=category.id) }}{% else %}{{ url_for('admin.add_category') }}{% endif %}" enctype="multipart/form-data">
         {{ form.hidden_tag() }}
         
         <div class="mb-3">
@@ -31,20 +31,44 @@
             {% endif %}
         </div>
         
-        <div class="mb-3">
-            <label for="icon" class="form-label">Иконка Font Awesome</label>
-            <div class="input-group">
-                <span class="input-group-text"><i class="fas fa-icons"></i></span>
-                {{ form.icon(class="form-control") }}
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <label for="icon" class="form-label">Иконка Font Awesome</label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-icons"></i></span>
+                    {{ form.icon(class="form-control") }}
+                </div>
+                {% if form.icon.errors %}
+                <div class="invalid-feedback d-block">
+                    {% for error in form.icon.errors %}
+                    {{ error }}
+                    {% endfor %}
+                </div>
+                {% endif %}
+                <div class="form-text">Укажите название иконки из Font Awesome (например: fa-music)</div>
             </div>
-            {% if form.icon.errors %}
-            <div class="invalid-feedback d-block">
-                {% for error in form.icon.errors %}
-                {{ error }}
-                {% endfor %}
+            
+            <div class="col-md-6">
+                <label for="icon_image" class="form-label">Загрузить иконку/GIF</label>
+                <div class="upload-zone" id="icon-upload-zone">
+                    <div class="upload-prompt">
+                        <i class="fas fa-upload mb-2"></i>
+                        <p>Перетащите файл сюда или кликните для выбора</p>
+                        <p class="text-muted small">Поддерживаются JPG, PNG, GIF и SVG</p>
+                    </div>
+                    {% if category and category.icon_image_path %}
+                    <img src="{{ category.icon_image_path }}" class="img-preview" alt="Иконка категории">
+                    {% endif %}
+                    {{ form.icon_image(class="form-control", accept=".jpg,.jpeg,.png,.gif,.svg", style="display: none;") }}
+                </div>
+                {% if form.icon_image.errors %}
+                <div class="invalid-feedback d-block">
+                    {% for error in form.icon_image.errors %}
+                    {{ error }}
+                    {% endfor %}
+                </div>
+                {% endif %}
             </div>
-            {% endif %}
-            <div class="form-text">Укажите название иконки из Font Awesome (например: fa-music)</div>
         </div>
         
         <div class="mb-3">
@@ -77,6 +101,68 @@
         </div>
     </form>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const uploadZone = document.getElementById('icon-upload-zone');
+    const fileInput = uploadZone.querySelector('input[type="file"]');
+    
+    // Обработка клика на зону загрузки
+    uploadZone.addEventListener('click', function() {
+        fileInput.click();
+    });
+    
+    // Обработка перетаскивания файлов
+    uploadZone.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        uploadZone.classList.add('highlight');
+    });
+    
+    uploadZone.addEventListener('dragleave', function() {
+        uploadZone.classList.remove('highlight');
+    });
+    
+    uploadZone.addEventListener('drop', function(e) {
+        e.preventDefault();
+        uploadZone.classList.remove('highlight');
+        
+        if (e.dataTransfer.files.length) {
+            fileInput.files = e.dataTransfer.files;
+            updatePreview(e.dataTransfer.files[0]);
+        }
+    });
+    
+    // Обработка выбора файла
+    fileInput.addEventListener('change', function() {
+        if (fileInput.files.length) {
+            updatePreview(fileInput.files[0]);
+        }
+    });
+    
+    // Функция обновления предпросмотра
+    function updatePreview(file) {
+        const uploadPrompt = uploadZone.querySelector('.upload-prompt');
+        
+        // Очищаем предыдущий превью, если он есть
+        const existingPreview = uploadZone.querySelector('.img-preview');
+        if (existingPreview) {
+            existingPreview.remove();
+        }
+        
+        // Создаем превью
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = document.createElement('img');
+            img.src = e.target.result;
+            img.className = 'img-preview';
+            img.alt = 'Предпросмотр иконки';
+            uploadZone.appendChild(img);
+            uploadZone.classList.add('has-image');
+        };
+        reader.readAsDataURL(file);
+    }
+});
+</script>
 {% endif %}
 
 <!-- Categories List -->
@@ -96,7 +182,13 @@
                 {% for category in categories %}
                 <tr>
                     <td>{{ category.id }}</td>
-                    <td><i class="fas {{ category.icon }} fa-2x"></i></td>
+                    <td>
+                        {% if category.icon_image_path %}
+                            <img src="{{ category.icon_image_path }}" alt="{{ category.name }}" style="max-width: 40px; max-height: 40px;">
+                        {% else %}
+                            <i class="fas {{ category.icon }} fa-2x"></i>
+                        {% endif %}
+                    </td>
                     <td>{{ category.name }}</td>
                     <td>{{ category.events.count() }}</td>
                     <td>

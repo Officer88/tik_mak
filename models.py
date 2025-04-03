@@ -33,6 +33,7 @@ class Category(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(64), unique=True, nullable=False)
     icon = db.Column(db.String(32), nullable=True)
+    icon_image_path = db.Column(db.String(256), nullable=True)
     seo_title = db.Column(db.String(100), nullable=True)
     seo_description = db.Column(db.String(200), nullable=True)
     
@@ -51,7 +52,9 @@ class Venue(db.Model):
     city = db.Column(db.String(64), nullable=False)
     venue_map = db.Column(db.Text, nullable=True)  # Карта зала как текст/SVG
     logo_url = db.Column(db.String(256), nullable=True)  # URL логотипа площадки
+    logo_path = db.Column(db.String(256), nullable=True)  # Путь к загруженному логотипу
     scheme_url = db.Column(db.String(256), nullable=True)  # URL схемы площадки
+    scheme_path = db.Column(db.String(256), nullable=True)  # Путь к загруженной схеме
     description = db.Column(db.Text, nullable=True)  # Описание площадки
     
     # Relationships
