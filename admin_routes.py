@@ -366,7 +366,7 @@ def add_venue():
         flash('Площадка успешно добавлена', 'success')
         return redirect(url_for('admin.venues'))
 
-    return render_template('admin/edit_venue.html', form=form, venue=None)
+    return render_template('admin/venues.html', form=form, venue=None, venues=[], add_mode=True)
 
 # Редактирование площадки
 @admin_bp.route('/venues/edit/<int:venue_id>', methods=['GET', 'POST'])
@@ -409,7 +409,7 @@ def edit_venue(venue_id):
         flash('Площадка успешно обновлена', 'success')
         return redirect(url_for('admin.venues'))
 
-    return render_template('admin/edit_venue.html', form=form, venue=venue)
+    return render_template('admin/venues.html', form=form, venue=venue, venues=[], edit_mode=True)
 
 # Удаление площадки
 @admin_bp.route('/venues/delete/<int:venue_id>', methods=['POST'])
@@ -469,7 +469,7 @@ def add_category():
         flash('Категория успешно добавлена', 'success')
         return redirect(url_for('admin.categories'))
 
-    return render_template('admin/edit_category.html', form=form, category=None)
+    return render_template('admin/edit_category.html', form=form, category=None, add_mode=True)
 
 # Редактирование категории
 @admin_bp.route('/categories/edit/<int:category_id>', methods=['GET', 'POST'])
@@ -501,7 +501,7 @@ def edit_category(category_id):
         flash('Категория успешно обновлена', 'success')
         return redirect(url_for('admin.categories'))
 
-    return render_template('admin/edit_category.html', form=form, category=category)
+    return render_template('admin/edit_category.html', form=form, category=category, edit_mode=True)
 
 # Удаление категории
 @admin_bp.route('/categories/delete/<int:category_id>', methods=['POST'])
