@@ -18,7 +18,7 @@
     <h4 class="mb-3">{{ 'Добавить категорию' if add_mode else 'Редактировать категорию' }}</h4>
     <form method="post" action="{% if edit_mode %}{{ url_for('admin.edit_category', category_id=category.id) }}{% else %}{{ url_for('admin.add_category') }}{% endif %}" enctype="multipart/form-data">
         {{ form.hidden_tag() }}
-        
+
         <div class="mb-3">
             <label for="name" class="form-label">Название</label>
             {{ form.name(class="form-control") }}
@@ -30,7 +30,7 @@
             </div>
             {% endif %}
         </div>
-        
+
         <div class="row mb-3">
             <div class="col-md-6">
                 <label for="icon" class="form-label">Иконка Font Awesome</label>
@@ -47,7 +47,7 @@
                 {% endif %}
                 <div class="form-text">Укажите название иконки из Font Awesome (например: fa-music)</div>
             </div>
-            
+
             <div class="col-md-6">
                 <label for="icon_image" class="form-label">Загрузить иконку/GIF</label>
                 <div class="upload-zone" id="icon-upload-zone">
@@ -70,7 +70,7 @@
                 {% endif %}
             </div>
         </div>
-        
+
         <div class="mb-3">
             <label for="seo_title" class="form-label">SEO Заголовок</label>
             {{ form.seo_title(class="form-control") }}
@@ -82,7 +82,7 @@
             </div>
             {% endif %}
         </div>
-        
+
         <div class="mb-3">
             <label for="seo_description" class="form-label">SEO Описание</label>
             {{ form.seo_description(class="form-control", rows=3) }}
@@ -94,7 +94,7 @@
             </div>
             {% endif %}
         </div>
-        
+
         <div>
             <a href="{{ url_for('admin.categories') }}" class="btn btn-secondary me-2">Отмена</a>
             {{ form.submit(class="btn btn-primary") }}
@@ -106,49 +106,49 @@
 document.addEventListener('DOMContentLoaded', function() {
     const uploadZone = document.getElementById('icon-upload-zone');
     const fileInput = uploadZone.querySelector('input[type="file"]');
-    
+
     // Обработка клика на зону загрузки
     uploadZone.addEventListener('click', function() {
         fileInput.click();
     });
-    
+
     // Обработка перетаскивания файлов
     uploadZone.addEventListener('dragover', function(e) {
         e.preventDefault();
         uploadZone.classList.add('highlight');
     });
-    
+
     uploadZone.addEventListener('dragleave', function() {
         uploadZone.classList.remove('highlight');
     });
-    
+
     uploadZone.addEventListener('drop', function(e) {
         e.preventDefault();
         uploadZone.classList.remove('highlight');
-        
+
         if (e.dataTransfer.files.length) {
             fileInput.files = e.dataTransfer.files;
             updatePreview(e.dataTransfer.files[0]);
         }
     });
-    
+
     // Обработка выбора файла
     fileInput.addEventListener('change', function() {
         if (fileInput.files.length) {
             updatePreview(fileInput.files[0]);
         }
     });
-    
+
     // Функция обновления предпросмотра
     function updatePreview(file) {
         const uploadPrompt = uploadZone.querySelector('.upload-prompt');
-        
+
         // Очищаем предыдущий превью, если он есть
         const existingPreview = uploadZone.querySelector('.img-preview');
         if (existingPreview) {
             existingPreview.remove();
         }
-        
+
         // Создаем превью
         const reader = new FileReader();
         reader.onload = function(e) {
@@ -190,7 +190,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         {% endif %}
                     </td>
                     <td>{{ category.name }}</td>
-                    <td>{{ category.events.count() }}</td>
+                    <td>{{ category.events_count() }}</td>
                     <td>
                         <div class="btn-group">
                             <a href="{{ url_for('admin.edit_category', category_id=category.id) }}" class="btn btn-sm btn-outline-primary">
@@ -203,7 +203,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <i class="fas fa-trash-alt"></i>
                             </button>
                         </div>
-                        
+
                         <!-- Delete Modal -->
                         <div class="modal fade" id="deleteCategoryModal{{ category.id }}" tabindex="-1" aria-labelledby="deleteCategoryModalLabel{{ category.id }}" aria-hidden="true">
                             <div class="modal-dialog">
@@ -214,16 +214,16 @@ document.addEventListener('DOMContentLoaded', function() {
                                     </div>
                                     <div class="modal-body">
                                         <p>Вы уверены, что хотите удалить категорию "{{ category.name }}"?</p>
-                                        {% if category.events.count() > 0 %}
+                                        {% if category.events_count() > 0 %}
                                         <div class="alert alert-warning">
-                                            <i class="fas fa-exclamation-triangle me-2"></i> Внимание! К этой категории привязано {{ category.events.count() }} мероприятий. Удаление невозможно.
+                                            <i class="fas fa-exclamation-triangle me-2"></i> Внимание! К этой категории привязано {{ category.events_count() }} мероприятий. Удаление невозможно.
                                         </div>
                                         {% endif %}
                                     </div>
                                     <div class="modal-footer">
                                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
                                         <form action="{{ url_for('admin.delete_category', category_id=category.id) }}" method="post">
-                                            <button type="submit" class="btn btn-danger" {% if category.events.count() > 0 %}disabled{% endif %}>Удалить</button>
+                                            <button type="submit" class="btn btn-danger" {% if category.events_count() > 0 %}disabled{% endif %}>Удалить</button>
                                         </form>
                                     </div>
                                 </div>

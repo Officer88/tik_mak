@@ -59,9 +59,9 @@ class CategoryDTO:
             print(f"Ошибка при подсчете событий для категории: {e}")
             self._events_count = 0
 
-    def events(self):
+    def events_count(self):
         """Возвращает количество событий для категории"""
-        return {'count': lambda: self._events_count}
+        return self._events_count
 
 class EventDTO:
     """Класс передачи данных для событий"""
