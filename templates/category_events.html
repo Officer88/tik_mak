@@ -15,9 +15,9 @@
     </div>
     
     {% if events.items %}
-    <div class="row">
+    <div class="row g-2">
         {% for event in events.items %}
-        <div class="col-md-6 col-lg-4 mb-4">
+        <div class="col-md-6 col-lg-4 mb-2">
             {% include 'includes/event_card.html' %}
         </div>
         {% endfor %}
