@@ -49,16 +49,14 @@
                         </span>
                         <div class="btn-group mt-1">
                             {% if ticket.status == 'pending' %}
-                                <form method="post" action="{{ url_for('admin.confirm_ticket', ticket_id=ticket.id) }}" class="d-inline me-1">
+                                <form method="post" action="{{ url_for('admin.approve_ticket_for_sale', ticket_id=ticket.id) }}" class="d-inline me-1">
                                     <button type="submit" class="btn btn-sm btn-success">Подтвердить</button>
                                 </form>
-                                <form method="post" action="{{ url_for('admin.reject_ticket', ticket_id=ticket.id) }}" class="d-inline">
+                                <form method="post" action="{{ url_for('admin.reject_ticket_for_sale', ticket_id=ticket.id) }}" class="d-inline">
                                     <button type="submit" class="btn btn-sm btn-danger">Отклонить</button>
                                 </form>
                             {% elif ticket.status == 'confirmed' %}
-                                <form method="post" action="{{ url_for('admin.mark_ticket_sold', ticket_id=ticket.id) }}" class="d-inline">
-                                    <button type="submit" class="btn btn-sm btn-info">Отметить как проданный</button>
-                                </form>
+                                <button type="button" class="btn btn-sm btn-info" disabled>Отметить как проданный</button>
                             {% endif %}
                         </div>
                     </td>
