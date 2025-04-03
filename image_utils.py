@@ -268,5 +268,17 @@ def save_image(file_obj, folder_type='events', max_size=(240, 320)):
     if not file_obj or not hasattr(file_obj, 'filename') or not file_obj.filename:
         logger.error("Некорректный файловый объект")
         return None
-        
-    return process_image(file_obj, max_size, folder_type)
+    
+    # Получаем путь от process_image
+    path = process_image(file_obj, max_size, folder_type)
+    
+    # Проверяем и исправляем путь, убедившись что он начинается с /static/
+    if path:
+        if not path.startswith('/static/'):
+            if path.startswith('static/'):
+                path = '/' + path
+            else:
+                path = '/static/' + path
+        logger.info(f"Финальный путь к изображению: {path}")
+    
+    return path

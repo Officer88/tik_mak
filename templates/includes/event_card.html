@@ -1,6 +1,15 @@
 <div class="card event-card h-100">
     <div class="event-img-container">
-        <img src="{{ event.image_url|default('') }}" class="event-img" alt="{{ event.title|default('Мероприятие') }}">
+        {% set image_url = event.image_url|default('') %}
+        {% if image_url and not image_url.startswith('/static/') and not image_url.startswith('http') %}
+            {% if image_url.startswith('static/') %}
+                <img src="/{{ image_url }}" class="event-img" alt="{{ event.title|default('Мероприятие') }}">
+            {% else %}
+                <img src="/static/{{ image_url }}" class="event-img" alt="{{ event.title|default('Мероприятие') }}">
+            {% endif %}
+        {% else %}
+            <img src="{{ image_url }}" class="event-img" alt="{{ event.title|default('Мероприятие') }}">
+        {% endif %}
         <div class="event-date-badge">
             {% if event.date %}
                 {{ event.date.strftime('%d.%m') }} 
