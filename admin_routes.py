@@ -315,7 +315,9 @@ def add_category():
                 # Для SVG-файлов просто сохраняем без обработки
                 if filename.lower().endswith('.svg'):
                     full_path = os.path.join(upload_folder, unique_filename)
-                    form.icon_image.data.save(full_path)
+                    with open(full_path, 'wb') as f:
+                        form.icon_image.data.seek(0)
+                        f.write(form.icon_image.data.read())
                     category.icon_image_path = f'/static/uploads/categories/{unique_filename}'
                 else:
                     # Для других изображений обрабатываем через process_image
@@ -392,7 +394,9 @@ def edit_category(category_id):
             # Для SVG-файлов просто сохраняем без обработки
             if filename.lower().endswith('.svg'):
                 full_path = os.path.join(upload_folder, unique_filename)
-                form.icon_image.data.save(full_path)
+                with open(full_path, 'wb') as f:
+                    form.icon_image.data.seek(0)
+                    f.write(form.icon_image.data.read())
                 category.icon_image_path = f'/static/uploads/categories/{unique_filename}'
             else:
                 # Для других изображений обрабатываем через process_image
@@ -499,7 +503,9 @@ def add_venue():
             # Для SVG-файлов просто сохраняем без обработки
             if filename.lower().endswith('.svg'):
                 full_path = os.path.join(upload_folder, unique_filename)
-                form.scheme_file.data.save(full_path)
+                with open(full_path, "wb") as f:
+                    form.scheme_file.data.seek(0)
+                    f.write(form.scheme_file.data.read())
                 venue.scheme_path = f'/static/uploads/venues/schemes/{unique_filename}'
             else:
                 # Для изображений обрабатываем через process_image
