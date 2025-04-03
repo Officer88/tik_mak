@@ -25,42 +25,44 @@ def check_admin():
 @admin_bp.route('/')
 def dashboard():
     try:
-        with db.session.begin():
-            # Статистика событий
-            total_events = db.session.query(Event).count()
-            upcoming_events = db.session.query(Event).filter(
-                Event.date >= datetime.now()
-            ).count()
-            
-            # Статистика заказов
-            total_orders = db.session.query(Order).count()
-            completed_orders = db.session.query(Order).filter_by(status='completed').count()
-            pending_orders = db.session.query(Order).filter_by(status='pending').count()
-            
-            # Статистика пользователей
-            total_users = db.session.query(User).count()
-            
-            # Билеты
-            total_tickets = db.session.query(Ticket).count()
-            sold_tickets = db.session.query(Ticket).filter_by(is_available=False).count()
-            available_tickets = total_tickets - sold_tickets
+        # Статистика событий
+        total_events = Event.query.count()
+        upcoming_events = Event.query.filter(
+            Event.date >= datetime.now()
+        ).count()
+        
+        # Статистика заказов
+        total_orders = Order.query.count()
+        completed_orders = Order.query.filter_by(status='completed').count()
+        pending_orders = Order.query.filter_by(status='pending').count()
+        
+        # Статистика пользователей
+        total_users = User.query.count()
+        
+        # Билеты
+        total_tickets = Ticket.query.count()
+        sold_tickets = Ticket.query.filter_by(is_available=False).count()
+        available_tickets = total_tickets - sold_tickets
             
             # Последние заказы
-            recent_orders = db.session.query(Order).order_by(Order.created_at.desc()).limit(10).all()
+            recent_orders = Order.query.order_by(Order.created_at.desc()).limit(10).all()
             
             # Статистика по категориям
-            categories = db.session.query(Category).all()
+            categories = Category.query.all()
             category_stats = []
             
             for category in categories:
                 events = Event.query.filter_by(category_id=category.id).all()
                 event_ids = [event.id for event in events]
                 
-                sold_tickets_count = Ticket.query.filter(
-                    Ticket.event_id.in_(event_ids),
-                    Ticket.is_available == False
-                ).count()
-                
+                if event_ids:  # Проверяем, есть ли события в категории
+                    sold_tickets_count = Ticket.query.filter(
+                        Ticket.event_id.in_(event_ids),
+                        Ticket.is_available == False
+                    ).count()
+                else:
+                    sold_tickets_count = 0
+                    
                 category_stats.append({
                     'name': category.name,
                     'sold_tickets': sold_tickets_count
