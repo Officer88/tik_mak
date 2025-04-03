@@ -256,7 +256,7 @@ body {
 .event-img-container {
     position: relative;
     overflow: hidden;
-    height: 320px; /* Увеличиваем высоту для вертикальных изображений */
+    height: 210px; /* Уменьшаем высоту изображения примерно на треть от 320px */
     flex-shrink: 0;
 }
 
@@ -640,7 +640,7 @@ body {
     }
     
     .event-img-container {
-        height: 250px;
+        height: 180px;
     }
     
     .event-card-body {
